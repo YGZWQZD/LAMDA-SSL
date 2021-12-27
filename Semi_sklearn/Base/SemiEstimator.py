@@ -6,9 +6,3 @@ class SemiEstimator(ABC,BaseEstimator):
         raise NotImplementedError(
             "Fit method of SemiEstimator class must be implemented."
         )
-
-
-
-
-
-
