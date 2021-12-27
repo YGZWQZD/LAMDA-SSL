@@ -1,4 +1,4 @@
-from SemiEstimator import SemiEstimator
+from .SemiEstimator import SemiEstimator
 from abc import abstractmethod
 
 class TransductiveEstimator(SemiEstimator):
