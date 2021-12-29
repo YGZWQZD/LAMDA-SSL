@@ -25,17 +25,24 @@ class SemiDataset(Dataset):
             labled_length=None,
             unlabled_length=None
     ):
+        self.labled_y = labled_y
         self.labled_X = labled_X
         self.labled_X_indexing = check_indexing(labled_X)
-        self.lableed_X_is_ndframe = is_pandas_ndframe(labled_X)
+        self.labled_X_is_ndframe = is_pandas_ndframe(labled_X)
         self.unlabled_X = unlabled_X
         self.unlabled_X_indexing = check_indexing(unlabled_X)
         self.unlabled_X_is_ndframe = is_pandas_ndframe(unlabled_X)
+        
         if labled_length is not None:
             self._labled_len = labled_length
         else:
-            labled_len_X = get_len(labled_X)
-            self._labled_len = labled_len_X
+            len_labled_X = get_len(labled_X)
+            if labled_y is not None:
+                len_labled_y = get_len(labled_y)
+                if len_labled_y != len_labled_X:
+                    raise ValueError("labled_X and labled_y have inconsistent lengths.")
+            self._labled_len = len_labled_X
+
         if unlabled_length is not None:
             self._unlabled_len = unlabled_length
         else:
@@ -62,17 +69,17 @@ class SemiDataset(Dataset):
 
     def __getitem__(self, i, labled = True):
         if labled:
-            X, y = self.X, self.y
-            if self.X_is_ndframe:
+            X, y = self.labled_X, self.labled_y
+            if self.labled_X_is_ndframe:
                 X = {k: X[k].values.reshape(-1, 1) for k in X}
 
             Xi = multi_indexing(X, i, self.X_indexing)
             yi = multi_indexing(y, i, self.y_indexing)
-            return self.transform(Xi, yi)
+            return self.transform(Xi, yi, labled)
         else:
-            X = self.X
-            if self.X_is_ndframe:
+            X = self.unlabled_X
+            if self.unlabled_X_is_ndframe:
                 X = {k: X[k].values.reshape(-1, 1) for k in X}
 
             Xi = multi_indexing(X, i, self.X_indexing)
-            return self.transform(Xi)
+            return self.transform(Xi, labled)
