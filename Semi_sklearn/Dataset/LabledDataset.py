@@ -61,36 +61,3 @@ class LabledDataset(Dataset):
         Xi = multi_indexing(X, i, self.X_indexing)
         yi = multi_indexing(y, i, self.y_indexing)
         return self.transform(Xi, yi)
-
-class UblabledDataset(Dataset):
-    def __init__(
-            self,
-            X,
-            length=None,
-    ):
-        self.X = X
-        self.X_indexing = check_indexing(X)
-        self.X_is_ndframe = is_pandas_ndframe(X)
-        if length is not None:
-            self._len = length
-            return
-        # pylint: disable=invalid-name
-        len_X = get_len(X)
-        self._len = len_X
-
-    def __len__(self):
-        return self._len
-
-    def transform(self, X):
-
-        if sparse.issparse(X):
-            X = X.toarray().squeeze(0)
-        return X
-
-    def __getitem__(self, i):
-        X = self.X
-        if self.X_is_ndframe:
-            X = {k: X[k].values.reshape(-1, 1) for k in X}
-
-        Xi = multi_indexing(X, i, self.X_indexing)
-        return self.transform(Xi)

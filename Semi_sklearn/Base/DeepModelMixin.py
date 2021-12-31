@@ -1,5 +1,11 @@
-class DeepModelMixin:
-    def alg():
+from semi_sklearn.dataset import SemiDataset
+class SemiDeepModelMixin:
+    def fit(self,labled_X,labled_y,unlabled_X):
+      if isinstance(labled_X,SemiDataset):
+        self.dataset=labled_X
+      else:
+        self.dataset=SemiDataset(labled_X,labled_y,unlabled_X)
+    def alg(self):
         pass
     def train_step_single(self, batch, **fit_params):
         """Compute y_pred, loss value, and update net's gradients.
@@ -33,3 +39,21 @@ class DeepModelMixin:
             'loss': loss,
             'y_pred': y_pred,
         }
+def infer(self, x, **fit_params):
+        """Perform a single inference step on a batch of data.
+
+        Parameters
+        ----------
+        x : input data
+          A batch of the input data.
+
+        **fit_params : dict
+          Additional parameters passed to the ``forward`` method of
+          the module and to the ``self.train_split`` call.
+
+        """
+        x = to_tensor(x, device=self.device)
+        if isinstance(x, dict):
+            x_dict = self._merge_x_and_fit_params(x, fit_params)
+            return self.module_(**x_dict)
+        return self.module_(x, **fit_params)
