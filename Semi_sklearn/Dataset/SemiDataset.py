@@ -18,6 +18,7 @@ class SemiDataset(Dataset):
             labled_X,
             labled_y=None,
             unlabled_X=None,
+            unlabled_y=None,
             labled_size=0.1,
             stratified=False,
             shuffle=True,
@@ -33,7 +34,7 @@ class SemiDataset(Dataset):
         self.labled_X_is_ndframe = is_pandas_ndframe(labled_X)
         if unlabled_X is not None:
             self.unlabled_X = unlabled_X
-            self.unlabled_y = None
+            self.unlabled_y = unlabled_y
             self.labled_y = labled_y
             self.labled_X = labled_X
         else:
@@ -62,7 +63,7 @@ class SemiDataset(Dataset):
         else:
             return self._unlabled_len
 
-    def transform(self, X, y, labled = True):
+    def transform_(self, X, y, labled = True):
         if labled:
             y = torch.Tensor([0]) if y is None else y
 
@@ -82,20 +83,12 @@ class SemiDataset(Dataset):
 
             Xi = multi_indexing(X, i, self.labled_X_indexing)
             yi = multi_indexing(y, i, self.labled_y_indexing)
-            return self.transform(Xi, yi, labled)
+            return self.transform_(Xi, yi, labled)
         else:
-            X = self.unlabled_X
+            X, y = self.unlabled_X, self.unlabled_y
             if self.unlabled_X_is_ndframe:
                 X = {k: X[k].values.reshape(-1, 1) for k in X}
 
             Xi = multi_indexing(X, i, self.unlabled_X_indexing)
-            return self.transform(Xi, labled)
-
-    def getitem_unlabled_y(self,i,labled=False):
-        # For evaluation of transductive learning
-        y=self.unlabled_y
-        if y is None:
-            return y
-        yi = multi_indexing(y, i, self.unlabled_y_indexing)
-        yi = torch.Tensor([0]) if y is None else y
-        return yi
+            yi = multi_indexing(y, i, self.unlabled_y_indexing)
+            return self.transform_(Xi, yi,labled)
