@@ -2,7 +2,7 @@ import numpy as np
 from skorch.utils import to_numpy
 from sklearn.utils.validation import check_array
 from sklearn.utils import _approximate_mode
-def get_split_num(X,y,num_labled):
+def get_split_num(X,y,labled_size):
     len_X = get_len(X)
     len_y = get_len(y)
     if len_X!=len_y:
@@ -96,24 +96,32 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state):
         ind_unlabled = permutation[num_labled : (num_labled + num_unlabled)]
         return ind_labled,ind_unlabled
 
-class SemiSplit:
-    def __init__(self,stratified,shuffle,random_state):
-        self.random_state=random_state
-        self.shuffle=shuffle
-        self.stratified=stratified
-    def __call__(self, X, y, labled_size,X_indexing,y_indexing):
-
-        num_labled,num_unlabled=get_split_num(X,y,labled_size)
-        ind_labled,ind_unlabled=get_split_index(y,num_labled=num_labled,num_unlabled=num_unlabled,
-                                                stratified=self.stratified,shuffle=self.shuffle,
-                                                random_state=self.random_state
-                                                )
-        labled_X= multi_indexing(X,ind_labled,X_indexing)
-        labled_y=multi_indexing(y,ind_labled,y_indexing)
-        unlabled_X=multi_indexing(X,ind_unlabled,X_indexing)
-        unlabled_y=multi_indexing(y,ind_unlabled,y_indexing)
-        return labled_X,labled_y,unlabled_X,unlabled_y
-
+def SemiSplit(stratified,shuffle,random_state, X=None, y=None, dataset=None,labled_size=None):
+        if X is not None:
+            num_labled,num_unlabled=get_split_num(X,y,labled_size)
+            ind_labled,ind_unlabled=get_split_index(y,num_labled=num_labled,num_unlabled=num_unlabled,
+                                                    stratified=stratified,shuffle=shuffle,
+                                                    random_state=random_state
+                                                    )
+            X_indexing=get_indexing_method(X)
+            y_indexing =get_indexing_method(y)
+            labled_X= indexing(X,ind_labled,X_indexing)
+            labled_y= indexing(y,ind_labled,y_indexing)
+            unlabled_X= indexing(X,ind_unlabled,X_indexing)
+            unlabled_y= indexing(y,ind_unlabled,y_indexing)
+            return labled_X,labled_y,unlabled_X,unlabled_y
+        elif dataset is not None:
+            X=dataset.get_X()
+            y=dataset.get_y()
+            num_labled, num_unlabled = get_split_num(X, y, labled_size)
+            ind_labled,ind_unlabled=get_split_index(y,num_labled=num_labled,num_unlabled=num_unlabled,
+                                                    stratified=stratified,shuffle=shuffle,
+                                                    random_state=random_state
+                                                    )
+            dataset_indexing=get_indexing(dataset)
+            labled_dataset=indexing(dataset,ind_labled,dataset_indexing)
+            unlabled_dataset=indexing(dataset,ind_unlabled,dataset_indexing)
+            return labled_dataset,unlabled_dataset
 
         
 

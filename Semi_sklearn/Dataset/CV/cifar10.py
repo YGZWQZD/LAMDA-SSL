@@ -1,4 +1,12 @@
 import numpy as np
+from .SemiVisionDataset import  SemiVisionDataset
+from torchvision.datasets.utils import check_integrity, download_and_extract_archive
+import os
+import pickle
+from Semi_sklearn.Split import SemiSplit
+from Semi_sklearn.Dataset.CV.SemiTrainVisionDataset import SemiTrainVisionDataset
+from Semi_sklearn.Dataset.CV.LabledVisionDataset import LabledVisionDataset
+from Semi_sklearn.Dataset.CV.UnlabledVisionDataset import UnlabledVisionDataset
 class CIFAR10(SemiVisionDataset):
     base_folder = "cifar-10-batches-py"
     url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
@@ -24,26 +32,42 @@ class CIFAR10(SemiVisionDataset):
     def __init__(
         self,
         root: str,
-        transform: Optional[Callable] = None,
-        target_transform: Optional[Callable] = None,
+        transform = None,
+        target_transform = None,
         labled_size=0.1,
-        test_size=None,
         stratified=False,
         shuffle=True,
         random_state=None,
         download: bool = False
 
     ) -> None:
-
+        self.labled_X=None
+        self.labled_y=None
+        self.unlabled_X=None
+        self.unlabled_y=None
+        self.test_X=None
+        self.test_y=None
+        self.labled_dataset=None
+        self.unlabled_dataset=None
+        self.train_dataset=None
+        self.test_dataset=None
+        self.data_initialized=False
+        self.len_test=None
+        self.len_labled=None
+        self.len_unlabled=None
+        self.labled_X_indexing_method=None
+        self.labled_y_indexing_method =None
+        self.unlabled_X_indexing_method =None
+        self.unlabled_y_indexing_method =None
+        self.test_X_indexing_method=None
+        self.test_y_indexing_method=None
+        super().__init__(root, transform=transform, target_transform=target_transform,labled_size=labled_size,
+                        stratified=stratified,shuffle=shuffle,random_state=random_state)
         if download:
             self.download()
 
         if not self._check_integrity():
             raise RuntimeError("Dataset not found or corrupted. You can use download=True to download it")
-
-        super().__init__(root, transform=transform, target_transform=target_transform,labled_size=labled_size,
-                        test_size=test_size,stratified=stratified,shuffle=shuffle,random_state=random_state)
-
 
         self._load_meta()
 
@@ -70,48 +94,50 @@ class CIFAR10(SemiVisionDataset):
             print("Files already downloaded and verified")
             return
         download_and_extract_archive(self.url, self.root, filename=self.filename, md5=self.tgz_md5)
-    def get_data(self,test,labled):
-        if test:
-            if self.test_X is None:
-                self.test_X: Any = []
-                self.test_y=[]
-                for file_name, checksum in self.test_list:
-                    file_path = os.path.join(self.root, self.base_folder, file_name)
-                    with open(file_path, "rb") as f:
-                        entry = pickle.load(f, encoding="latin1")
-                        self.test_X.append(entry["data"])
-                        if "labels" in entry:
-                            self.test_y.extend(entry["labels"])
-                        else:
-                            self.test_y.extend(entry["fine_labels"])
-                self.test_X = np.vstack(self.test_X).reshape(-1, 3, 32, 32)
-                self.test_X = self.test_X.transpose((0, 2, 3, 1)) 
-            return self.test_X,self.test_y
-        else:
-            if self.labled_X is None:
-                self.train_X: Any = []
-                self.train_y=[]
-                for file_name, checksum in self.test_list:
-                    file_path = os.path.join(self.root, self.base_folder, file_name)
-                    with open(file_path, "rb") as f:
-                        entry = pickle.load(f, encoding="latin1")
-                        self.train_X.append(entry["data"])
-                        if "labels" in entry:
-                            self.train_y.extend(entry["labels"])
-                        else:
-                            self.train_y.extend(entry["fine_labels"])
-                self.train_X = np.vstack(self.train_X).reshape(-1, 3, 32, 32)
-                self.train_X = self.train_X.transpose((0, 2, 3, 1))
-                self.labled_X,self.labled_y,self.unlabled_X,self.unlabled_y=SemiSplit(X=self.train_X,y=self.train_y,
-                                                                labled_size=self.labled_size,
-                                                                stratified=self.stratified,
-                                                                shuffle=self.shuffle,
-                                                                random_state=self.random_state,
-                                                                X_indexing=self.labled_X_indexing, 
-                                                                y_indexing=self.labled_y_indexing
-                                                                )
-            if labled:
-                return self.labled_X,self.labled_y
-            else:
-                return self.unlabled_X,self.unlabled_y
+
+    def _init_dataset(self):
+        test_X = []
+        test_y = []
+        for file_name, checksum in self.test_list:
+            file_path = os.path.join(self.root, self.base_folder, file_name)
+            with open(file_path, "rb") as f:
+                entry = pickle.load(f, encoding="latin1")
+                test_X.append(entry["data"])
+                if "labels" in entry:
+                    test_y.extend(entry["labels"])
+                else:
+                    test_y.extend(entry["fine_labels"])
+        test_X = np.vstack(test_X).reshape(-1, 3, 32, 32)
+        test_X = test_X.transpose((0, 2, 3, 1))
+
+        self.train_X = []
+        self.train_y = []
+        for file_name, checksum in self.test_list:
+            file_path = os.path.join(self.root, self.base_folder, file_name)
+            with open(file_path, "rb") as f:
+                entry = pickle.load(f, encoding="latin1")
+                self.train_X.append(entry["data"])
+                if "labels" in entry:
+                    self.train_y.extend(entry["labels"])
+                else:
+                    self.train_y.extend(entry["fine_labels"])
+        self.train_X = np.vstack(self.train_X).reshape(-1, 3, 32, 32)
+        self.train_X = self.train_X.transpose((0, 2, 3, 1))
+        labled_X, labled_y, unlabled_X, unlabled_y = SemiSplit(X=self.train_X, y=self.train_y,
+                                                               labled_size=self.labled_size,
+                                                               stratified=self.stratified,
+                                                               shuffle=self.shuffle
+                                                               )
+        self.test_dataset=LabledVisionDataset()
+        self.test_dataset.init_dataset(test_X,test_y)
+        self.train_dataset = SemiTrainVisionDataset()
+        labled_dataset=LabledVisionDataset()
+        labled_dataset.init_dataset(labled_X, labled_y)
+        unlabled_dataset=UnlabledVisionDataset()
+        unlabled_dataset.init_dataset(unlabled_X, unlabled_y)
+        self.train_dataset.init_dataset(labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset)
+
+
+
+
 
