@@ -10,7 +10,8 @@ def SemiTrainDataLoader(DataLoader):
                  timeout = 0, worker_init_fn = None,
                  multiprocessing_context=None, generator=None,
                  *, prefetch_factor = 2,
-                 persistent_workers= False):
+                 persistent_workers= False,
+                 batch_size_adjust=False):
         self.batch_size=batch_size
         if isinstance(self.batch_size,list):
             self.labled_batch_size,self.unlabled_batch_size=self.batch_size[0],self.batch_size[1]
@@ -130,8 +131,9 @@ def SemiTrainDataLoader(DataLoader):
         self.unlabled_dataloader=None
         self.len_labled=None
         self.len_unlabled=None
+        self.batch_size_adjust=batch_size_adjust
 
-    def get_dataloader(self,dataset=None,labled_dataset=None,unlabled_dataset=None,semitrain_class=SemiTrainDataset):
+    def get_dataloader(self,dataset=None,labled_dataset=None,unlabled_dataset=None,semitrain_class=SemiTrainDataset,mu=None):
         if dataset is not None:
             self.dataset=dataset
             self.labled_dataset=self.dataset.get_dataset(labled=True)
@@ -145,10 +147,13 @@ def SemiTrainDataLoader(DataLoader):
             raise ValueError('No dataset')
         self.len_labled=self.dataset.__len__(labled=True)
         self.len_unlabled=self.dataset.__len__(labled=False)
-        if self.len_labled < self.len_unlabled:
-            self.unlabled_batch_size=self.labled_batch_size*(self.len_unlabled//self.len_labled)
-        else:
-            self.labled_batch_size = self.unlabled_batch_size * (  self.len_labled//self.len_unlabled)
+        if self.batch_size_adjust:
+            if self.len_labled < self.len_unlabled:
+                self.unlabled_batch_size=self.labled_batch_size*(self.len_unlabled//self.len_labled)
+            else:
+                self.labled_batch_size = self.unlabled_batch_size * (self.len_labled//self.len_unlabled)
+        if mu is not None:
+            self.unlabled_batch_size=mu*self.labled_batch_size
         self.labled_dataloader=DataLoader(dataset=self.labled_dataset,
                             batch_size=self.labled_batch_size,
                             shuffle = self.labled_shuffle,

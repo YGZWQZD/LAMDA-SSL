@@ -2,6 +2,7 @@ import PIL,PIL.ImageEnhance
 from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
 class Sharpness(Augmentation):
     def __init__(self, v):
+        super().__init__()
         self.v=v
         assert v >= 0.0
     def fit(self,X=None,y=None,dataset=None):
@@ -21,4 +22,4 @@ class Sharpness(Augmentation):
 
     def fit_transform(self,X=None,y=None,dataset=None):
 
-        return self.transform(self,X=X,y=y,dataset=dataset)
+        return self.transform(X=X,y=y,dataset=dataset)

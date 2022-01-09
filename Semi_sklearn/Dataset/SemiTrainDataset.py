@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 from ..utils import get_indexing_method,get_len,indexing
 from .LabledDataset import LabledDataset
 from .UnlabledDataset import UnlabledDataset
-from ..Split import SemiSplit
+from ..Split.SemiSplit import SemiSplit
 import torch
 from scipy import sparse
 class SemiTrainDataset(Dataset):
@@ -57,7 +57,7 @@ class SemiTrainDataset(Dataset):
             if unlabled_X is not None:
                 self.unlabled_dataset=unlabled_dataset
             else:
-                self.labled_dataset,self.unlabled_dataset=SemiSplit(datasset=self.labled_dataset,
+                self.labled_dataset,self.unlabled_dataset=SemiSplit(dataset=self.labled_dataset,
                                                                 labled_size=self.labled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,

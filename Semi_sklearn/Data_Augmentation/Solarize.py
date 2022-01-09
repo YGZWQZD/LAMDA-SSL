@@ -1,7 +1,8 @@
 import PIL, PIL.ImageOps
 from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
 class Solarize(Augmentation):
-    def __init__(self,v):
+    def __init__(self, v):
+        super().__init__()
         self.v=v
         assert 0 <= v <= 256
     def fit(self,X=None,y=None,dataset=None):
@@ -21,4 +22,4 @@ class Solarize(Augmentation):
 
     def fit_transform(self,X=None,y=None,dataset=None):
 
-        return self.transform(self,X=X,y=y,dataset=dataset)
+        return self.transform(X=X,y=y,dataset=dataset)

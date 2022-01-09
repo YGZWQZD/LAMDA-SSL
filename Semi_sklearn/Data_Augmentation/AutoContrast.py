@@ -2,7 +2,7 @@ import PIL, PIL.ImageOps
 from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
 class AutoContrast(Augmentation):
     def __init__(self):
-        pass
+        super().__init__()
     def fit(self,X=None,y=None,dataset=None):
         pass
 
@@ -20,4 +20,4 @@ class AutoContrast(Augmentation):
 
     def fit_transform(self,X=None,y=None,dataset=None):
 
-        return self.transform(self,X=X,y=y,dataset=dataset)
+        return self.transform(X=X,y=y,dataset=dataset)
