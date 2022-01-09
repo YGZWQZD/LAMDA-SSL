@@ -21,6 +21,7 @@ def CutoutAbs(X, v):
     return X
 class Cutout(Augmentation):
     def __init__(self, v):
+        super().__init__()
         self.v=v
         assert 0.0 <= v <= 0.5
     def fit(self,X=None,y=None,dataset=None):
@@ -43,4 +44,4 @@ class Cutout(Augmentation):
 
     def fit_transform(self,X=None,y=None,dataset=None):
 
-        return self.transform(self,X=X,y=y,dataset=dataset)
+        return self.transform(X=X,y=y,dataset=dataset)

@@ -40,7 +40,7 @@ class SemiTrainVisionDataset(SemiTrainDataset, VisionDataset):
         VisionDataset.__init__(self, root=root, transforms=transforms, transform=transform,
                                target_transform=target_transform)
         self.labled_class=LabledVisionDataset
-        self.unLabled_class=UnlabledVisionDataset
+        self.unlabled_class=UnlabledVisionDataset
     def _init_dataset(self):
         raise NotImplementedError(
             "_init_dataset method of SemiVisionDataset class must be implemented."

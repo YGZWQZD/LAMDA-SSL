@@ -3,7 +3,7 @@ from .SemiVisionDataset import  SemiVisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 import os
 import pickle
-from Semi_sklearn.Split import SemiSplit
+from Semi_sklearn.Split.SemiSplit import SemiSplit
 from Semi_sklearn.Dataset.CV.SemiTrainVisionDataset import SemiTrainVisionDataset
 from Semi_sklearn.Dataset.CV.LabledVisionDataset import LabledVisionDataset
 from Semi_sklearn.Dataset.CV.UnlabledVisionDataset import UnlabledVisionDataset
@@ -28,6 +28,8 @@ class CIFAR10(SemiVisionDataset):
         "key": "label_names",
         "md5": "5ff9c542aee3614f3951f8cda6e48888",
     }
+    mean=[0.4914, 0.4822, 0.4465]
+    std=[0.2471, 0.2435, 0.2616]
 
     def __init__(
         self,
@@ -126,7 +128,8 @@ class CIFAR10(SemiVisionDataset):
         labled_X, labled_y, unlabled_X, unlabled_y = SemiSplit(X=self.train_X, y=self.train_y,
                                                                labled_size=self.labled_size,
                                                                stratified=self.stratified,
-                                                               shuffle=self.shuffle
+                                                               shuffle=self.shuffle,
+                                                               random_state=self.random_state
                                                                )
         self.test_dataset=LabledVisionDataset()
         self.test_dataset.init_dataset(test_X,test_y)

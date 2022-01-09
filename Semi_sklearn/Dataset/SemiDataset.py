@@ -3,7 +3,7 @@ from .SemiTrainDataset import SemiTrainDataset
 from .LabledDataset import LabledDataset
 from .UnlabledDataset import UnlabledDataset
 from ..utils import get_indexing_method,get_len,indexing
-from ..Split import SemiSplit
+from ..Split.SemiSplit import SemiSplit
 import torch
 from scipy import sparse
 class SemiDataset(Dataset):

@@ -3,7 +3,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 class Augmentation(BaseEstimator,TransformerMixin,ABC):
     def __init__(self):
         pass
-
     def fit(self,X=None,y=None,dataset=None):
         pass
 
