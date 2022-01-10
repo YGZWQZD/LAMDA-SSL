@@ -1,8 +1,10 @@
 # pylint: disable=unused-argument
+from copy import deepcopy
 from distutils.version import LooseVersion
 from functools import partial
 import sklearn
 import torch
+from torch.utils.data import dataset
 import numpy as np
 from scipy import sparse
 
@@ -133,6 +135,47 @@ def get_len(data):
     if len(len_set) != 1:
         raise ValueError("Dataset does not have consistent lengths.")
     return list(len_set)[0]
+class ModelEMA(object):
+    def __init__(self, decay):
+
+        self.decay = decay
+        self.model=None
+        self.device=None
+        self.ema=None
+    def init_ema(self,model,device):
+        self.device=device
+        self.model=model
+        self.ema = deepcopy(model)
+        self.ema.to(device)
+        self.ema.eval()
+        self.ema_has_module = hasattr(self.ema, 'module')
+        # Fix EMA. https://github.com/valencebond/FixMatch_pytorch thank you!
+        self.param_keys = [k for k, _ in self.ema.named_parameters()]
+        self.buffer_keys = [k for k, _ in self.ema.named_buffers()]
+        for p in self.ema.parameters():
+            p.requires_grad_(False)
+
+
+    def update(self, model):
+        needs_module = hasattr(model, 'module') and not self.ema_has_module
+        with torch.no_grad():
+            msd = model.state_dict()
+            esd = self.ema.state_dict()
+            for k in self.param_keys:
+                if needs_module:
+                    j = 'module.' + k
+                else:
+                    j = k
+                model_v = msd[j].detach()
+                ema_v = esd[k]
+                esd[k].copy_(ema_v * self.decay + (1. - self.decay) * model_v)
+
+            for k in self.buffer_keys:
+                if needs_module:
+                    j = 'module.' + k
+                else:
+                    j = k
+                esd[k].copy_(msd[j])
 
 
 
