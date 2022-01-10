@@ -43,7 +43,7 @@ class UnlabledDataset(Dataset):
         self.y = y
         if self.has_lable is not True and y is not None:
             self.has_lable=True
-        
+
 
 
     def _transform(self,X,y):
