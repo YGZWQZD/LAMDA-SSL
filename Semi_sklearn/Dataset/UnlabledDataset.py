@@ -36,6 +36,16 @@ class UnlabledDataset(Dataset):
             raise RuntimeError('No lables')
         return self.y
 
+    def set_X(self,X):
+        self.X=X
+
+    def set_y(self,y):
+        self.y = y
+        if self.has_lable is not True and y is not None:
+            self.has_lable=True
+
+
+
     def _transform(self,X,y):
         y = torch.Tensor([0]) if y is None else y
         if sparse.issparse(X):

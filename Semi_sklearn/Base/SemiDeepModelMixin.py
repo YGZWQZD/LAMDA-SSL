@@ -1,5 +1,5 @@
 from math import ceil
-
+import torch
 from Semi_sklearn.Dataset.LabledDataset import LabledDataset
 from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
 from Semi_sklearn.Data_loader.SemiTrainDataloader import SemiTrainDataLoader
@@ -70,12 +70,13 @@ class SemiDeepModelMixin:
         self.test_dataloader=self.test_dataloader.get_dataloader(self.test_dataset)
         self.y_est=[]
         self.start_predict()
-        for X,_ in self.test_dataloader:
-            self.start_batch_test()
-            self.y_est.append(self.estimate(X))
-            self.end_batch_test()
-        y_pred=self.get_predict_result(self.y_est)
-        self.end_predict()
+        with torch.no_grad():
+            for X,_ in self.test_dataloader:
+                self.start_batch_test()
+                self.y_est.append(self.estimate(X))
+                self.end_batch_test()
+            y_pred=self.get_predict_result(self.y_est)
+            self.end_predict()
         return y_pred
 
     def start_fit(self, *args, **kwargs):
@@ -100,6 +101,7 @@ class SemiDeepModelMixin:
         pass
     def end_predict(self, *args, **kwargs):
         pass
+
     @abstractmethod
     def train(self,lb_X,lb_y,ulb_X,*args,**kwargs):
         raise NotImplementedError

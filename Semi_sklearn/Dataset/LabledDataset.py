@@ -28,6 +28,10 @@ class LabledDataset(Dataset):
         return self.X
     def get_y(self):
         return self.y
+    def set_X(self,X):
+        self.X=X
+    def set_y(self,y):
+        self.y=y
 
     def _transform(self,X,y):
         y = torch.Tensor([0]) if y is None else y
