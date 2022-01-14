@@ -1,23 +1,23 @@
 from math import ceil
 import torch
+from Semi_sklearn.Base.SemiEstimator import SemiEstimator
 from Semi_sklearn.Dataset.LabledDataset import LabledDataset
 from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
 from Semi_sklearn.Data_loader.SemiTrainDataloader import SemiTrainDataLoader
 from Semi_sklearn.Data_loader.SemiTestDataloader import SemiTestDataLoader
 from abc import abstractmethod
-class SemiDeepModelMixin:
+class SemiDeepModelMixin(SemiEstimator):
     def __init__(self, train_dataset=None, test_dataset=None,
                  train_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
                  network=None,
                  epoch=1,
-                 it_epoch=None,
-                 it_total=None,
+                 num_it_epoch=None,
+                 num_it_total=None,
                  mu=None,# unlabled/labled in each batch
                  optimizer=None,
                  scheduler=None,
-                 lr=0.01,
                  device=None
                  ):
         self.train_dataset=train_dataset
@@ -30,23 +30,28 @@ class SemiDeepModelMixin:
         self.mu=mu
         self.optimizer=optimizer
         self.scheduler=scheduler
-        self.lr=lr
         self.device=device
         self.y_est=None
-        if it_epoch is not None:
-            num_it_total=epoch*it_epoch
-        if it_total is not None:
-            num_it_epoch=ceil(it_total/epoch)
+        self.num_it_epoch=num_it_epoch
+        self.num_it_total=num_it_total
+        if self.num_it_epoch is not None and self.epoch is not None:
+            self.num_it_total=self.epoch*self.num_it_epoch
+        if self.num_it_total is not None and self.epoch is not None:
+            self.num_it_epoch=ceil(self.num_it_total/self.epoch)
+        if self.num_it_total is not None and self.num_it_epoch is not None:
+            self.epoch=ceil(self.num_it_total/self.num_it_epoch)
 
     def fit(self,labled_X=None,labled_y=None,unlabled_X=None,labled_dataset=None,unlabled_dataset=None,train_dataset=None):
         if train_dataset is not None:
             self.train_dataset=train_dataset
         else:
             if labled_X is not None:
-                self.train_dataset.init_dataset(labled_X=labled_X,labled_y=labled_y,unlabled_X=unlabled_X,mu=self.mu)
+                self.train_dataset.init_dataset(labled_X=labled_X,labled_y=labled_y,unlabled_X=unlabled_X)
             elif labled_dataset is not None:
-                self.train_dataset.init_dataset(labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset,mu=self.mu)
-        self.labled_dataloader,self.unlabled_dataloader=self.train_dataloader.get_dataloader(self.train_dataset)
+                self.train_dataset.init_dataset(labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset)
+        self.labled_dataloader,self.unlabled_dataloader=self.train_dataloader.get_dataloader(dataset=self.train_dataset,mu=self.mu)
+        print(self.labled_dataloader)
+        print(self.unlabled_dataloader)
         self.start_fit()
         self.it_total=0
         for _ in range(self.epoch):
@@ -55,13 +60,23 @@ class SemiDeepModelMixin:
             for (lb_X, lb_y), (ulb_X, _) in zip(self.labled_dataloader,self.unlabled_dataloader):
                 self.it_total+=1
                 self.it_epoch+=1
+                print(self.it_total)
+                print(lb_X.shape)
+                print(ulb_X.shape)
+                if self.it_epoch >= self.num_it_epoch or self.it_total>=self.num_it_total:
+                    break
                 self.start_batch_train()
                 train_result=self.train(lb_X,lb_y,ulb_X)
                 loss=self.get_loss(train_result)
+                print(loss)
                 self.backward(loss)
                 self.end_batch_train()
             self.end_epoch()
+            if self.it_total>=self.num_it_total:
+                break
         self.end_fit()
+        return self
+
     def predict(self,test_X=None,test_dataset=None):
         if test_dataset is not None:
             self.test_dataset=test_dataset

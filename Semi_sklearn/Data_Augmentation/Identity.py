@@ -1,13 +1,11 @@
 from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
-import torchvision.transforms.functional as F
 
-class Equalize(Augmentation):
+class Identity(Augmentation):
     def __init__(self):
         super().__init__()
 
-    def transform(self,X):
+    def transform(self,X=None):
         if X is not None:
-            X=F.equalize(X)
             return X
         else:
             raise ValueError('No data to augment')

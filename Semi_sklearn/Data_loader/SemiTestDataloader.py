@@ -1,5 +1,5 @@
 from torch.utils.data.dataloader import DataLoader
-def SemiTestDataLoader(DataLoader):
+class SemiTestDataLoader:
     def __init__(self,
                  batch_size= 1,
                  shuffle: bool = False, sampler = None,
@@ -28,6 +28,10 @@ def SemiTestDataLoader(DataLoader):
         self.dataloader=None
     def get_dataloader(self,dataset):
         self.dataset=dataset
+        if type(self.sampler).__name__=='type':
+            self.sampler=self.sampler(self.dataset)
+        if type(self.batch_sampler).__name__=='type':
+            self.batch_sampler=self.batch_sampler(sampler=self.sampler,batch_size=self.batch_size,drop_last=self.drop_last)
         self.dataloader= DataLoader(dataset=self.dataset,
                             batch_size=self.batch_size,
                             shuffle = self.shuffle,
@@ -44,4 +48,6 @@ def SemiTestDataLoader(DataLoader):
                             prefetch_factor = self.prefetch_factor,
                             persistent_workers = self.persistent_workers)
         return self.dataloader
-
+# a=SemiTestDataLoader()
+# print(type(a).__name__)
+# print(type(SemiTestDataLoader).__name__)

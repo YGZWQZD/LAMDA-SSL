@@ -11,7 +11,6 @@ class SemiTrainDataset(Dataset):
                 stratified=False,
                 shuffle=True,
                 random_state=None):
-        super().__init__()
         self.labled_size=labled_size
         self.stratified=stratified
         self.shuffle=shuffle
@@ -27,6 +26,7 @@ class SemiTrainDataset(Dataset):
         self.len_unlabled=None
         self.labled_class=LabledDataset
         self.unLabled_class=UnlabledDataset
+
     def _init_dataset(self):
         raise NotImplementedError(
             "_init_dataset method of SemiTrainDataset class must be implemented."
@@ -35,47 +35,47 @@ class SemiTrainDataset(Dataset):
     def init_dataset(self,labled_X=None,labled_y=None,unlabled_X=None,
                     unlabled_y=None,labled_dataset=None,unlabled_dataset=None):
         if labled_X is not None:
-            if unlabled_X is not None:
-                self.unlabled_X = unlabled_X
-                self.unlabled_y = unlabled_y
-                self.labled_X=labled_X
-                self.labled_y=labled_y
-            else:
-                self.labled_X,self.labled_y,self.unlabled_X,self.unlabled_y=SemiSplit(X=labled_X,y=labled_y,
+            if unlabled_X is None:
+                labled_X,labled_y,unlabled_X,unlabled_y=SemiSplit(X=labled_X,y=labled_y,
                                                                 labled_size=self.labled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
                                                                 random_state=self.random_state
                                                                 )
             self.unlabled_dataset = UnlabledDataset()
-            self.unlabled_dataset.init_dataset(self.unlabled_X, self.unlabled_y)
-            self.labled_dataset=LabledDataset()
-            self.labled_dataset.init_dataset(self.labled_X,self.labled_y)
+            self.unlabled_dataset.init_dataset(unlabled_X, unlabled_y)
+            self.labled_dataset= LabledDataset()
+            self.labled_dataset.init_dataset(labled_X,labled_y)
 
         elif labled_dataset is not None:
-            self.labled_dataset=labled_dataset
-            if unlabled_X is not None:
+            if unlabled_dataset is not None:
                 self.unlabled_dataset=unlabled_dataset
+                self.labled_dataset=labled_dataset
             else:
-                self.labled_dataset,self.unlabled_dataset=SemiSplit(dataset=self.labled_dataset,
+                labled_X=labled_dataset.get_X()
+                labled_y=labled_dataset.get_y()
+                labled_X,labled_y,unlabled_X,unlabled_y=SemiSplit(X=labled_X,y=labled_y,
                                                                 labled_size=self.labled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
-                                                                random_state=self.random_state
+                                                                random_state=self.random_state,
                                                                 )
-            self.labled_X = self.labled_dataset.get_X()
-            self.labled_y = self.labled_dataset.get_y()
-            self.unlabled_X=self.unlabled_dataset.get_X()
-            self.unlabled_y = self.unlabled_dataset.get_y()
+                self.unlabled_dataset = UnlabledDataset()
+                self.unlabled_dataset.init_dataset(unlabled_X, unlabled_y)
+                self.labled_dataset = LabledDataset()
+                self.labled_dataset.init_dataset(labled_X, labled_y)
         else:
             self._init_dataset()
+        self.labled_X = self.labled_dataset.get_X()
+        self.labled_y = self.labled_dataset.get_y()
+        self.unlabled_X = self.unlabled_dataset.get_X()
+        self.unlabled_y = self.unlabled_dataset.get_y()
         self.labled_X_indexing_method=get_indexing_method(self.labled_X)
         self.labled_y_indexing_method = get_indexing_method(self.labled_y)
         self.unlabled_X_indexing_method=get_indexing_method(self.unlabled_X)
         self.unlabled_y_indexing_method = get_indexing_method(self.unlabled_y)
         self.len_labled=self.labled_dataset.__len__()
         self.len_unlabled = self.unlabled_dataset.__len__()
-
         self.data_initialized=True
     def get_dataset(self,labled):
         if labled:

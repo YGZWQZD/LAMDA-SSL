@@ -32,8 +32,8 @@ class UnlabledDataset(Dataset):
         return self.X
 
     def get_y(self):
-        if self.has_lable is not True:
-            raise RuntimeError('No lables')
+        # if self.has_lable is not True:
+        #     raise RuntimeError('No lables')
         return self.y
 
     def set_X(self,X):

@@ -3,6 +3,8 @@ from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
 from PIL import Image
 from Semi_sklearn.Dataset.CV.LabledVisionDataset import LabledVisionDataset
 from Semi_sklearn.Dataset.CV.UnlabledVisionDataset import UnlabledVisionDataset
+from Semi_sklearn.utils import indexing
+from Semi_sklearn.utils import partial
 
 class SemiTrainVisionDataset(SemiTrainDataset, VisionDataset):
     def __init__(
@@ -39,8 +41,11 @@ class SemiTrainVisionDataset(SemiTrainDataset, VisionDataset):
                              random_state=random_state)
         VisionDataset.__init__(self, root=root, transforms=transforms, transform=transform,
                                target_transform=target_transform)
-        self.labled_class=LabledVisionDataset
-        self.unlabled_class=UnlabledVisionDataset
+
+        self.labled_class=partial(LabledVisionDataset,root=self.root,transforms=self.transforms,
+                                  transform=self.transform,target_transform=self.target_transform)
+        self.unlabled_class = partial(UnlabledVisionDataset, root=self.root, transforms=self.transforms,
+                                    transform=self.transform, target_transform=self.target_transform)
     def _init_dataset(self):
         raise NotImplementedError(
             "_init_dataset method of SemiVisionDataset class must be implemented."
@@ -49,16 +54,30 @@ class SemiTrainVisionDataset(SemiTrainDataset, VisionDataset):
     def __getitem__(self, i, labled=True):
         if labled:
             X, y = self.labled_X, self.labled_y
+            X_indexing_method=self.labled_X_indexing_method
+            y_indexing_method=self.labled_y_indexing_method
         else:
             X, y = self.unlabled_X, self.unlabled_y
+            X_indexing_method = self.unlabled_X_indexing_method
+            y_indexing_method = self.unlabled_y_indexing_method
 
-        Xi = X[i]
-        yi = y[i] if y is not None else None
-        Xi = Image.fromarray(Xi)
+        Xi = indexing(X, i, X_indexing_method)
+        yi = indexing(y, i, y_indexing_method)
+        # Xi = Image.fromarray(Xi)
 
         Xi, yi = self._transform(Xi, yi)
+
         if self.transform is not None:
-            Xi = self.transform(Xi)
+            Xi=self.transform(Xi)
+            # if isinstance(self.transform,(list,tuple)):
+            #     trans_Xi=[trans(Xi) for trans in self.transform]
+            # elif isinstance(self.transform,dict):
+            #     trans_Xi={}
+            #     for key,val in self.transform:
+            #         trans_Xi[key]=val(Xi)
+            # else:
+            #     trans_Xi=self.transform(Xi)
+            # Xi = trans_Xi
 
         if self.target_transform is not None:
             yi = self.target_transform(yi)

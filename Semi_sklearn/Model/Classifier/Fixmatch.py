@@ -2,6 +2,8 @@ from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Data_loader.SemiTrainDataloader import SemiTrainDataLoader
 from Semi_sklearn.Data_loader.SemiTestDataloader import SemiTestDataLoader
+from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
+from Semi_sklearn.Scheduler.SemiScheduler import SemiLambdaLR
 import torch.nn.functional as F
 import torch
 def interleave(x, size):
@@ -15,19 +17,19 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
                  train_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
-                 weakly_augmentation=None,
-                 strong_augmentation=None,
-                 normalization=None,
                  network=None,
                  epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
                  optimizer=None,
                  scheduler=None,
-                 device=None,
+                 device='cpu',
                  threshold=None,
                  lambda_u=None,
                  mu=None,
                  ema=None,
-                 T=None
+                 T=None,
+                 weight_decay=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     test_dataset=test_dataset,
@@ -36,6 +38,8 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
                                     augmentation=augmentation,
                                     network=network,
                                     epoch=epoch,
+                                    num_it_epoch=num_it_epoch,
+                                    num_it_total=num_it_total,
                                     mu=mu,
                                     optimizer=optimizer,
                                     scheduler=scheduler,
@@ -44,16 +48,13 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
         self.ema=ema
         self.lambda_u=lambda_u
         self.threshold=threshold
-        self.normalization=normalization
         self.T=T
+        self.weight_decay=weight_decay
         if self.ema is not None:
             self.ema.init_ema(model=network,device=self.device)
-        if weakly_augmentation is not None:
-            self.weakly_augmentation=weakly_augmentation
-            self.strong_augmentation=strong_augmentation
-        elif isinstance(self.augmentation,dict):
+        if isinstance(self.augmentation,dict):
             self.weakly_augmentation=self.augmentation['weakly_augmentation']
-            self.strong_augmentation = self.augmentation['strong_augmentation']
+            self.strong_augmentation = self.augmentation['strongly_augmentation']
         elif isinstance(self.augmentation,list):
             self.weakly_augmentation = self.augmentation[0]
             self.strong_augmentation = self.augmentation[1]
@@ -62,7 +63,21 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
         else:
             self.weakly_augmentation = self.augmentation
             self.strong_augmentation = self.augmentation
-        self.normalization=self.augmentation['normalization'] if self.augmentation['normalization'] is not None else self.normalization
+        self.normalization=self.augmentation['normalization']
+
+
+        if isinstance(self.optimizer,SemiOptimizer):
+            no_decay = ['bias', 'bn']
+            grouped_parameters = [
+                {'params': [p for n, p in self.network.named_parameters() if not any(
+                    nd in n for nd in no_decay)], 'weight_decay': self.weight_decay},
+                {'params': [p for n, p in self.network.named_parameters() if any(
+                    nd in n for nd in no_decay)], 'weight_decay': 0.0}
+            ]
+            self.optimizer=self.optimizer.init_optimizer(params=grouped_parameters)
+
+        if isinstance(self.scheduler,SemiLambdaLR):
+            self.scheduler=self.scheduler.init_scheduler(optimizer=self.optimizer)
 
     def train(self,lb_X,lb_y,ulb_X,*args,**kwargs):
         w_lb_X=self.weakly_augmentation.fit_transform(lb_X)
@@ -115,5 +130,6 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
         max_probs,y_pred=torch.max(y_est, dim=-1)
         return y_pred
 
-
+    def predict(self,test_X=None,test_dataset=None):
+        return SemiDeepModelMixin.predict(self,test_X=test_X,test_dataset=test_dataset)
 

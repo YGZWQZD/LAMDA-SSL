@@ -1,6 +1,6 @@
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from torch.optim.adam import Adam
-class SemiAdam(SemiOptimizer):
+from torch.optim import adam
+class Adam(SemiOptimizer):
     def __init__(self,lr=1e-3, betas=(0.9, 0.999), eps=1e-8,
                  weight_decay=0, amsgrad=False):
         self.lr=lr
@@ -13,7 +13,7 @@ class SemiAdam(SemiOptimizer):
         super().__init__(defaults=defaults)
 
     def init_optimizer(self,params):
-        return Adam(params=params,lr=self.lr,betas=self.betas,eps=self.eps,
+        return adam.Adam(params=params,lr=self.lr,betas=self.betas,eps=self.eps,
                     weight_decay=self.weight_decay,amsgrad=self.amsgrad)
 
 

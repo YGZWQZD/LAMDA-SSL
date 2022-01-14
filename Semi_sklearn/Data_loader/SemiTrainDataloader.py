@@ -1,17 +1,18 @@
 from torch.utils.data.dataloader import DataLoader
 from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
-def SemiTrainDataLoader(DataLoader):
+class SemiTrainDataLoader:
     def __init__(self,
-                 batch_size= 1,
+                 batch_size,
                  shuffle = False, sampler = None,
                  batch_sampler=None, Iterable = None,
                  num_workers = 0, collate_fn = None,
                  pin_memory = False, drop_last = True,
                  timeout = 0, worker_init_fn = None,
                  multiprocessing_context=None, generator=None,
-                 *, prefetch_factor = 2,
+                 prefetch_factor = 2,
                  persistent_workers= False,
                  batch_size_adjust=False):
+
         self.batch_size=batch_size
         if isinstance(self.batch_size,list):
             self.labled_batch_size,self.unlabled_batch_size=self.batch_size[0],self.batch_size[1]
@@ -43,6 +44,14 @@ def SemiTrainDataLoader(DataLoader):
             self.labled_batch_sampler,self.unlabled_batch_sampler = self.batch_sampler['labled'], self.batch_sampler['unlabled']
         else:
             self.labled_batch_sampler,self.unlabled_batch_sampler=self.batch_sampler, self.batch_sampler
+
+        self.Iterable=Iterable
+        if isinstance(self.Iterable,list):
+            self.labled_Iterable,self.unlabled_Iterable=self.Iterable[0],self.Iterable[1]
+        elif isinstance(self.Iterable,dict):
+            self.labled_Iterable,self.unlabled_Iterable = self.Iterable['labled'], self.Iterable['unlabled']
+        else:
+            self.labled_Iterable,self.unlabled_Iterable=self.Iterable, self.Iterable
 
         self.num_workers=num_workers
         if isinstance(self.num_workers,list):
@@ -133,20 +142,17 @@ def SemiTrainDataLoader(DataLoader):
         self.len_unlabled=None
         self.batch_size_adjust=batch_size_adjust
 
-    def get_dataloader(self,dataset=None,labled_dataset=None,unlabled_dataset=None,semitrain_class=SemiTrainDataset,mu=None):
+    def get_dataloader(self,dataset=None,labled_dataset=None,unlabled_dataset=None,mu=None):
         if dataset is not None:
-            self.dataset=dataset
-            self.labled_dataset=self.dataset.get_dataset(labled=True)
-            self.unlabled_dataset = self.undataset.get_dataset(labled=False)
+            self.labled_dataset=dataset.get_dataset(labled=True)
+            self.unlabled_dataset=dataset.get_dataset(labled=False)
         elif labled_dataset is not None and unlabled_dataset is not None:
             self.labled_dataset=labled_dataset
             self.unlabled_dataset=unlabled_dataset
-            self.dataset=semitrain_class()
-            self.dataset.init_dataset(labled_dataset=self.labled_dataset,unlabled_dataset=self.unlabled_dataset)
         else:
             raise ValueError('No dataset')
-        self.len_labled=self.dataset.__len__(labled=True)
-        self.len_unlabled=self.dataset.__len__(labled=False)
+        self.len_labled=self.labled_dataset.__len__()
+        self.len_unlabled=self.unlabled_dataset.__len__()
         if self.batch_size_adjust:
             if self.len_labled < self.len_unlabled:
                 self.unlabled_batch_size=self.labled_batch_size*(self.len_unlabled//self.len_labled)
@@ -154,6 +160,16 @@ def SemiTrainDataLoader(DataLoader):
                 self.labled_batch_size = self.unlabled_batch_size * (self.len_labled//self.len_unlabled)
         if mu is not None:
             self.unlabled_batch_size=mu*self.labled_batch_size
+        if type(self.labled_sampler).__name__=='type':
+            self.labled_sampler=self.labled_sampler(self.labled_dataset)
+        if type(self.labled_batch_sampler).__name__=='type':
+            self.labled_batch_sampler = self.labled_batch_sampler(sampler=self.labled_sampler, batch_size=self.labled_batch_size,
+                                                    drop_last=self.labled_drop_last)
+        if type(self.unlabled_sampler).__name__=='type':
+            self.unlabled_sampler=self.unlabled_sampler(self.unlabled_dataset)
+        if type(self.unlabled_batch_sampler).__name__=='type':
+            self.unlabled_batch_sampler = self.unlabled_batch_sampler(sampler=self.unlabled_sampler, batch_size=self.unlabled_batch_size,
+                                                    drop_last=self.unlabled_drop_last)
         self.labled_dataloader=DataLoader(dataset=self.labled_dataset,
                             batch_size=self.labled_batch_size,
                             shuffle = self.labled_shuffle,
