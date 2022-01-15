@@ -1,10 +1,8 @@
 from math import ceil
 import torch
 from Semi_sklearn.Base.SemiEstimator import SemiEstimator
-from Semi_sklearn.Dataset.LabledDataset import LabledDataset
+from torch.utils.data.dataset import Dataset
 from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
-from Semi_sklearn.Data_loader.SemiTrainDataloader import SemiTrainDataLoader
-from Semi_sklearn.Data_loader.SemiTestDataloader import SemiTestDataLoader
 from abc import abstractmethod
 class SemiDeepModelMixin(SemiEstimator):
     def __init__(self, train_dataset=None, test_dataset=None,
@@ -15,10 +13,13 @@ class SemiDeepModelMixin(SemiEstimator):
                  epoch=1,
                  num_it_epoch=None,
                  num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
                  mu=None,# unlabled/labled in each batch
                  optimizer=None,
                  scheduler=None,
-                 device=None
+                 device=None,
+                 evaluation=None
                  ):
         self.train_dataset=train_dataset
         self.test_dataset=test_dataset
@@ -31,68 +32,106 @@ class SemiDeepModelMixin(SemiEstimator):
         self.optimizer=optimizer
         self.scheduler=scheduler
         self.device=device
+        self.eval_epoch=eval_epoch
+        self.eval_it=eval_it
         self.y_est=None
+        self.y_true=None
+        self.y_pred=None
+        self.y_score=None
         self.num_it_epoch=num_it_epoch
         self.num_it_total=num_it_total
+        self.evaluation=evaluation
+
+
+    def fit(self,X=None,y=None,unlabled_X=None,valid_X=None,valid_y=None):
         if self.num_it_epoch is not None and self.epoch is not None:
             self.num_it_total=self.epoch*self.num_it_epoch
         if self.num_it_total is not None and self.epoch is not None:
             self.num_it_epoch=ceil(self.num_it_total/self.epoch)
         if self.num_it_total is not None and self.num_it_epoch is not None:
             self.epoch=ceil(self.num_it_total/self.num_it_epoch)
+        if isinstance(X,SemiTrainDataset):
+            self.train_dataset=X
 
-    def fit(self,labled_X=None,labled_y=None,unlabled_X=None,labled_dataset=None,unlabled_dataset=None,train_dataset=None):
-        if train_dataset is not None:
-            self.train_dataset=train_dataset
+        elif isinstance(X,Dataset) and y is None:
+            self.train_dataset.init_dataset(labled_dataset=X, unlabled_dataset=unlabled_X)
         else:
-            if labled_X is not None:
-                self.train_dataset.init_dataset(labled_X=labled_X,labled_y=labled_y,unlabled_X=unlabled_X)
-            elif labled_dataset is not None:
-                self.train_dataset.init_dataset(labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset)
-        self.labled_dataloader,self.unlabled_dataloader=self.train_dataloader.get_dataloader(dataset=self.train_dataset,mu=self.mu)
-        print(self.labled_dataloader)
-        print(self.unlabled_dataloader)
+            self.train_dataset.init_dataset(labled_X=X, labled_y=y,unlabled_X=unlabled_X)
+        labled_dataloader,unlabled_dataloader=self.train_dataloader.get_dataloader(dataset=self.train_dataset,mu=self.mu)
+        # print(self.num_it_total)
+        # print(self.num_it_epoch)
+        # print(self.epoch)
         self.start_fit()
         self.it_total=0
-        for _ in range(self.epoch):
+        for _epoch in range(self.epoch):
             self.it_epoch=0
+            if self.it_total>=self.num_it_total:
+                break
             self.start_epoch()
-            for (lb_X, lb_y), (ulb_X, _) in zip(self.labled_dataloader,self.unlabled_dataloader):
-                self.it_total+=1
-                self.it_epoch+=1
-                print(self.it_total)
-                print(lb_X.shape)
-                print(ulb_X.shape)
+            for (lb_X, lb_y), (ulb_X, _) in zip(labled_dataloader,unlabled_dataloader):
+
                 if self.it_epoch >= self.num_it_epoch or self.it_total>=self.num_it_total:
                     break
                 self.start_batch_train()
                 train_result=self.train(lb_X,lb_y,ulb_X)
                 loss=self.get_loss(train_result)
-                print(loss)
                 self.backward(loss)
                 self.end_batch_train()
+                self.it_total+=1
+                self.it_epoch+=1
+                print(self.it_total)
+                if self.eval_it is not None and _epoch % self.eval_it == 0:
+                    self.evaluate(X=valid_X, y=valid_y)
             self.end_epoch()
-            if self.it_total>=self.num_it_total:
-                break
+            if self.eval_epoch is not None and _epoch%self.eval_epoch==0:
+                self.evaluate(X=valid_X,y=valid_y)
         self.end_fit()
         return self
 
-    def predict(self,test_X=None,test_dataset=None):
-        if test_dataset is not None:
-            self.test_dataset=test_dataset
+    def predict(self,X=None):
+        if isinstance(X,Dataset):
+            self.test_dataset=X
         else:
-            self.test_dataset.init_dataset(X=test_X)
-        self.test_dataloader=self.test_dataloader.get_dataloader(self.test_dataset)
-        self.y_est=[]
+            self.test_dataset.init_dataset(X=X)
+        test_dataloader=self.test_dataloader.get_dataloader(self.test_dataset)
+        self.y_est=torch.Tensor([])
         self.start_predict()
         with torch.no_grad():
-            for X,_ in self.test_dataloader:
+            for X,_ in test_dataloader:
                 self.start_batch_test()
-                self.y_est.append(self.estimate(X))
+                self.y_est=torch.cat((self.y_est,self.estimate(X)),0)
                 self.end_batch_test()
-            y_pred=self.get_predict_result(self.y_est)
+            self.y_pred=self.get_predict_result(self.y_est)
             self.end_predict()
-        return y_pred
+        return self.y_pred
+
+    def evaluate(self,X,y=None):
+        if isinstance(X,Dataset) and y is None:
+            y=X.get_y()
+        y_pred=self.predict(X)
+        y_score=self.y_score
+        #print(y_score.shape)
+        print(y[:10])
+        print(y_pred[:10])
+        print(y_score[:10])
+
+
+        if self.evaluation is None:
+            return None
+        elif isinstance(self.evaluation,(list,tuple)):
+            result=[]
+            for eval in self.evaluation:
+                result.append(eval.scoring(y,y_pred,y_score))
+            return result
+        elif isinstance(self.evaluation,dict):
+            result={}
+            for key,val in self.evaluation.items():
+                result[key]=val.scoring(y,y_pred,y_score)
+                print(result[key])
+            return result
+        else:
+            result=self.evaluation.scoring(y,y_pred,y_score)
+            return result
 
     def start_fit(self, *args, **kwargs):
         pass
@@ -133,6 +172,8 @@ class SemiDeepModelMixin(SemiEstimator):
     @abstractmethod
     def get_predict_result(self,y_est,*args,**kwargs):
         raise NotImplementedError
+
+
 
 
 

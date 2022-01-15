@@ -133,12 +133,15 @@ def is_sparse(x):
         return sparse.issparse(x) or x.is_sparse
     except AttributeError:
         return False
+
 def _len(x):
     if is_sparse(x):
         return x.shape[0]
     return len(x)
 
 def get_len(data):
+    if data is None:
+        return 0
     if isinstance(data,torch.utils.data.Dataset):
         return data.__len__()
     lens = [apply_to_data(data, _len, unpack_dict=True)]
@@ -213,10 +216,9 @@ def to_image(X):
     if isinstance(X,Image.Image):
         return X
     else:
-        print(type(X))
         X=to_numpy(X)
-        print(type(X))
-        print(X.shape)
+        # print(type(X))
+        # print(X.shape)
         X=Image.fromarray(X)
         return X
 

@@ -1,9 +1,11 @@
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
+from sklearn.base import ClassifierMixin
 from Semi_sklearn.Data_loader.SemiTrainDataloader import SemiTrainDataLoader
 from Semi_sklearn.Data_loader.SemiTestDataloader import SemiTestDataLoader
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiLambdaLR
+from torch.nn import Softmax
 import torch.nn.functional as F
 import torch
 def interleave(x, size):
@@ -12,7 +14,7 @@ def interleave(x, size):
 def de_interleave(x, size):
     s = list(x.shape)
     return x.reshape([size, -1] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
-class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
+class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,test_dataset=None,
                  train_dataloader=None,
                  test_dataloader=None,
@@ -21,9 +23,12 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
                  epoch=1,
                  num_it_epoch=None,
                  num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
                  optimizer=None,
                  scheduler=None,
                  device='cpu',
+                 evaluation=None,
                  threshold=None,
                  lambda_u=None,
                  mu=None,
@@ -40,10 +45,13 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
                                     epoch=epoch,
                                     num_it_epoch=num_it_epoch,
                                     num_it_total=num_it_total,
+                                    eval_epoch=eval_epoch,
+                                    eval_it=eval_it,
                                     mu=mu,
                                     optimizer=optimizer,
                                     scheduler=scheduler,
-                                    device=device
+                                    device=device,
+                                    evaluation=evaluation
                                     )
         self.ema=ema
         self.lambda_u=lambda_u
@@ -127,9 +135,11 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin):
 
 
     def get_predict_result(self,y_est,*args,**kwargs):
-        max_probs,y_pred=torch.max(y_est, dim=-1)
+        self.y_score=Softmax(dim=-1)(y_est)
+        print(self.y_score.shape)
+        max_probs,y_pred=torch.max(self.y_score, dim=-1)
         return y_pred
 
-    def predict(self,test_X=None,test_dataset=None):
-        return SemiDeepModelMixin.predict(self,test_X=test_X,test_dataset=test_dataset)
+    def predict(self,X=None):
+        return SemiDeepModelMixin.predict(self,X=X)
 

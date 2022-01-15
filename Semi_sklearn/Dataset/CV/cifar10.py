@@ -43,7 +43,6 @@ class CIFAR10(SemiVisionDataset):
         download: bool = False
 
     ) -> None:
-        print(1)
         self.labled_X=None
         self.labled_y=None
         self.unlabled_X=None
@@ -99,7 +98,6 @@ class CIFAR10(SemiVisionDataset):
         download_and_extract_archive(self.url, self.root, filename=self.filename, md5=self.tgz_md5)
 
     def _init_dataset(self):
-        print(5)
         test_X = []
         test_y = []
         for file_name, checksum in self.test_list:

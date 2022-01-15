@@ -6,12 +6,9 @@ from math import ceil
 from sklearn.utils import check_random_state
 from Semi_sklearn.utils import to_numpy,get_indexing_method,indexing
 
-def get_split_num(X,y,labled_size=0):
+def get_split_num(X,labled_size=0.1):
 
     len_X = get_len(X)
-    len_y = get_len(y)
-    if len_X!=len_y:
-        raise ValueError("X and y have inconsistent lengths.")
     labled_size_type = np.asarray(labled_size).dtype.kind
     # if labled_size is not None and labled_size_type not in ("i", "f"):
     #     raise ValueError("Invalid value for labled_size: {}".format(labled_size))
@@ -48,7 +45,7 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
             y_arr = np.array([" ".join(row.astype("str")) for row in y_arr])
         classes, y_indices = np.unique(y_arr, return_inverse=True)
         num_classes = classes.shape[0]
-        print(num_classes)
+        #print(num_classes)
         class_counts = np.bincount(y_indices)
         if np.min(class_counts) < 2:
             raise ValueError(
@@ -107,7 +104,7 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
     return ind_labled,ind_unlabled
 
 def SemiSplit(stratified,shuffle,random_state=None, X=None, y=None,labled_size=None):
-        num_labled, num_unlabled = get_split_num(X, y, labled_size)
+        num_labled, num_unlabled = get_split_num(X, labled_size)
         ind_labled, ind_unlabled = get_split_index(y=y, num_labled=num_labled, num_unlabled=num_unlabled,
                                                    stratified=stratified, shuffle=shuffle,
                                                    random_state=random_state

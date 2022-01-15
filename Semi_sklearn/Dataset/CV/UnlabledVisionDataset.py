@@ -1,6 +1,5 @@
 from Semi_sklearn.Dataset.UnlabledDataset import UnlabledDataset
 from torchvision.datasets.vision import VisionDataset
-from PIL import Image
 from Semi_sklearn.utils import indexing
 
 

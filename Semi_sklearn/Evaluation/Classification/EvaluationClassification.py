@@ -2,5 +2,6 @@ from abc import ABC,abstractmethod
 class EvaluationClassification(ABC):
     def __init__(self):
         pass
-    def scoring(self,y_pred,y_est,y_lable):
+    @abstractmethod
+    def scoring(self,y_true,y_pred=None,y_score=None):
         raise NotImplementedError

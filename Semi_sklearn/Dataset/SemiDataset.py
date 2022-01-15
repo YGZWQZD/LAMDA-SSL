@@ -14,7 +14,6 @@ class SemiDataset(Dataset):
                 stratified=False,
                 shuffle=True,
                 random_state=None):
-        # print(3)
         self.labled_size=labled_size
         self.stratified=stratified
         self.shuffle=shuffle
@@ -54,7 +53,6 @@ class SemiDataset(Dataset):
                     test_dataset=None,labled_dataset=None,unlabled_dataset=None):
 
         if labled_X is None and labled_dataset is None and train_dataset is None:
-            # print(4)
             self._init_dataset()
         else:
             if test_dataset is not None:

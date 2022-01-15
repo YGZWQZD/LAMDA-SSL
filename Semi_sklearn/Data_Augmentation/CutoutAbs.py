@@ -1,6 +1,5 @@
 from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
-from Semi_sklearn.utils import to_image
-import PIL
+
 import numpy as np
 import torch
 

@@ -8,7 +8,7 @@ class SemiTestDataLoader:
                  pin_memory: bool = False, drop_last: bool = False,
                  timeout: float = 0, worker_init_fn = None,
                  multiprocessing_context=None, generator=None,
-                 *, prefetch_factor: int = 2,
+                 prefetch_factor: int = 2,
                  persistent_workers: bool = False):
         self.batch_size=batch_size
         self.shuffle=shuffle
@@ -26,6 +26,7 @@ class SemiTestDataLoader:
         self.persistent_workers=persistent_workers
         self.dataset=None
         self.dataloader=None
+
     def get_dataloader(self,dataset):
         self.dataset=dataset
         if type(self.sampler).__name__=='type':

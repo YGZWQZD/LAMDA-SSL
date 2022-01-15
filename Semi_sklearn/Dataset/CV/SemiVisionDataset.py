@@ -1,6 +1,5 @@
 from torchvision.datasets.vision import VisionDataset
 from Semi_sklearn.Dataset.SemiDataset import SemiDataset
-from PIL import Image
 from Semi_sklearn.Dataset.CV.LabledVisionDataset import LabledVisionDataset
 from Semi_sklearn.Dataset.CV.UnlabledVisionDataset import UnlabledVisionDataset
 from Semi_sklearn.Dataset.CV.SemiTrainVisionDataset import SemiTrainVisionDataset
@@ -19,7 +18,6 @@ class SemiVisionDataset(SemiDataset,VisionDataset):
         shuffle=True,
         random_state=None
     ) -> None:
-        print(2)
         self.root=root
         self.transform=transform
         self.transforms=transforms

@@ -7,7 +7,7 @@ class Equalize(Augmentation):
 
     def transform(self,X):
         if X is not None:
-            X=F.equalize(X)
+            X=F.equalize(X.contiguous())
             return X
         else:
             raise ValueError('No data to augment')

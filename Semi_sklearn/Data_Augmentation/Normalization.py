@@ -14,7 +14,7 @@ class Normalization(Augmentation):
     def transform(self,X):
         if X is not None:
             X=self.normalize(X.float())
-            print(X.shape)
+            #print(X.shape)
             return X
         else:
             raise ValueError('No data to augment')

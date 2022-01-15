@@ -1,8 +1,6 @@
 from Semi_sklearn.Dataset.LabledDataset import LabledDataset
 from torchvision.datasets.vision import VisionDataset
 from Semi_sklearn.utils import indexing
-from PIL import Image
-
 
 class LabledVisionDataset(LabledDataset,VisionDataset):
     def __init__(self,
