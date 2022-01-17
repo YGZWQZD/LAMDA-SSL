@@ -18,7 +18,7 @@ class SemiTrainDataLoader:
                  batch_size_adjust=False):
 
         self.batch_size=batch_size
-        if isinstance(self.batch_size,list):
+        if isinstance(self.batch_size,(list,tuple)):
             self.labled_batch_size,self.unlabled_batch_size=self.batch_size[0],self.batch_size[1]
         elif isinstance(self.batch_size,dict):
             self.labled_batch_size, self.unlabled_batch_size = self.batch_size['labled'], self.batch_size['unlabled']
@@ -26,7 +26,7 @@ class SemiTrainDataLoader:
             self.labled_batch_size, self.unlabled_batch_size=copy.copy(self.batch_size), copy.copy(self.batch_size)
 
         self.shuffle=shuffle
-        if isinstance(self.shuffle,list):
+        if isinstance(self.shuffle,(list,tuple)):
             self.labled_shuffle,self.unlabled_shuffle=self.shuffle[0],self.shuffle[1]
         elif isinstance(self.shuffle,dict):
             self.labled_shuffle,self.unlabled_shuffle = self.shuffle['labled'], self.shuffle['unlabled']
@@ -34,7 +34,7 @@ class SemiTrainDataLoader:
             self.labled_shuffle,self.unlabled_shuffle=copy.copy(self.shuffle),copy.copy( self.shuffle)
 
         self.sampler=sampler
-        if isinstance(self.sampler,list):
+        if isinstance(self.sampler,(list,tuple)):
             self.labled_sampler,self.unlabled_sampler=self.sampler[0],self.sampler[1]
         elif isinstance(self.sampler,dict):
             self.labled_sampler,self.unlabled_sampler = self.sampler['labled'], self.sampler['unlabled']
@@ -42,7 +42,7 @@ class SemiTrainDataLoader:
             self.labled_sampler,self.unlabled_sampler=copy.copy(self.sampler), copy.copy(self.sampler)
 
         self.batch_sampler=batch_sampler
-        if isinstance(self.batch_sampler,list):
+        if isinstance(self.batch_sampler,(list,tuple)):
             self.labled_batch_sampler,self.unlabled_batch_sampler=self.batch_sampler[0],self.batch_sampler[1]
         elif isinstance(self.batch_sampler,dict):
             self.labled_batch_sampler,self.unlabled_batch_sampler = self.batch_sampler['labled'], self.batch_sampler['unlabled']
@@ -50,7 +50,7 @@ class SemiTrainDataLoader:
             self.labled_batch_sampler,self.unlabled_batch_sampler=copy.copy(self.batch_sampler), copy.copy(self.batch_sampler)
 
         self.Iterable=Iterable
-        if isinstance(self.Iterable,list):
+        if isinstance(self.Iterable,(list,tuple)):
             self.labled_Iterable,self.unlabled_Iterable=self.Iterable[0],self.Iterable[1]
         elif isinstance(self.Iterable,dict):
             self.labled_Iterable,self.unlabled_Iterable = self.Iterable['labled'], self.Iterable['unlabled']
@@ -58,7 +58,7 @@ class SemiTrainDataLoader:
             self.labled_Iterable,self.unlabled_Iterable=copy.copy(self.Iterable), copy.copy(self.Iterable)
 
         self.num_workers=num_workers
-        if isinstance(self.num_workers,list):
+        if isinstance(self.num_workers,(list,tuple)):
             self.labled_num_workers,self.unlabled_num_workers=self.num_workers[0],self.num_workers[1]
         elif isinstance(self.num_workers,dict):
             self.labled_num_workers,self.unlabled_num_workers = self.num_workers['labled'], self.num_workers['unlabled']
@@ -66,7 +66,7 @@ class SemiTrainDataLoader:
             self.labled_num_workers,self.unlabled_num_workers=copy.copy(self.num_workers), copy.copy(self.num_workers)
 
         self.collate_fn=collate_fn
-        if isinstance(self.collate_fn,list):
+        if isinstance(self.collate_fn,(list,tuple)):
             self.labled_collate_fn,self.unlabled_collate_fn=self.collate_fn[0],self.collate_fn[1]
         elif isinstance(self.collate_fn,dict):
             self.labled_collate_fn,self.unlabled_collate_fn= self.collate_fn['labled'], self.collate_fn['unlabled']
@@ -74,7 +74,7 @@ class SemiTrainDataLoader:
             self.labled_collate_fn,self.unlabled_collate_fn=copy.copy(self.collate_fn), copy.copy(self.collate_fn)
 
         self.pin_memory=pin_memory
-        if isinstance(self.pin_memory,list):
+        if isinstance(self.pin_memory,(list,tuple)):
             self.labled_pin_memory,self.unlabled_pin_memory=self.pin_memory[0],self.pin_memory[1]
         elif isinstance(self.pin_memory,dict):
             self.labled_pin_memory,self.unlabled_pin_memory = self.pin_memory['labled'], self.pin_memory['unlabled']
@@ -82,7 +82,7 @@ class SemiTrainDataLoader:
             self.labled_pin_memory,self.unlabled_pin_memory=copy.copy(self.pin_memory), copy.copy(self.pin_memory)
 
         self.drop_last=drop_last
-        if isinstance(self.drop_last,list):
+        if isinstance(self.drop_last,(list,tuple)):
             self.labled_drop_last,self.unlabled_drop_last=self.drop_last[0],self.drop_last[1]
         elif isinstance(self.drop_last,dict):
             self.labled_drop_last,self.unlabled_drop_last = self.drop_last['labled'], self.drop_last['unlabled']
@@ -90,7 +90,7 @@ class SemiTrainDataLoader:
             self.labled_drop_last,self.unlabled_drop_last=copy.copy(self.drop_last), copy.copy(self.drop_last)
 
         self.timeout=timeout
-        if isinstance(self.timeout,list):
+        if isinstance(self.timeout,(list,tuple)):
             self.labled_timeout,self.unlabled_timeout=self.timeout[0],self.timeout[1]
         elif isinstance(self.timeout,dict):
             self.labled_timeout,self.unlabled_timeout = self.timeout['labled'], self.timeout['unlabled']
@@ -98,7 +98,7 @@ class SemiTrainDataLoader:
             self.labled_timeout,self.unlabled_timeout=copy.copy(self.timeout), copy.copy(self.timeout)
 
         self.worker_init_fn=worker_init_fn
-        if isinstance(self.worker_init_fn,list):
+        if isinstance(self.worker_init_fn,(list,tuple)):
             self.labled_worker_init_fn,self.unlabled_worker_init_fn=self.worker_init_fn[0],self.worker_init_fn[1]
         elif isinstance(self.worker_init_fn,dict):
             self.labled_worker_init_fn,self.unlabled_worker_init_fn = self.worker_init_fn['labled'], self.worker_init_fn['unlabled']
@@ -106,7 +106,7 @@ class SemiTrainDataLoader:
             self.labled_worker_init_fn,self.unlabled_worker_init_fn=copy.copy(self.worker_init_fn), copy.copy(self.worker_init_fn)
 
         self.multiprocessing_context=multiprocessing_context
-        if isinstance(self.multiprocessing_context,list):
+        if isinstance(self.multiprocessing_context,(list,tuple)):
             self.labled_multiprocessing_context,self.unlabled_multiprocessing_context=self.multiprocessing_context[0],self.multiprocessing_context[1]
         elif isinstance(self.multiprocessing_context,dict):
             self.labled_multiprocessing_context,self.unlabled_multiprocessing_context = self.multiprocessing_context['labled'], self.multiprocessing_context['unlabled']
@@ -114,7 +114,7 @@ class SemiTrainDataLoader:
             self.labled_multiprocessing_context,self.unlabled_multiprocessing_context=copy.copy(self.multiprocessing_context), copy.copy(self.multiprocessing_context)
 
         self.generator=generator
-        if isinstance(self.generator,list):
+        if isinstance(self.generator,(list,tuple)):
             self.labled_generator,self.unlabled_generator=self.generator[0],self.generator[1]
         elif isinstance(self.generator,dict):
             self.labled_generator,self.unlabled_generator = self.generator['labled'], self.generator['unlabled']
@@ -122,7 +122,7 @@ class SemiTrainDataLoader:
             self.labled_generator,self.unlabled_generator=copy.copy(self.generator), copy.copy(self.generator)
 
         self.prefetch_factor=prefetch_factor
-        if isinstance(self.prefetch_factor,list):
+        if isinstance(self.prefetch_factor,(list,tuple)):
             self.labled_prefetch_factor,self.unlabled_prefetch_factor=self.prefetch_factor[0],self.prefetch_factor[1]
         elif isinstance(self.prefetch_factor,dict):
             self.labled_prefetch_factor,self.unlabled_prefetch_factor = self.prefetch_factor['labled'], self.prefetch_factor['unlabled']
@@ -130,7 +130,7 @@ class SemiTrainDataLoader:
             self.labled_prefetch_factor,self.unlabled_prefetch_factor=copy.copy(self.prefetch_factor), copy.copy(self.prefetch_factor)
 
         self.persistent_workers=persistent_workers
-        if isinstance(self.persistent_workers,list):
+        if isinstance(self.persistent_workers,(list,tuple)):
             self.labled_persistent_workers,self.unlabled_persistent_workers=self.persistent_workers[0],self.persistent_workers[1]
         elif isinstance(self.persistent_workers,dict):
             self.labled_persistent_workers,self.unlabled_persistent_workers = self.persistent_workers['labled'], self.persistent_workers['unlabled']
