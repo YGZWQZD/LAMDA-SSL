@@ -4,6 +4,7 @@ from .LabledDataset import LabledDataset
 from .UnlabledDataset import UnlabledDataset
 from ..utils import get_indexing_method,get_len,indexing
 from ..Split.SemiSplit import SemiSplit
+from Semi_sklearn.utils import partial
 import torch
 from scipy import sparse
 class SemiDataset(Dataset):
@@ -13,7 +14,6 @@ class SemiDataset(Dataset):
                 stratified=False,
                 shuffle=True,
                 random_state=None):
-        super().__init__()
         self.labled_size=labled_size
         self.stratified=stratified
         self.shuffle=shuffle
@@ -41,7 +41,8 @@ class SemiDataset(Dataset):
         self.test_y_indexing_method=None
         self.labled_class=LabledDataset
         self.unLabled_class=UnlabledDataset
-        self.semitrain_class=SemiTrainDataset
+        self.semitrain_class=partial(SemiTrainDataset,labled_size=self.labled_size,stratified=self.stratified,
+                                     shuffle=self.shuffle,random_state=self.random_state)
     def _init_dataset(self):
         raise NotImplementedError(
             "_init_dataset method of SemiDataset class must be implemented."
@@ -53,40 +54,39 @@ class SemiDataset(Dataset):
 
         if labled_X is None and labled_dataset is None and train_dataset is None:
             self._init_dataset()
+        else:
+            if test_dataset is not None:
+                self.test_dataset=test_dataset
+            elif test_X is not None:
+                self.test_dataset=self.labled_class()
+                self.test_dataset.inin_dataset(test_X,test_y)
+            elif self.test_size is not None:
+                if labled_dataset is not None:
+                    labled_X=labled_dataset.get_X()
+                    labled_y=labled_dataset.get_y()
 
-        if test_dataset is not None:
-            self.test_dataset=test_dataset
-        elif test_X is not None:
-            self.test_dataset=self.labled_class()
-            self.test_dataset.inin_dataset(test_X,test_y)
-        elif self.test_size is not None:
-            if labled_dataset is not None:
-                self.test_dataset,labled_dataset=SemiSplit(dataset=labled_dataset,
-                                                       labled_size=self.test_size,
-                                                       stratified=self.stratified,
-                                                       shuffle=self.shuffle,
-                                                       random_state=self.random_state
-                                                   )
-            elif labled_X is not None:
-                labled_X, labled_y, test_X, test_y = SemiSplit(X=labled_X, y=labled_y,
+                test_X, test_y,labled_X, labled_y = SemiSplit(X=labled_X, y=labled_y,
                                                            labled_size=self.test_size,
                                                            stratified=self.stratified,
                                                            shuffle=self.shuffle,
                                                            random_state=self.random_state
-                                                    )
+                                                        )
                 self.test_dataset = self.labled_class()
                 self.test_dataset.inin_dataset(self.test_X, self.test_y)
+            else:
+                raise ValueError('No test_dataset')
 
-        if train_dataset is not None:
-            self.train_dataset=train_dataset
-        else:
-            self.train_dataset=self.semitrain_class()
-            self.train_dataset.init_dataset(labled_X=labled_X,labled_y=labled_y,unlabled_X=unlabled_X,
-                    unlabled_y=unlabled_y,labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset)
+
+            if train_dataset is not None:
+                self.train_dataset=train_dataset
+            else:
+                self.train_dataset=self.semitrain_class()
+                self.train_dataset.init_dataset(labled_X=labled_X,labled_y=labled_y,unlabled_X=unlabled_X,
+                        unlabled_y=unlabled_y,labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset)
 
 
         self.labled_dataset=self.train_dataset.get_dataset(labled=True)
-        self.unlabled_dataset = self.train_dataset.get_dataset(labled=False)
+        self.unlabled_dataset=self.train_dataset.get_dataset(labled=False)
         self.test_X = self.test_dataset.get_X()
         self.test_y = self.test_dataset.get_y()
         self.labled_X=self.labled_dataset.get_X()

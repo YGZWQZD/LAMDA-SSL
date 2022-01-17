@@ -110,11 +110,11 @@ class CIFAR10(SemiVisionDataset):
                 else:
                     test_y.extend(entry["fine_labels"])
         test_X = np.vstack(test_X).reshape(-1, 3, 32, 32)
-        test_X = test_X.transpose((0, 2, 3, 1))
+        # test_X = test_X.transpose((0, 2, 3, 1))
 
         self.train_X = []
         self.train_y = []
-        for file_name, checksum in self.test_list:
+        for file_name, checksum in self.train_list:
             file_path = os.path.join(self.root, self.base_folder, file_name)
             with open(file_path, "rb") as f:
                 entry = pickle.load(f, encoding="latin1")
@@ -124,7 +124,7 @@ class CIFAR10(SemiVisionDataset):
                 else:
                     self.train_y.extend(entry["fine_labels"])
         self.train_X = np.vstack(self.train_X).reshape(-1, 3, 32, 32)
-        self.train_X = self.train_X.transpose((0, 2, 3, 1))
+        # self.train_X = self.train_X.transpose((0, 2, 3, 1))
         labled_X, labled_y, unlabled_X, unlabled_y = SemiSplit(X=self.train_X, y=self.train_y,
                                                                labled_size=self.labled_size,
                                                                stratified=self.stratified,

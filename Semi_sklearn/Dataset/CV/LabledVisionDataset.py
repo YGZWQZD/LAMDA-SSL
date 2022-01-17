@@ -1,7 +1,6 @@
 from Semi_sklearn.Dataset.LabledDataset import LabledDataset
 from torchvision.datasets.vision import VisionDataset
-from PIL import Image
-
+from Semi_sklearn.utils import indexing
 
 class LabledVisionDataset(LabledDataset,VisionDataset):
     def __init__(self,
@@ -17,13 +16,22 @@ class LabledVisionDataset(LabledDataset,VisionDataset):
 
         X, y = self.X, self.y
 
-        Xi = X[i]
-        yi = y[i] if y is not None else None
-        Xi = Image.fromarray(Xi)
+        Xi = indexing(X, i, self.X_indexing_method)
+        yi = indexing(y, i, self.y_indexing_method)
+        # Xi = Image.fromarray(Xi)
 
         Xi, yi = self._transform(Xi, yi)
         if self.transform is not None:
-            Xi = self.transform(Xi)
+            Xi=self.transform(Xi)
+            # if isinstance(self.transform,(list,tuple)):
+            #     trans_Xi=[trans(Xi) for trans in self.transform]
+            # elif isinstance(self.transform,dict):
+            #     trans_Xi={}
+            #     for key,val in self.transform:
+            #         trans_Xi[key]=val(Xi)
+            # else:
+            #     trans_Xi=self.transform(Xi)
+            # Xi = trans_Xi
 
         if self.target_transform is not None:
             yi = self.target_transform(yi)
