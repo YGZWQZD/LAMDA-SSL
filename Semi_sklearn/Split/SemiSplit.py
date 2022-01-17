@@ -45,7 +45,6 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
             y_arr = np.array([" ".join(row.astype("str")) for row in y_arr])
         classes, y_indices = np.unique(y_arr, return_inverse=True)
         num_classes = classes.shape[0]
-        #print(num_classes)
         class_counts = np.bincount(y_indices)
         if np.min(class_counts) < 2:
             raise ValueError(
@@ -71,9 +70,9 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
         class_indices = np.split(
             np.argsort(y_indices, kind="mergesort"), np.cumsum(class_counts)[:-1]
         )
-        n_i = _approximate_mode(class_counts, num_unlabled, rng)
+        n_i = _approximate_mode(class_counts, num_labled, rng)
         class_counts_remaining = class_counts - n_i
-        t_i = _approximate_mode(class_counts_remaining, num_labled,rng)
+        t_i = _approximate_mode(class_counts_remaining, num_unlabled,rng)
 
         ind_unlabled = []
         ind_labled = []
@@ -96,15 +95,14 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
             permutation = np.arange(num_total)
         ind_labled = permutation[:num_labled]
         ind_unlabled = permutation[num_labled : (num_labled + num_unlabled)]
-        # print(ind_labled)
-        # print(ind_unlabled)
-        # print(type(ind_labled.tolist()))
-        # print(len(ind_labled))
-        # print(len(ind_unlabled))
     return ind_labled,ind_unlabled
 
 def SemiSplit(stratified,shuffle,random_state=None, X=None, y=None,labled_size=None):
         num_labled, num_unlabled = get_split_num(X, labled_size)
+        # print('l')
+        # print(num_labled)
+        # print('u')
+        # print(num_unlabled)
         ind_labled, ind_unlabled = get_split_index(y=y, num_labled=num_labled, num_unlabled=num_unlabled,
                                                    stratified=stratified, shuffle=shuffle,
                                                    random_state=random_state

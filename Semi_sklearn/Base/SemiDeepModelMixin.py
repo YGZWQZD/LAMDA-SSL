@@ -1,3 +1,4 @@
+import copy
 from math import ceil
 import torch
 from Semi_sklearn.Base.SemiEstimator import SemiEstimator
@@ -15,11 +16,15 @@ class SemiDeepModelMixin(SemiEstimator):
                  num_it_total=None,
                  eval_epoch=None,
                  eval_it=None,
-                 mu=None,# unlabled/labled in each batch
+                 mu=None,
                  optimizer=None,
                  scheduler=None,
                  device=None,
-                 evaluation=None
+                 evaluation=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_Sampler=None
                  ):
         self.train_dataset=train_dataset
         self.test_dataset=test_dataset
@@ -41,9 +46,30 @@ class SemiDeepModelMixin(SemiEstimator):
         self.num_it_epoch=num_it_epoch
         self.num_it_total=num_it_total
         self.evaluation=evaluation
-
+        self.train_sampler=train_sampler
+        self.train_batch_sampler=train_batch_sampler
+        self.test_sampler=test_sampler
+        self.test_batch_sampler=test_batch_Sampler
+        self._optimizer=copy.copy(self.optimizer)
+        self._network=copy.copy(self.network)
+        self._scheduler=copy.copy(self.scheduler)
+        self._train_sampler=copy.copy(self.train_sampler)
+        self._test_sampler=copy.copy(self.test_sampler)
+        self._train_batch_sampler=copy.copy(self.train_batch_sampler)
+        self._test_batch_sampler=copy.copy(self.test_batch_sampler)
+        self._train_dataset=copy.copy(self.train_dataset)
+        self._test_dataset=copy.copy(self.test_dataset)
+        self._train_dataloader=copy.copy(self.train_dataloader)
+        self._test_dataloader = copy.copy(self.test_dataloader)
+        self._augmentation=copy.copy(self.augmentation)
+        self._evaluation=copy.copy(self.evaluation)
 
     def fit(self,X=None,y=None,unlabled_X=None,valid_X=None,valid_y=None):
+        # print(X.shape)
+        # print(y)
+        # print(unlabled_X.shape)
+        # print(valid_X)
+
         if self.num_it_epoch is not None and self.epoch is not None:
             self.num_it_total=self.epoch*self.num_it_epoch
         if self.num_it_total is not None and self.epoch is not None:
@@ -51,51 +77,59 @@ class SemiDeepModelMixin(SemiEstimator):
         if self.num_it_total is not None and self.num_it_epoch is not None:
             self.epoch=ceil(self.num_it_total/self.num_it_epoch)
         if isinstance(X,SemiTrainDataset):
-            self.train_dataset=X
-
+            self._train_dataset=X
         elif isinstance(X,Dataset) and y is None:
-            self.train_dataset.init_dataset(labled_dataset=X, unlabled_dataset=unlabled_X)
+            self._train_dataset.init_dataset(labled_dataset=X, unlabled_dataset=unlabled_X)
         else:
-            self.train_dataset.init_dataset(labled_X=X, labled_y=y,unlabled_X=unlabled_X)
-        labled_dataloader,unlabled_dataloader=self.train_dataloader.get_dataloader(dataset=self.train_dataset,mu=self.mu)
-        # print(self.num_it_total)
-        # print(self.num_it_epoch)
-        # print(self.epoch)
+            self._train_dataset.init_dataset(labled_X=X, labled_y=y,unlabled_X=unlabled_X)
+        labled_dataloader,unlabled_dataloader=self._train_dataloader.get_dataloader(dataset=self._train_dataset,
+                                                                                   sampler=self._train_sampler,
+                                                                                   batch_sampler=self._train_batch_sampler,
+                                                                                   mu=self.mu)
         self.start_fit()
         self.it_total=0
+        self._network.zero_grad()
+        self._network.train()
         for _epoch in range(self.epoch):
             self.it_epoch=0
             if self.it_total>=self.num_it_total:
                 break
             self.start_epoch()
             for (lb_X, lb_y), (ulb_X, _) in zip(labled_dataloader,unlabled_dataloader):
-
                 if self.it_epoch >= self.num_it_epoch or self.it_total>=self.num_it_total:
                     break
                 self.start_batch_train()
                 train_result=self.train(lb_X,lb_y,ulb_X)
                 loss=self.get_loss(train_result)
-                self.backward(loss)
+                loss.backward()
+                self.optimize()
                 self.end_batch_train()
                 self.it_total+=1
                 self.it_epoch+=1
                 print(self.it_total)
-                if self.eval_it is not None and _epoch % self.eval_it == 0:
+                if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
+                    # print('valid')
+                    # print(valid_X)
                     self.evaluate(X=valid_X, y=valid_y)
             self.end_epoch()
-            if self.eval_epoch is not None and _epoch%self.eval_epoch==0:
+            if valid_X is not None and self.eval_epoch is not None and _epoch % self.eval_epoch==0:
+                # print('valid')
                 self.evaluate(X=valid_X,y=valid_y)
         self.end_fit()
         return self
 
     def predict(self,X=None):
         if isinstance(X,Dataset):
-            self.test_dataset=X
+            self._test_dataset=X
         else:
-            self.test_dataset.init_dataset(X=X)
-        test_dataloader=self.test_dataloader.get_dataloader(self.test_dataset)
+            self._test_dataset.init_dataset(X=X)
+        # print(self._test_dataset)
+        test_dataloader=self._test_dataloader.get_dataloader(self._test_dataset,
+                                                            sampler=self._test_sampler,
+                                                            batch_sampler=self._test_batch_sampler)
         self.y_est=torch.Tensor([])
         self.start_predict()
+
         with torch.no_grad():
             for X,_ in test_dataloader:
                 self.start_batch_test()
@@ -103,19 +137,17 @@ class SemiDeepModelMixin(SemiEstimator):
                 self.end_batch_test()
             self.y_pred=self.get_predict_result(self.y_est)
             self.end_predict()
+
+        print(self._test_dataset)
         return self.y_pred
 
     def evaluate(self,X,y=None):
+
         if isinstance(X,Dataset) and y is None:
             y=X.get_y()
+
         y_pred=self.predict(X)
         y_score=self.y_score
-        #print(y_score.shape)
-        print(y[:10])
-        print(y_pred[:10])
-        print(y_score[:10])
-
-
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation,(list,tuple)):
@@ -163,7 +195,7 @@ class SemiDeepModelMixin(SemiEstimator):
     def get_loss(self,train_result,*args,**kwargs):
         raise NotImplementedError
     @abstractmethod
-    def backward(self,loss,*args,**kwargs):
+    def optimize(self,*args,**kwargs):
         raise NotImplementedError
 
     @abstractmethod

@@ -2,7 +2,7 @@ from .SemiEstimator import SemiEstimator
 from abc import abstractmethod
 
 class InductiveEstimator(SemiEstimator):
-    _semi_type='Inductive'
+    __semi_type__='Inductive'
     @abstractmethod
     def predict(self,X):
         raise NotImplementedError(

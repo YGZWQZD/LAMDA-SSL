@@ -1,6 +1,5 @@
 import torch
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from torch.optim.optimizer import Optimizer
 from torch.optim import  sgd
 
 class SGD(SemiOptimizer):
@@ -12,12 +11,13 @@ class SGD(SemiOptimizer):
         self.nesterov=nesterov
         defaults = dict(lr=lr, momentum=momentum, dampening=dampening,
                         weight_decay=weight_decay, nesterov=nesterov)
+
         super().__init__(defaults)
 
     def init_optimizer(self,params):
-        return sgd.SGD(params=params, lr=self.lr, momentum=self.momentum, dampening=self.dampening,
+        opti=sgd.SGD(params=params, lr=self.lr, momentum=self.momentum, dampening=self.dampening,
                    weight_decay=self.weight_decay, nesterov=self.nesterov)
-
+        return opti
 
 
 

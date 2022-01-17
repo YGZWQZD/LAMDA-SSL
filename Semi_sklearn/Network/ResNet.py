@@ -1,238 +1,163 @@
+import logging
+
 import torch
-from torch import Tensor
 import torch.nn as nn
-from typing import Type, Any, Callable, Union, List, Optional
+import torch.nn.functional as F
 
-def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
-    """3x3 convolution with padding"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=dilation, groups=groups, bias=False, dilation=dilation)
+logger = logging.getLogger(__name__)
 
 
-def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
-    """1x1 convolution"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+def mish(x):
+    """Mish: A Self Regularized Non-Monotonic Neural Activation Function (https://arxiv.org/abs/1908.08681)"""
+    return x * torch.tanh(F.softplus(x))
 
 
-class BasicBlock(nn.Module):
-    expansion: int = 1
+class BatchNorm2d(nn.BatchNorm2d):
+    """How Does BN Increase Collapsed Neural Network Filters? (https://arxiv.org/abs/2001.11216)"""
 
-    def __init__(
-            self,
-            inplanes: int,
-            planes: int,
-            stride: int = 1,
-            downsample: Optional[nn.Module] = None,
-            groups: int = 1,
-            base_width: int = 64,
-            dilation: int = 1,
-            norm_layer: Optional[Callable[..., nn.Module]] = None
-    ) -> None:
-        super(BasicBlock, self).__init__()
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
-        if groups != 1 or base_width != 64:
-            raise ValueError('BasicBlock only supports groups=1 and base_width=64')
-        if dilation > 1:
-            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
-        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = norm_layer(planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes)
-        self.bn2 = norm_layer(planes)
-        self.downsample = downsample
-        self.stride = stride
+    def __init__(self, num_features, alpha=0.1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True):
+        super().__init__(num_features, eps, momentum, affine, track_running_stats)
+        self.alpha = alpha
 
-    def forward(self, x: Tensor) -> Tensor:
-        identity = x
-
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-
-        if self.downsample is not None:
-            identity = self.downsample(x)
-
-        out += identity
-        out = self.relu(out)
-
-        return out
+    def forward(self, x):
+        return super().forward(x) + self.alpha
 
 
-class Bottleneck(nn.Module):
-    # Bottleneck in torchvision places the stride for downsampling at 3x3 convolution(self.conv2)
-    # while original implementation places the stride at the first 1x1 convolution(self.conv1)
-    # according to "Deep residual learning for image recognition"https://arxiv.org/abs/1512.03385.
-    # This variant is also known as ResNet V1.5 and improves accuracy according to
-    # https://ngc.nvidia.com/catalog/model-scripts/nvidia:resnet_50_v1_5_for_pytorch.
+class ResNeXtBottleneck(nn.Module):
+    """
+    RexNeXt bottleneck type C (https://github.com/facebookresearch/ResNeXt/blob/master/models/resnext.lua)
+    """
 
-    expansion: int = 4
+    def __init__(self, in_channels, out_channels, stride,
+                 cardinality, base_width, widen_factor):
+        """ Constructor
+        Args:
+            in_channels: input channel dimensionality
+            out_channels: output channel dimensionality
+            stride: conv stride. Replaces pooling layer.
+            cardinality: num of convolution groups.
+            base_width: base number of channels in each group.
+            widen_factor: factor to reduce the input dimensionality before convolution.
+        """
+        super().__init__()
+        width_ratio = out_channels / (widen_factor * 64.)
+        D = cardinality * int(base_width * width_ratio)
+        self.conv_reduce = nn.Conv2d(
+            in_channels, D, kernel_size=1, stride=1, padding=0, bias=False)
+        self.bn_reduce = nn.BatchNorm2d(D, momentum=0.001)
+        self.conv_conv = nn.Conv2d(D, D,
+                                   kernel_size=3, stride=stride, padding=1,
+                                   groups=cardinality, bias=False)
+        self.bn = nn.BatchNorm2d(D, momentum=0.001)
+        self.act = mish
+        self.conv_expand = nn.Conv2d(
+            D, out_channels, kernel_size=1, stride=1, padding=0, bias=False)
+        self.bn_expand = nn.BatchNorm2d(out_channels, momentum=0.001)
 
-    def __init__(
-            self,
-            inplanes: int,
-            planes: int,
-            stride: int = 1,
-            downsample: Optional[nn.Module] = None,
-            groups: int = 1,
-            base_width: int = 64,
-            dilation: int = 1,
-            norm_layer: Optional[Callable[..., nn.Module]] = None
-    ) -> None:
-        super(Bottleneck, self).__init__()
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
-        width = int(planes * (base_width / 64.)) * groups
-        # Both self.conv2 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv1x1(inplanes, width)
-        self.bn1 = norm_layer(width)
-        self.conv2 = conv3x3(width, width, stride, groups, dilation)
-        self.bn2 = norm_layer(width)
-        self.conv3 = conv1x1(width, planes * self.expansion)
-        self.bn3 = norm_layer(planes * self.expansion)
-        self.relu = nn.ReLU(inplace=True)
-        self.downsample = downsample
-        self.stride = stride
+        self.shortcut = nn.Sequential()
+        if in_channels != out_channels:
+            self.shortcut.add_module('shortcut_conv',
+                                     nn.Conv2d(in_channels, out_channels,
+                                               kernel_size=1,
+                                               stride=stride,
+                                               padding=0,
+                                               bias=False))
+            self.shortcut.add_module(
+                'shortcut_bn', nn.BatchNorm2d(out_channels, momentum=0.001))
 
-    def forward(self, x: Tensor) -> Tensor:
-        identity = x
-
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.relu(out)
-
-        out = self.conv3(out)
-        out = self.bn3(out)
-
-        if self.downsample is not None:
-            identity = self.downsample(x)
-
-        out += identity
-        out = self.relu(out)
-
-        return out
+    def forward(self, x):
+        bottleneck = self.conv_reduce.forward(x)
+        bottleneck = self.act(self.bn_reduce.forward(bottleneck))
+        bottleneck = self.conv_conv.forward(bottleneck)
+        bottleneck = self.act(self.bn.forward(bottleneck))
+        bottleneck = self.conv_expand.forward(bottleneck)
+        bottleneck = self.bn_expand.forward(bottleneck)
+        residual = self.shortcut.forward(x)
+        return self.act(residual + bottleneck)
 
 
-class ResNet50(nn.Module):
+class CifarResNeXt(nn.Module):
+    """
+    ResNext optimized for the Cifar dataset, as specified in
+    https://arxiv.org/pdf/1611.05431.pdf
+    """
 
-    def __init__(
-            self,
-            block: Type[Union[BasicBlock, Bottleneck]] = Bottleneck,
-            layers: List[int] = [3, 4, 6, 3],
-            n_class: int = 1000,
-            zero_init_residual: bool = False,
-            groups: int = 1,
-            width_per_group: int = 64,
-            replace_stride_with_dilation: Optional[List[bool]] = None,
-            norm_layer: Optional[Callable[..., nn.Module]] = None,
-            is_remix=False
-    ) -> None:
-        super(ResNet50, self).__init__()
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
-        self._norm_layer = norm_layer
+    def __init__(self, cardinality, depth, num_classes,
+                 base_width, widen_factor=4):
+        """ Constructor
+        Args:
+            cardinality: number of convolution groups.
+            depth: number of layers.
+            nlabels: number of classes
+            base_width: base number of channels in each group.
+            widen_factor: factor to adjust the channel dimensionality
+        """
+        super().__init__()
+        self.cardinality = cardinality
+        self.depth = depth
+        self.block_depth = (self.depth - 2) // 9
+        self.base_width = base_width
+        self.widen_factor = widen_factor
+        self.nlabels = num_classes
+        self.output_size = 64
+        self.stages = [64, 64 * self.widen_factor, 128 *
+                       self.widen_factor, 256 * self.widen_factor]
 
-        self.inplanes = 64
-        self.dilation = 1
-        if replace_stride_with_dilation is None:
-            # each element in the tuple indicates if we should replace
-            # the 2x2 stride with a dilated convolution instead
-            replace_stride_with_dilation = [False, False, False]
-        if len(replace_stride_with_dilation) != 3:
-            raise ValueError("replace_stride_with_dilation should be None "
-                             "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
-        self.groups = groups
-        self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3,
-                               bias=False)
-        self.bn1 = norm_layer(self.inplanes)
-        self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
-                                       dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
-                                       dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
-                                       dilate=replace_stride_with_dilation[2])
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512 * block.expansion, n_class)
-
-        # rot_classifier for Remix Match
-        self.is_remix = is_remix
-        if is_remix:
-            self.rot_classifier = nn.Linear(2048, 4)
+        self.conv_1_3x3 = nn.Conv2d(3, 64, 3, 1, 1, bias=False)
+        self.bn_1 = nn.BatchNorm2d(64, momentum=0.001)
+        self.act = mish
+        self.stage_1 = self.block('stage_1', self.stages[0], self.stages[1], 1)
+        self.stage_2 = self.block('stage_2', self.stages[1], self.stages[2], 2)
+        self.stage_3 = self.block('stage_3', self.stages[2], self.stages[3], 2)
+        self.classifier = nn.Linear(self.stages[3], num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+                nn.init.kaiming_normal_(m.weight,
+                                        mode='fan_out',
+                                        nonlinearity='leaky_relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1.0)
+                nn.init.constant_(m.bias, 0.0)
+            elif isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
+                nn.init.constant_(m.bias, 0.0)
 
-        # Zero-initialize the last BN in each residual branch,
-        # so that the residual branch starts with zeros, and each residual block behaves like an identity.
-        # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
-        if zero_init_residual:
-            for m in self.modules():
-                if isinstance(m, Bottleneck):
-                    nn.init.constant_(m.bn3.weight, 0)  # type: ignore[arg-type]
-                elif isinstance(m, BasicBlock):
-                    nn.init.constant_(m.bn2.weight, 0)  # type: ignore[arg-type]
-
-    def _make_layer(self, block: Type[Union[BasicBlock, Bottleneck]], planes: int, blocks: int,
-                    stride: int = 1, dilate: bool = False) -> nn.Sequential:
-        norm_layer = self._norm_layer
-        downsample = None
-        previous_dilation = self.dilation
-        if dilate:
-            self.dilation *= stride
-            stride = 1
-        if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
-                norm_layer(planes * block.expansion),
-            )
-
-        layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
-                            self.base_width, previous_dilation, norm_layer))
-        self.inplanes = planes * block.expansion
-        for _ in range(1, blocks):
-            layers.append(block(self.inplanes, planes, groups=self.groups,
-                                base_width=self.base_width, dilation=self.dilation,
-                                norm_layer=norm_layer))
-
-        return nn.Sequential(*layers)
-
-    def _forward_impl(self, x):
-        # See note [TorchScript super()]
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-        out = self.fc(x)
-        if self.is_remix:
-            rot_output = self.rot_classifier(x)
-            return out, rot_output
-        else:
-            return out
+    def block(self, name, in_channels, out_channels, pool_stride=2):
+        """ Stack n bottleneck modules where n is inferred from the depth of the network.
+        Args:
+            name: string name of the current block.
+            in_channels: number of input channels
+            out_channels: number of output channels
+            pool_stride: factor to reduce the spatial dimensionality in the first bottleneck of the block.
+        Returns: a Module consisting of n sequential bottlenecks.
+        """
+        block = nn.Sequential()
+        for bottleneck in range(self.block_depth):
+            name_ = '%s_bottleneck_%d' % (name, bottleneck)
+            if bottleneck == 0:
+                block.add_module(name_, ResNeXtBottleneck(in_channels,
+                                                          out_channels,
+                                                          pool_stride,
+                                                          self.cardinality,
+                                                          self.base_width,
+                                                          self.widen_factor))
+            else:
+                block.add_module(name_,
+                                 ResNeXtBottleneck(out_channels,
+                                                   out_channels,
+                                                   1,
+                                                   self.cardinality,
+                                                   self.base_width,
+                                                   self.widen_factor))
+        return block
 
     def forward(self, x):
-        return self._forward_impl(x)
+        x = self.conv_1_3x3.forward(x)
+        x = self.act(self.bn_1.forward(x))
+        x = self.stage_1.forward(x)
+        x = self.stage_2.forward(x)
+        x = self.stage_3.forward(x)
+        x = F.adaptive_avg_pool2d(x, 1)
+        x = x.view(-1, self.stages[3])
+        return self.classifier(x)

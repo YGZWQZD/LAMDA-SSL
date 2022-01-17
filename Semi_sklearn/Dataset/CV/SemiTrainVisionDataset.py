@@ -68,15 +68,6 @@ class SemiTrainVisionDataset(SemiTrainDataset, VisionDataset):
 
         if self.transform is not None:
             Xi=self.transform(Xi)
-            # if isinstance(self.transform,(list,tuple)):
-            #     trans_Xi=[trans(Xi) for trans in self.transform]
-            # elif isinstance(self.transform,dict):
-            #     trans_Xi={}
-            #     for key,val in self.transform:
-            #         trans_Xi[key]=val(Xi)
-            # else:
-            #     trans_Xi=self.transform(Xi)
-            # Xi = trans_Xi
 
         if self.target_transform is not None:
             yi = self.target_transform(yi)
