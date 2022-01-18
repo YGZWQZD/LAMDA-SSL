@@ -24,7 +24,8 @@ class SemiDeepModelMixin(SemiEstimator):
                  train_sampler=None,
                  train_batch_sampler=None,
                  test_sampler=None,
-                 test_batch_Sampler=None
+                 test_batch_Sampler=None,
+                 parallel=None
                  ):
         self.train_dataset=train_dataset
         self.test_dataset=test_dataset
@@ -50,25 +51,25 @@ class SemiDeepModelMixin(SemiEstimator):
         self.train_batch_sampler=train_batch_sampler
         self.test_sampler=test_sampler
         self.test_batch_sampler=test_batch_Sampler
-        self._optimizer=copy.copy(self.optimizer)
-        self._network=copy.copy(self.network)
-        self._scheduler=copy.copy(self.scheduler)
-        self._train_sampler=copy.copy(self.train_sampler)
-        self._test_sampler=copy.copy(self.test_sampler)
-        self._train_batch_sampler=copy.copy(self.train_batch_sampler)
-        self._test_batch_sampler=copy.copy(self.test_batch_sampler)
-        self._train_dataset=copy.copy(self.train_dataset)
-        self._test_dataset=copy.copy(self.test_dataset)
-        self._train_dataloader=copy.copy(self.train_dataloader)
-        self._test_dataloader = copy.copy(self.test_dataloader)
-        self._augmentation=copy.copy(self.augmentation)
-        self._evaluation=copy.copy(self.evaluation)
+        self.parallel=parallel
+        self._optimizer=copy.deepcopy(self.optimizer)
+        self._network=copy.deepcopy(self.network)
+        self._scheduler=copy.deepcopy(self.scheduler)
+        self._train_sampler=copy.deepcopy(self.train_sampler)
+        self._test_sampler=copy.deepcopy(self.test_sampler)
+        self._train_batch_sampler=copy.deepcopy(self.train_batch_sampler)
+        self._test_batch_sampler=copy.deepcopy(self.test_batch_sampler)
+        self._train_dataset=copy.deepcopy(self.train_dataset)
+        self._test_dataset=copy.deepcopy(self.test_dataset)
+        self._train_dataloader=copy.deepcopy(self.train_dataloader)
+        self._test_dataloader = copy.deepcopy(self.test_dataloader)
+        self._augmentation=copy.deepcopy(self.augmentation)
+        self._evaluation=copy.deepcopy(self.evaluation)
+        self._parallel=copy.deepcopy(self.parallel)
+        self.init_model()
+
 
     def fit(self,X=None,y=None,unlabled_X=None,valid_X=None,valid_y=None):
-        # print(X.shape)
-        # print(y)
-        # print(unlabled_X.shape)
-        # print(valid_X)
 
         if self.num_it_epoch is not None and self.epoch is not None:
             self.num_it_total=self.epoch*self.num_it_epoch
@@ -76,6 +77,7 @@ class SemiDeepModelMixin(SemiEstimator):
             self.num_it_epoch=ceil(self.num_it_total/self.epoch)
         if self.num_it_total is not None and self.num_it_epoch is not None:
             self.epoch=ceil(self.num_it_total/self.num_it_epoch)
+
         if isinstance(X,SemiTrainDataset):
             self._train_dataset=X
         elif isinstance(X,Dataset) and y is None:
@@ -144,10 +146,10 @@ class SemiDeepModelMixin(SemiEstimator):
     def evaluate(self,X,y=None):
 
         if isinstance(X,Dataset) and y is None:
-            y=X.get_y()
+            y=getattr(X,'y')
 
-        y_pred=self.predict(X)
-        y_score=self.y_score
+        y_pred=self.predict(X).cpu()
+        y_score=self.y_score.cpu()
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation,(list,tuple)):
@@ -159,11 +161,18 @@ class SemiDeepModelMixin(SemiEstimator):
             result={}
             for key,val in self.evaluation.items():
                 result[key]=val.scoring(y,y_pred,y_score)
-                print(result[key])
+                print(key,' ',result[key])
             return result
         else:
             result=self.evaluation.scoring(y,y_pred,y_score)
             return result
+
+    def init_model(self):
+        if self.device is not None and self.device is not 'cpu':
+            torch.cuda.set_device(self.device)
+        self._network=self._network.to(self.device)
+        if self._parallel is not None:
+            self._parallel=self._parallel.init_parallel(self._network)
 
     def start_fit(self, *args, **kwargs):
         pass
