@@ -88,9 +88,9 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         if isinstance(self._optimizer,SemiOptimizer):
             no_decay = ['bias', 'bn']
             grouped_parameters = [
-                {'params': [p for n, p in self.network.named_parameters() if not any(
+                {'params': [p for n, p in self._network.named_parameters() if not any(
                     nd in n for nd in no_decay)], 'weight_decay': self.weight_decay},
-                {'params': [p for n, p in self.network.named_parameters() if any(
+                {'params': [p for n, p in self._network.named_parameters() if any(
                     nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
             self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
@@ -102,9 +102,10 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         w_ulb_X=self.weakly_augmentation.fit_transform(ulb_X)
         s_ulb_X=self.strong_augmentation.fit_transform(ulb_X)
         batch_size = w_lb_X.shape[0]
-        inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
+        inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X)).to(self.device)
+        lb_y=lb_y.to(self.device)
         inputs = interleave(inputs, 2 * self.mu + 1)
-        logits = self.network(inputs)
+        logits = self._network(inputs)
         logits = de_interleave(logits, 2 * self.mu + 1)
         logits_x = logits[:batch_size]
         logits_u_w, logits_u_s = logits[batch_size:].chunk(2)
@@ -135,7 +136,7 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._network.zero_grad()
 
     def estimate(self,X,*args,**kwargs):
-        X=self.normalization.fit_transform(X)
+        X=self.normalization.fit_transform(X).to(self.device)
         if self.ema is not None:
             outputs=self._ema.ema(X)
         else:
