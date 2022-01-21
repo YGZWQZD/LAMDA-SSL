@@ -101,7 +101,7 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         if isinstance(self._scheduler,SemiLambdaLR):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
 
-    def train(self,lb_X,lb_y,ulb_X,*args,**kwargs):
+    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
         w_lb_X=self.weakly_augmentation.fit_transform(lb_X)
         w_ulb_X=self.weakly_augmentation.fit_transform(ulb_X)
         s_ulb_X=self.strong_augmentation.fit_transform(ulb_X)
@@ -139,7 +139,7 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             self.ema.update()
         self._network.zero_grad()
 
-    def estimate(self,X,*args,**kwargs):
+    def estimate(self,X,idx=None,*args,**kwargs):
         X=self.normalization.fit_transform(X)
         if self.ema is not None:
             self.ema.apply_shadow()

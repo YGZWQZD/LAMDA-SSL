@@ -368,6 +368,35 @@ def consistency_loss(logits_w1, logits_w2):
     return F.mse_loss(torch.softmax(logits_w1,dim=-1), torch.softmax(logits_w2,dim=-1), reduction='mean')
 
 
+class class_status:
+    def __init__(self,y):
+        self.y=y
+        try:
+            self.y_arr = to_numpy(self.y)
+        except (AttributeError, TypeError):
+            self.y_arr = self.y
+        if self.y_arr.ndim == 2:
+            self.y_arr = np.array([" ".join(row.astype("str")) for row in self.y_arr])
+    @property
+    def classes(self):
+        classes, y_indices = np.unique(self.y_arr, return_inverse=True)
+        return classes
 
+    @property
+    def y_indices(self):
+        classes, y_indices = np.unique(self.y_arr, return_inverse=True)
+        return y_indices
+
+    @property
+    def num_class(self):
+        classes, y_indices = np.unique(self.y_arr, return_inverse=True)
+        num_class = classes.shape[0]
+        return num_class
+
+    @property
+    def class_count(self):
+        classes, y_indices = np.unique(self.y_arr, return_inverse=True)
+        class_counts = np.bincount(y_indices)
+        return class_counts
 
 

@@ -99,10 +99,6 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
 
 def SemiSplit(stratified,shuffle,random_state=None, X=None, y=None,labled_size=None):
         num_labled, num_unlabled = get_split_num(X, labled_size)
-        # print('l')
-        # print(num_labled)
-        # print('u')
-        # print(num_unlabled)
         ind_labled, ind_unlabled = get_split_index(y=y, num_labled=num_labled, num_unlabled=num_unlabled,
                                                    stratified=stratified, shuffle=shuffle,
                                                    random_state=random_state

@@ -92,7 +92,7 @@ class SemiVisionDataset(SemiDataset,VisionDataset):
             yi = self.target_transform(yi)
 
 
-        return Xi,yi
+        return i,Xi,yi
 
     def __len__(self, train=False, labled=True):
         return SemiDataset.__len__(self,train, labled)

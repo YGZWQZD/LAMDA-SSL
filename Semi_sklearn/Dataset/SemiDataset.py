@@ -140,8 +140,8 @@ class SemiDataset(Dataset):
                 X = {k: X[k].values.reshape(-1, 1) for k in X}
             Xi = indexing(X, i,self.unlabled_X_indexing_method)
             yi = indexing(y, i, self.unlabled_y_indexing_method)
-        return self._transform(Xi, yi)
-
+        Xi,yi=self._transform(Xi, yi)
+        return i,Xi,yi
     def __len__(self,train=False,labled=True):
         if train is not True:
             return self.len_test

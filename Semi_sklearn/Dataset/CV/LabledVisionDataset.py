@@ -36,7 +36,7 @@ class LabledVisionDataset(LabledDataset,VisionDataset):
         if self.target_transform is not None:
             yi = self.target_transform(yi)
 
-        return Xi, yi
+        return i,Xi, yi
 
     def __len__(self):
         return LabledDataset.__len__(self)

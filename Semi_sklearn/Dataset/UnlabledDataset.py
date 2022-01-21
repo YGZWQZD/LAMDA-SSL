@@ -63,4 +63,5 @@ class UnlabledDataset(Dataset):
         Xi = indexing(X, i, self.X_indexing_method)
         yi = indexing(y, i, self.y_indexing_method)
 
-        return self._transform(Xi,yi)
+        Xi, yi = self._transform(Xi, yi)
+        return i, Xi, yi

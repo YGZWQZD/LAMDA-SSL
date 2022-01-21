@@ -97,11 +97,11 @@ class SemiDeepModelMixin(SemiEstimator):
             if self.it_total>=self.num_it_total:
                 break
             self.start_epoch()
-            for (lb_X, lb_y), (ulb_X, _) in zip(labled_dataloader,unlabled_dataloader):
+            for (lb_idx,lb_X, lb_y), (ulb_idx,ulb_X, _) in zip(labled_dataloader,unlabled_dataloader):
                 if self.it_epoch >= self.num_it_epoch or self.it_total>=self.num_it_total:
                     break
                 self.start_batch_train()
-                train_result=self.train(lb_X,lb_y,ulb_X)
+                train_result=self.train(lb_X=lb_X,lb_y=lb_y,ulb_X=ulb_X,lb_idx=lb_idx,ulb_idx=ulb_idx)
                 loss=self.get_loss(train_result)
                 loss.backward()
                 self.optimize()
@@ -110,12 +110,9 @@ class SemiDeepModelMixin(SemiEstimator):
                 self.it_epoch+=1
                 print(self.it_total)
                 if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
-                    # print('valid')
-                    # print(valid_X)
                     self.evaluate(X=valid_X, y=valid_y)
             self.end_epoch()
             if valid_X is not None and self.eval_epoch is not None and _epoch % self.eval_epoch==0:
-                # print('valid')
                 self.evaluate(X=valid_X,y=valid_y)
         self.end_fit()
         return self
@@ -125,7 +122,6 @@ class SemiDeepModelMixin(SemiEstimator):
             self._test_dataset=X
         else:
             self._test_dataset.init_dataset(X=X)
-        # print(self._test_dataset)
         test_dataloader=self._test_dataloader.get_dataloader(self._test_dataset,
                                                             sampler=self._test_sampler,
                                                             batch_sampler=self._test_batch_sampler)
@@ -133,10 +129,10 @@ class SemiDeepModelMixin(SemiEstimator):
         self.start_predict()
         self._network.eval()
         with torch.no_grad():
-            for X,_ in test_dataloader:
+            for idx,X,_ in test_dataloader:
                 self.start_batch_test()
                 X=X.to(self.device)
-                _est=self.estimate(X)
+                _est=self.estimate(X=X,idx=idx)
                 if torch.isnan(_est).any().tolist():
                     print('_est')
                     print(_est)
@@ -203,7 +199,7 @@ class SemiDeepModelMixin(SemiEstimator):
         pass
 
     @abstractmethod
-    def train(self,lb_X,lb_y,ulb_X,*args,**kwargs):
+    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
         raise NotImplementedError
     @abstractmethod
     def get_loss(self,train_result,*args,**kwargs):
@@ -213,7 +209,7 @@ class SemiDeepModelMixin(SemiEstimator):
         raise NotImplementedError
 
     @abstractmethod
-    def estimate(self,X,*args,**kwargs):
+    def estimate(self,X,idx=None,*args,**kwargs):
         raise NotImplementedError
     @abstractmethod
     def get_predict_result(self,y_est,*args,**kwargs):

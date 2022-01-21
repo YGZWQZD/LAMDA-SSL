@@ -95,7 +95,7 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
         if isinstance(self._scheduler,SemiLambdaLR):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
 
-    def train(self,lb_X,lb_y,ulb_X,*args,**kwargs):
+    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
         lb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
         ulb_X_1=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
@@ -124,7 +124,7 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
             self.ema.update()
         self._network.zero_grad()
 
-    def estimate(self,X,*args,**kwargs):
+    def estimate(self,X,idx=None,*args,**kwargs):
         X=self.normalization.fit_transform(X)
         if self.ema is not None:
             self.ema.apply_shadow()
