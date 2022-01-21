@@ -5,12 +5,15 @@ from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiLambdaLR
 from Semi_sklearn.utils import EMA
 import torch
+from Semi_sklearn.utils import partial
 
-
-def fix_bn(m):
+def fix_bn(m,train=False):
     classname = m.__class__.__name__
     if classname.find('BatchNorm') != -1:
-        m.eval()
+        if train:
+            m.train()
+        else:
+            m.eval()
 
 class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
     def __init__(self,train_dataset=None,test_dataset=None,
@@ -93,19 +96,27 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
 
     def train(self,lb_X,lb_y,ulb_X,*args,**kwargs):
-        lb_X=self.weakly_augmentation.fit_transform(lb_X)
-        ulb_X_1=self.weakly_augmentation.fit_transform(ulb_X)
-        ulb_X_2=self.weakly_augmentation.fit_transform(ulb_X)
+
+        lb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
+        ulb_X_1=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+        ulb_X_2=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+
+        self._network.apply(partial(fix_bn, train=True))
         logits_x_lb = self._network(lb_X)
+        self._network.apply(partial(fix_bn,train=False))
 
-        self._network.apply(fix_bn)
         logits_x_ulb_2 = self._network(ulb_X_2)
-
-
+        if torch.isnan(logits_x_ulb_2).any().tolist():
+            print('logits_x_ulb_2')
+            print(logits_x_ulb_2)
         self.ema.apply_shadow()
         with torch.no_grad():
             logits_x_ulb_1 = self._network(ulb_X_1)
+            if torch.isnan(logits_x_ulb_1).any().tolist():
+                print('logits_x_ulb_1')
+                print(logits_x_ulb_1)
         self.ema.restore()
+
         return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
 
 
@@ -119,11 +130,14 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
 
     def estimate(self,X,*args,**kwargs):
         X=self.normalization.fit_transform(X)
-        if self.ema is not None:
-            self.ema.apply_shadow()
+        # if self.ema is not None:
+        #     self.ema.apply_shadow()
         outputs = self._network(X)
-        if self.ema is not None:
-            self.ema.restore()
+        if torch.isnan(outputs).any().tolist():
+            print('outputs')
+            print(outputs)
+        # if self.ema is not None:
+        #     self.ema.restore()
         return outputs
 
 
