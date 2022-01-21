@@ -15,7 +15,7 @@ def fix_bn(m,train=False):
         else:
             m.eval()
 
-class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
+class PiModel(InductiveEstimator,SemiDeepModelMixin):
     def __init__(self,train_dataset=None,test_dataset=None,
                  train_dataloader=None,
                  test_dataloader=None,
@@ -104,15 +104,8 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
         self._network.apply(partial(fix_bn, train=True))
         logits_x_lb = self._network(lb_X)
         self._network.apply(partial(fix_bn,train=False))
-
+        logits_x_ulb_1 = self._network(ulb_X_1)
         logits_x_ulb_2 = self._network(ulb_X_2)
-        if self.ema is not None:
-            self.ema.apply_shadow()
-        with torch.no_grad():
-            logits_x_ulb_1 = self._network(ulb_X_1)
-        if self.ema is not None:
-            self.ema.restore()
-
         return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
 
 

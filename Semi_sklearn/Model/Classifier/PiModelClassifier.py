@@ -6,14 +6,14 @@ from Semi_sklearn.utils import cross_entropy,consistency_loss
 import numpy as np
 
 import torch
-from Semi_sklearn.Model.MeanTeacher import MeanTeacher
+from Semi_sklearn.Model.Pimodel import PiModel
 
 def fix_bn(m):
     classname = m.__class__.__name__
     if classname.find('BatchNorm') != -1:
         m.eval()
 
-class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
+class PiModelClassifier(PiModel,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -39,7 +39,7 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                  ema_decay=None,
                  weight_decay=None
                  ):
-        MeanTeacher.__init__(self,train_dataset=train_dataset,
+        PiModel.__init__(self,train_dataset=train_dataset,
                              test_dataset=test_dataset,
                              train_dataloader=train_dataloader,
                              test_dataloader=test_dataloader,
@@ -67,17 +67,15 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')  # CE_loss for labeled data
-
+        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb_2, logits_x_ulb_1.detach())  # MSE loss for unlabeled data
+        unsup_loss = consistency_loss(logits_x_ulb_1.detach(),logits_x_ulb_2.detach)
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 
 
 
     def get_predict_result(self,y_est,*args,**kwargs):
-
         self.y_score=Softmax(dim=-1)(y_est)
         max_probs,y_pred=torch.max(self.y_score, dim=-1)
         return y_pred
