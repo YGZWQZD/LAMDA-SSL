@@ -118,7 +118,7 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
         self._network.zero_grad()
 
     def estimate(self,X,*args,**kwargs):
-
+        X=self.normalization.fit_transform(X)
         if self.ema is not None:
             self.ema.apply_shadow()
         outputs = self._network(X)

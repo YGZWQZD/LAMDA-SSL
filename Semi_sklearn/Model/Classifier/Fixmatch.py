@@ -140,7 +140,7 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._network.zero_grad()
 
     def estimate(self,X,*args,**kwargs):
-        X=self.normalization.fit_transform(X).to(self.device)
+        X=self.normalization.fit_transform(X)
         if self.ema is not None:
             self.ema.apply_shadow()
         outputs = self._network(X)
@@ -151,7 +151,6 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def get_predict_result(self,y_est,*args,**kwargs):
         self.y_score=Softmax(dim=-1)(y_est)
-        print(self.y_score.shape)
         max_probs,y_pred=torch.max(self.y_score, dim=-1)
         return y_pred
 

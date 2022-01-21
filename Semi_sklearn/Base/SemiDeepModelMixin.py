@@ -129,7 +129,7 @@ class SemiDeepModelMixin(SemiEstimator):
         test_dataloader=self._test_dataloader.get_dataloader(self._test_dataset,
                                                             sampler=self._test_sampler,
                                                             batch_sampler=self._test_batch_sampler)
-        self.y_est=torch.Tensor([])
+        self.y_est=torch.Tensor([]).to(self.device)
         self.start_predict()
         self._network.eval()
         with torch.no_grad():
