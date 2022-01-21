@@ -1,4 +1,4 @@
-from sklearn.base import BaseEstimator,ClassifierMixin
+from sklearn.base import BaseEstimator
 from abc import ABC,abstractmethod
 
 class SemiEstimator(ABC,BaseEstimator):

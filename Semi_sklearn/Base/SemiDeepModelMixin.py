@@ -135,6 +135,7 @@ class SemiDeepModelMixin(SemiEstimator):
         with torch.no_grad():
             for X,_ in test_dataloader:
                 self.start_batch_test()
+                X=X.to(self.device)
                 self.y_est=torch.cat((self.y_est,self.estimate(X)),0)
                 self.end_batch_test()
             self.y_pred=self.get_predict_result(self.y_est)
