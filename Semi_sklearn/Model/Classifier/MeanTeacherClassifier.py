@@ -69,9 +69,9 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
         sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')  # CE_loss for labeled data
 
-        warm_up = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
+        _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
         unsup_loss = consistency_loss(logits_x_ulb_2, logits_x_ulb_1)  # MSE loss for unlabeled data
-        loss = sup_loss + warm_up * self.lambda_u *unsup_loss
+        loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 
 

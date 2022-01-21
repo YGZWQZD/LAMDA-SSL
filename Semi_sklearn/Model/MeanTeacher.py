@@ -106,16 +106,15 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
         self._network.apply(partial(fix_bn,train=False))
 
         logits_x_ulb_2 = self._network(ulb_X_2)
-        if torch.isnan(logits_x_ulb_2).any().tolist():
-            print('logits_x_ulb_2')
-            print(logits_x_ulb_2)
-        self.ema.apply_shadow()
+        if self.ema is not None:
+            self.ema.apply_shadow()
         with torch.no_grad():
             logits_x_ulb_1 = self._network(ulb_X_1)
             if torch.isnan(logits_x_ulb_1).any().tolist():
                 print('logits_x_ulb_1')
                 print(logits_x_ulb_1)
-        self.ema.restore()
+        if self.ema is not None:
+            self.ema.restore()
 
         return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
 
@@ -130,14 +129,14 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
 
     def estimate(self,X,*args,**kwargs):
         X=self.normalization.fit_transform(X)
-        # if self.ema is not None:
-        #     self.ema.apply_shadow()
+        if self.ema is not None:
+            self.ema.apply_shadow()
         outputs = self._network(X)
         if torch.isnan(outputs).any().tolist():
             print('outputs')
             print(outputs)
-        # if self.ema is not None:
-        #     self.ema.restore()
+        if self.ema is not None:
+            self.ema.restore()
         return outputs
 
 
