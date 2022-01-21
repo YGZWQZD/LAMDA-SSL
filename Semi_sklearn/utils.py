@@ -12,6 +12,7 @@ from scipy import sparse
 from torch.nn.utils.rnn import PackedSequence
 from collections.abc import Sequence
 from PIL import Image
+import torch.nn.functional as F
 
 if LooseVersion(sklearn.__version__) >= '0.22.0':
     from sklearn.utils import _safe_indexing as safe_indexing
@@ -302,47 +303,70 @@ class partial:
         self.args = args
         self.keywords = kwds
 
-class ModelEMA(object):
-    def __init__(self, decay):
+class EMA:
+    """
+    Implementation from https://fyubang.com/2019/06/01/ema/
+    """
 
+    def __init__(self, model, decay):
+        self.model = model
         self.decay = decay
-        self.model=None
-        self.device=None
-        self.ema=None
-    def init_ema(self,model,device):
-        self.device=device
-        self.model=model
-        self.ema = deepcopy(model)
-        self.ema.to(device)
-        self.ema.eval()
-        self.ema_has_module = hasattr(self.ema, 'module')
-        # Fix EMA. https://github.com/valencebond/FixMatch_pytorch thank you!
-        self.param_keys = [k for k, _ in self.ema.named_parameters()]
-        self.buffer_keys = [k for k, _ in self.ema.named_buffers()]
-        for p in self.ema.parameters():
-            p.requires_grad_(False)
+        self.shadow = {}
+        self.backup = {}
 
+    def load(self, ema_model):
+        for name, param in ema_model.named_parameters():
+            self.shadow[name] = param.data.clone()
 
-    def update(self, model):
-        needs_module = hasattr(model, 'module') and not self.ema_has_module
-        with torch.no_grad():
-            msd = model.state_dict()
-            esd = self.ema.state_dict()
-            for k in self.param_keys:
-                if needs_module:
-                    j = 'module.' + k
-                else:
-                    j = k
-                model_v = msd[j].detach()
-                ema_v = esd[k]
-                esd[k].copy_(ema_v * self.decay + (1. - self.decay) * model_v)
+    def register(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                self.shadow[name] = param.data.clone()
 
-            for k in self.buffer_keys:
-                if needs_module:
-                    j = 'module.' + k
-                else:
-                    j = k
-                esd[k].copy_(msd[j])
+    def update(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                assert name in self.shadow
+                new_average = (1.0 - self.decay) * param.data + self.decay * self.shadow[name]
+                self.shadow[name] = new_average.clone()
+
+    def apply_shadow(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                assert name in self.shadow
+                self.backup[name] = param.data
+                param.data = self.shadow[name]
+
+    def restore(self):
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                assert name in self.backup
+                param.data = self.backup[name]
+        self.backup = {}
+
+def cross_entropy(logits, targets, use_hard_labels=True, reduction='none'):
+    """
+    wrapper for cross entropy loss in pytorch.
+
+    Args
+        logits: logit values, shape=[Batch size, # of classes]
+        targets: integer or vector, shape=[Batch size] or [Batch size, # of classes]
+        use_hard_labels: If True, targets have [Batch size] shape with int values. If False, the target is vector (default True)
+    """
+    if use_hard_labels:
+        log_pred = F.log_softmax(logits, dim=-1)
+        return F.nll_loss(log_pred, targets, reduction=reduction)
+        # return F.cross_entropy(logits, targets, reduction=reduction) this is unstable
+    else:
+        assert logits.shape == targets.shape
+        log_pred = F.log_softmax(logits, dim=-1)
+        nll_loss = torch.sum(-targets * log_pred, dim=1)
+        return nll_loss
+
+def consistency_loss(logits_w1, logits_w2):
+    logits_w2 = logits_w2.detach()
+    assert logits_w1.size() == logits_w2.size()
+    return F.mse_loss(torch.softmax(logits_w1,dim=-1), torch.softmax(logits_w2,dim=-1), reduction='mean')
 
 
 
