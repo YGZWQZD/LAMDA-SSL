@@ -1,4 +1,3 @@
-
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 
 from sklearn.base import ClassifierMixin
@@ -78,6 +77,7 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
 
 
     def get_predict_result(self,y_est,*args,**kwargs):
+
         self.y_score=Softmax(dim=-1)(y_est)
         max_probs,y_pred=torch.max(self.y_score, dim=-1)
         return y_pred
