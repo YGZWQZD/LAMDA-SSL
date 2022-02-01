@@ -2,7 +2,7 @@ import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiLambdaLR
+from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from sklearn.base import ClassifierMixin
 from torch.nn import Softmax
 import torch
@@ -97,24 +97,23 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             ]
             self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
 
-        if isinstance(self._scheduler,SemiLambdaLR):
+        if isinstance(self._scheduler,SemiScheduler):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
 
-    def start_fit(self, *args, **kwargs):
+    def start_fit(self):
+
         n_classes = self.num_classes if self.num_classes is not None else \
-                        class_status(self._train_dataset.labled_dataset.y).num_class,
+                        class_status(self._train_dataset.labled_dataset.y).num_class
+
         n_samples = self.num_samples if self.num_samples is not None else \
                         self._train_dataset.unlabled_dataset.__len__()
         self.epoch_pslab = self.create_soft_pslab(n_samples=n_samples,
                                            n_classes=n_classes,dtype='rand')
         self.ema_pslab   = self.create_soft_pslab(n_samples=n_samples,
                                            n_classes=n_classes,dtype='zero')
-    def start_epoch(self, *args, **kwargs):
-        self._scheduler().step()
-    def end_epoch(self, *args, **kwargs):
-        self._optimizer.zero_grad()
 
-        self._optimizer.step()
+    def end_epoch(self):
+           self._scheduler.step()
 
     def create_soft_pslab(self, n_samples, n_classes, dtype='rand'):
         if dtype == 'rand':
@@ -125,11 +124,15 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             raise ValueError('Unknown pslab dtype: {}'.format(dtype))
         return pslab.to(self.device)
 
-    def update_ema_predictions(self):
-        self.ema_pslab = (self.ema_decay*self.ema_pslab) + (1.0-self.ema_decay)*self.epoch_pslab
-        self.epoch_pslab = self.ema_pslab / (1.0 - self.ema_decay**((self.epoch)+1.0))
+    def update_ema_predictions(self,iter_pslab,idxs):
+        ema_iter_pslab = (self.ema_decay * self.ema_pslab[idxs]) + (1.0 - self.ema_decay) * iter_pslab
+        self.ema_pslab[idxs] = ema_iter_pslab
+        return ema_iter_pslab / (1.0 - self.ema_decay ** (self._epoch+ 1.0))
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+
+
+        # _ulb_idx=ulb_idx.tolist() if ulb_idx is not None else ulb_idx
 
         lb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
         ulb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
@@ -138,9 +141,12 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         logits_x_lb = self._network(lb_X)
         self._network.apply(partial(fix_bn,train=False))
         logits_x_ulb = self._network(ulb_X)
-        iter_unlab_pslab = self.epoch_pslab[ulb_idx]
+
+        # with torch.no_grad():
+        #     print(self.epoch_pslab.dtype)
+        #     iter_unlab_pslab = self.update_ema_predictions(logits_x_ulb.clone().detach(),ulb_X)
         with torch.no_grad():
-            self.epoch_pslab[ulb_idx] = logits_x_ulb.clone().detach()
+            iter_unlab_pslab = self.update_ema_predictions(logits_x_ulb.clone().detach(),ulb_idx)
 
         return logits_x_lb,lb_y,logits_x_ulb,iter_unlab_pslab
 

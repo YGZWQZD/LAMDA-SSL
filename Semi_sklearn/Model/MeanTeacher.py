@@ -2,7 +2,7 @@ import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiLambdaLR
+from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from Semi_sklearn.utils import EMA
 import torch
 from Semi_sklearn.utils import partial
@@ -92,7 +92,7 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
             ]
             self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
 
-        if isinstance(self._scheduler,SemiLambdaLR):
+        if isinstance(self._scheduler,SemiScheduler):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):

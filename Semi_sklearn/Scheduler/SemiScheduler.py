@@ -1,8 +1,8 @@
-from torch.optim.lr_scheduler import LambdaLR
-class SemiLambdaLR:
-    def __init__(self,  lr_lambda, last_epoch=-1):
-        self.lr_lambda=lr_lambda
+from torch.optim import lr_scheduler
+class SemiScheduler:
+    def __init__(self, last_epoch=-1, verbose=False):
         self.last_epoch=last_epoch
+        self.verbose=verbose
 
     def init_scheduler(self,optimizer):
-        return LambdaLR(optimizer=optimizer,lr_lambda=self.lr_lambda,last_epoch=self.last_epoch)
+        return lr_scheduler._LRScheduler(optimizer,last_epoch=self.last_epoch,verbose=self.verbose)

@@ -66,6 +66,7 @@ class SemiDeepModelMixin(SemiEstimator):
         self._augmentation=copy.deepcopy(self.augmentation)
         self._evaluation=copy.deepcopy(self.evaluation)
         self._parallel=copy.deepcopy(self.parallel)
+        self._epoch=0
         self.init_model()
 
 
@@ -93,14 +94,21 @@ class SemiDeepModelMixin(SemiEstimator):
         self._network.zero_grad()
         self._network.train()
         for _epoch in range(self.epoch):
+            self._epoch=_epoch
             self.it_epoch=0
             if self.it_total>=self.num_it_total:
                 break
             self.start_epoch()
             for (lb_idx,lb_X, lb_y), (ulb_idx,ulb_X, _) in zip(labled_dataloader,unlabled_dataloader):
+
                 if self.it_epoch >= self.num_it_epoch or self.it_total>=self.num_it_total:
                     break
                 self.start_batch_train()
+                lb_idx = lb_idx.to(self.device)
+                lb_X=lb_X.to(self.device)
+                lb_y=lb_y.to(self.device)
+                ulb_idx = ulb_idx.to(self.device)
+                ulb_X=ulb_X.to(self.device)
                 train_result=self.train(lb_X=lb_X,lb_y=lb_y,ulb_X=ulb_X,lb_idx=lb_idx,ulb_idx=ulb_idx)
                 loss=self.get_loss(train_result)
                 loss.backward()
@@ -131,17 +139,14 @@ class SemiDeepModelMixin(SemiEstimator):
         with torch.no_grad():
             for idx,X,_ in test_dataloader:
                 self.start_batch_test()
+                idx=idx.to(self.device)
                 X=X.to(self.device)
                 _est=self.estimate(X=X,idx=idx)
-                if torch.isnan(_est).any().tolist():
-                    print('_est')
-                    print(_est)
                 self.y_est=torch.cat((self.y_est,_est),0)
                 self.end_batch_test()
             self.y_pred=self.get_predict_result(self.y_est)
             self.end_predict()
         self._network.train()
-        print(self._test_dataset)
         return self.y_pred
 
     def evaluate(self,X,y=None):
@@ -177,7 +182,10 @@ class SemiDeepModelMixin(SemiEstimator):
 
     def start_fit(self, *args, **kwargs):
         pass
+
     def start_epoch(self, *args, **kwargs):
+        pass
+    def end_epoch(self, *args, **kwargs):
         pass
     def start_batch_train(self, *args, **kwargs):
         pass
@@ -189,10 +197,7 @@ class SemiDeepModelMixin(SemiEstimator):
         pass
     def end_fit(self, *args, **kwargs):
         pass
-    def end_epoch(self, *args, **kwargs):
-        pass
-    def end_batch(self, *args, **kwargs):
-        pass
+
     def start_predict(self, *args, **kwargs):
         pass
     def end_predict(self, *args, **kwargs):

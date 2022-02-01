@@ -162,7 +162,7 @@ class SemiTrainDataLoader:
                 self.unlabled_batch_size=self.labled_batch_size*(self.len_unlabled//self.len_labled)
             else:
                 self.labled_batch_size = self.unlabled_batch_size * (self.len_labled//self.len_unlabled)
-        if mu is not None:
+        if mu is not None and self.labled_batch_size is not None:
             self.unlabled_batch_size=mu*self.labled_batch_size
 
         if sampler is not None:
@@ -173,7 +173,8 @@ class SemiTrainDataLoader:
             else:
                 self.labled_sampler, self.unlabled_sampler=copy.copy(sampler),copy.copy(sampler)
             if mu is not None:
-                if hasattr(self.labled_sampler, 'num_samples') and hasattr(self.unlabled_sampler, 'num_samples'):
+                if hasattr(self.labled_sampler, 'num_samples') and hasattr(self.unlabled_sampler, 'num_samples')  \
+                        and self.labled_sampler.num_samples is not None:
                     self.unlabled_sampler.num_samples = self.labled_sampler.num_samples * mu
 
         if batch_sampler is not None:

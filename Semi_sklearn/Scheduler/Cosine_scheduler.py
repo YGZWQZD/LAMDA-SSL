@@ -1,6 +1,6 @@
-from Semi_sklearn.Scheduler.SemiScheduler import SemiLambdaLR
+from Semi_sklearn.Scheduler.LambdaLR import LambdaLR
 import math
-class Cosine_schedeler(SemiLambdaLR):
+class Cosine_schedeler(LambdaLR):
     def __init__(self,num_warmup_steps,
                  num_training_steps,
                  num_cycles=7./16.,

@@ -13,7 +13,6 @@ class LabledVisionDataset(LabledDataset,VisionDataset):
         VisionDataset.__init__(self,root=root,transforms=transforms,transform=transform,target_transform=target_transform)
 
     def __getitem__(self, i):
-
         X, y = self.X, self.y
 
         Xi = indexing(X, i, self.X_indexing_method)

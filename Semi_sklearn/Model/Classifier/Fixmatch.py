@@ -3,7 +3,7 @@ from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from sklearn.base import ClassifierMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiLambdaLR
+from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from torch.nn import Softmax
 import torch.nn.functional as F
 from Semi_sklearn.utils import EMA
@@ -77,15 +77,15 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             self.ema=None
         if isinstance(self._augmentation,dict):
             self.weakly_augmentation=self._augmentation['weakly_augmentation']
-            self.strong_augmentation = self._augmentation['strongly_augmentation']
+            self.strongly_augmentation = self._augmentation['strongly_augmentation']
             self.normalization = self._augmentation['normalization']
         elif isinstance(self._augmentation,(list,tuple)):
             self.weakly_augmentation = self._augmentation[0]
-            self.strong_augmentation = self._augmentation[1]
+            self.strongly_augmentation = self._augmentation[1]
             self.normalization = self._augmentation[2]
         else:
             self.weakly_augmentation = copy.deepcopy(self._augmentation)
-            self.strong_augmentation = copy.deepcopy(self._augmentation)
+            self.strongly_augmentation = copy.deepcopy(self._augmentation)
             self.normalization = copy.deepcopy(self._augmentation)
 
         if isinstance(self._optimizer,SemiOptimizer):
@@ -98,13 +98,13 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             ]
             self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
 
-        if isinstance(self._scheduler,SemiLambdaLR):
+        if isinstance(self._scheduler,SemiScheduler):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
         w_lb_X=self.weakly_augmentation.fit_transform(lb_X)
         w_ulb_X=self.weakly_augmentation.fit_transform(ulb_X)
-        s_ulb_X=self.strong_augmentation.fit_transform(ulb_X)
+        s_ulb_X=self.strongly_augmentation.fit_transform(ulb_X)
         batch_size = w_lb_X.shape[0]
         inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X)).to(self.device)
         lb_y=lb_y.to(self.device)
