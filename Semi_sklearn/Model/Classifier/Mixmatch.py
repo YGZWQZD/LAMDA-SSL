@@ -4,14 +4,15 @@ from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from sklearn.base import ClassifierMixin
-import numpy as np
 from Semi_sklearn.utils import EMA
 import torch
-from Semi_sklearn.utils import class_status
+from Semi_sklearn.utils import cross_entropy
 from Semi_sklearn.utils import partial
+import numpy as np
 from torch.nn import Softmax
-from Semi_sklearn.utils import _l2_normalize,kl_div_with_logit,cross_entropy
-from torch.autograd import Variable
+from Semi_sklearn.utils import class_status
+from Semi_sklearn.utils import one_hot
+from Semi_sklearn.Data_Augmentation.Mixup import Mixup
 import torch.nn.functional as F
 
 def fix_bn(m,train=False):
@@ -22,10 +23,8 @@ def fix_bn(m,train=False):
         else:
             m.eval()
 
-class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
-    def __init__(self,
-                 train_dataset=None,
-                 test_dataset=None,
+class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+    def __init__(self,train_dataset=None,test_dataset=None,
                  train_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
@@ -37,6 +36,7 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  epoch=1,
                  num_it_epoch=None,
                  num_it_total=None,
+                 warmup=None,
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
@@ -46,14 +46,10 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 num_classes=None,
-                 tsa_schedule=None,
                  weight_decay=None,
-                 eps=6,
-                 warmup=None,
-                 it_vat=1,
-                 xi=1e-6,
-                 lambda_entmin=0.06
+                 T=None,
+                 num_classes=10,
+                 alpha=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     test_dataset=test_dataset,
@@ -78,20 +74,17 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
-        self.tsa_schedule=tsa_schedule
-        self.num_classes=num_classes
         self.weight_decay=weight_decay
         self.warmup=warmup
-        self.eps=eps
-        self.it_vat=it_vat
-        self.xi=xi
-        self.lambda_entmin=lambda_entmin
+        self.T=T
+        self.alpha=alpha
+        self.num_classes=num_classes
+
         if self.ema_decay is not None:
             self.ema=EMA(model=self._network,decay=ema_decay)
             self.ema.register()
         else:
             self.ema=None
-
         if isinstance(self._augmentation,dict):
             self.weakly_augmentation=self._augmentation['augmentation']
             self.normalization = self._augmentation['normalization']
@@ -102,8 +95,6 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             self.weakly_augmentation = copy.deepcopy(self._augmentation)
             self.normalization = copy.deepcopy(self._augmentation)
 
-
-
         if isinstance(self._optimizer,SemiOptimizer):
             no_decay = ['bias', 'bn']
             grouped_parameters = [
@@ -112,11 +103,10 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                 {'params': [p for n, p in self._network.named_parameters() if any(
                     nd in n for nd in no_decay)], 'weight_decay': 0.0}
             ]
-            self._optimizer = self._optimizer.init_optimizer(params=grouped_parameters)
+            self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
 
         if isinstance(self._scheduler,SemiScheduler):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
-
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
@@ -124,58 +114,68 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
-        _lb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
-        _ulb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
-        self._network.apply(partial(fix_bn, train=True))
-        logits_x_lb = self._network(_lb_X)
-        # print(torch.any(torch.isnan(logits_x_lb)))
-        self._network.apply(partial(fix_bn, train=False))
-        logits_x_ulb = self._network(_ulb_X)
+        lb_x = self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
+        ulb_x_1 = self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+        ulb_x_2 = self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
 
-        # print(torch.any(torch.isnan(logits_x_lb)))
-        # print(torch.any(torch.isnan(logits_x_ulb)))
-        d = torch.Tensor(_ulb_X.size()).normal_()
-        for i in range(self.it_vat):
-            d = _l2_normalize(d)
-            d = Variable(d.to(self.device), requires_grad=True)
-            y_hat = self._network(_ulb_X + d)
-            # print(torch.any(torch.isnan(y_hat)))
-            delta_kl = kl_div_with_logit(logits_x_ulb.detach(), y_hat)
-            # print(delta_kl)
-            delta_kl.backward()
-            d = d.grad.data.clone()
-            self._network.zero_grad()
+        num_lb = lb_x.shape[0]
+        with torch.no_grad():
+            self._network.apply(partial(fix_bn,train=False))
+            logits_x_ulb_w1 = self._network(ulb_x_1)
+            logits_x_ulb_w2 = self._network(ulb_x_2)
+            self._network.apply(partial(fix_bn, train=True))
+            avg_prob_x_ulb = (torch.softmax(logits_x_ulb_w1, dim=1) + torch.softmax(logits_x_ulb_w2, dim=1)) / 2
+            avg_prob_x_ulb = (avg_prob_x_ulb / avg_prob_x_ulb.sum(dim=-1, keepdim=True))
+            # sharpening
+            sharpen_prob_x_ulb = avg_prob_x_ulb ** (1 / self.T)
+            sharpen_prob_x_ulb = (sharpen_prob_x_ulb / sharpen_prob_x_ulb.sum(dim=-1, keepdim=True)).detach()
+            input_labels = torch.cat(
+                [one_hot(lb_y, self.num_classes).to(self.device), sharpen_prob_x_ulb, sharpen_prob_x_ulb], dim=0)
+            inputs = torch.cat([lb_x, ulb_x_1, ulb_x_2])
+            index = torch.randperm(inputs.size(0)).to(self.device)
 
-        d = _l2_normalize(d)
-        d = Variable(d)
-        r_adv = self.eps * d
-
-        y_hat = self._network(_ulb_X + r_adv.detach())
-        # print(torch.any(torch.isnan(y_hat)))
+            mixed_x, mixed_y=Mixup(self.alpha).fit((inputs,input_labels)).transform((inputs[index],input_labels[index]))
+            mixed_x = list(torch.split(mixed_x, num_lb))
+            mixed_x = self.interleave(mixed_x, num_lb)
+        logits = [self._network(mixed_x[0])]
+        # calculate BN for only the first batch
         self._network.apply(partial(fix_bn,train=False))
-        logits_x_ulb=logits_x_ulb.detach()
+        for ipt in mixed_x[1:]:
+            logits.append(self._network(ipt))
 
-        return logits_x_lb,lb_y,logits_x_ulb, y_hat
+        # put interleaved samples back
+        logits = self.interleave(logits, num_lb)
+        logits_x = logits[0]
+        logits_u = torch.cat(logits[1:], dim=0)
+        self._network.apply(partial(fix_bn,train=True))
 
+        return logits_x,mixed_y[:num_lb],logits_u,mixed_y[num_lb:]
 
+    def interleave_offsets(self, batch, nu):
+        groups = [batch // (nu + 1)] * (nu + 1)
+        for x in range(batch - sum(groups)):
+            groups[-x - 1] += 1
+        offsets = [0]
+        for g in groups:
+            offsets.append(offsets[-1] + g)
+        assert offsets[-1] == batch
+        return offsets
+
+    def interleave(self, xy, batch):
+        nu = len(xy) - 1
+        offsets = self.interleave_offsets(batch, nu)
+        xy = [[v[offsets[p]:offsets[p + 1]] for p in range(nu + 1)] for v in xy]
+        for i in range(1, nu + 1):
+            xy[0][i], xy[i][i] = xy[i][i], xy[0][i]
+        return [torch.cat(v, dim=0) for v in xy]
 
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb,y_hat=train_result
-        unsup_warmup = np.clip(self.it_total / (self.warmup * self.num_it_total),
-                a_min=0.0, a_max=1.0)
-
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
-        # print(sup_loss)
-        unsup_loss = kl_div_with_logit(logits_x_ulb, y_hat)
-        # print(unsup_loss)
-        p = F.softmax(logits_x_ulb, dim=1)
-        entmin_loss=-(p*F.log_softmax(logits_x_ulb, dim=1)).sum(dim=1).mean(dim=0)
-        # print(entmin_loss)
-        loss = sup_loss + self.lambda_u * unsup_loss * unsup_warmup + self.lambda_entmin * entmin_loss
-
-
-
+        logits_x_lb,lb_y,logits_x_ulb,ulb_y=train_result
+        sup_loss = cross_entropy(logits_x_lb, lb_y,use_hard_labels=False).mean()  # CE_loss for labeled data
+        unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
+        _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
+        loss = sup_loss + self.lambda_u * _warmup * unsup_loss
         return loss
 
     def get_predict_result(self,y_est,*args,**kwargs):

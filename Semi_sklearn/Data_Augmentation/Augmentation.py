@@ -11,5 +11,5 @@ class Augmentation(BaseEstimator,TransformerMixin,ABC):
     def transform(self,X):
         raise NotImplementedError('Transform method of Augmentation class must be implemented.')
 
-    def fit_transform(self,X ,y=None,**fit_params):
+    def fit_transform(self,X,y=None,**fit_params):
         return self.fit(X=X,y=y,fit_params=fit_params).transform(X)

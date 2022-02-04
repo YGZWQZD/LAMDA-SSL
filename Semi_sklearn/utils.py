@@ -346,14 +346,6 @@ class EMA:
         self.backup = {}
 
 def cross_entropy(logits, targets, use_hard_labels=True, reduction='none'):
-    """
-    wrapper for cross entropy loss in pytorch.
-
-    Args
-        logits: logit values, shape=[Batch size, # of classes]
-        targets: integer or vector, shape=[Batch size] or [Batch size, # of classes]
-        use_hard_labels: If True, targets have [Batch size] shape with int values. If False, the target is vector (default True)
-    """
     if use_hard_labels:
         log_pred = F.log_softmax(logits, dim=-1)
         return F.nll_loss(log_pred, targets, reduction=reduction)
@@ -364,11 +356,9 @@ def cross_entropy(logits, targets, use_hard_labels=True, reduction='none'):
         nll_loss = torch.sum(-targets * log_pred, dim=1)
         return nll_loss
 
-
 def consistency_loss(logits_w1, logits_w2):
     assert logits_w1.size() == logits_w2.size()
     return F.mse_loss(torch.softmax(logits_w1,dim=-1), torch.softmax(logits_w2,dim=-1), reduction='mean')
-
 
 class class_status:
     def __init__(self,y):
@@ -401,8 +391,6 @@ class class_status:
         class_counts = np.bincount(y_indices)
         return class_counts
 
-
-
 def _l2_normalize(d):
 
     d = d.numpy()
@@ -418,35 +406,6 @@ def kl_div_with_logit(q_logit, p_logit):
     qlogp = ( q *logp).sum(dim=1).mean(dim=0)
     return qlogq - qlogp
 
-def entropy_loss(ul_y):
-    p = F.softmax(ul_y, dim=1)
-    return -(p*F.log_softmax(ul_y, dim=1)).sum(dim=1).mean(dim=0)
-
-def vat_loss(model, ul_x, ul_y, xi=1e-6, eps=6, num_iters=1):
-
-    # find r_adv
-
-    d = torch.Tensor(ul_x.size()).normal_()
-    for i in range(num_iters):
-        d = xi *_l2_normalize(d)
-        d = Variable(d.to('cpu'), requires_grad=True)
-
-        y_hat = model(ul_x + d)
-
-        delta_kl = kl_div_with_logit(ul_y.detach(), y_hat)
-        delta_kl.backward()
-
-        d = d.grad.data.clone().cpu()
-        model.zero_grad()
-
-    d = _l2_normalize(d)
-    d = Variable(d.to('cpu'))
-    r_adv = eps *d
-    # compute lds
-
-    y_hat = model(ul_x + r_adv.detach())
-
-    delta_kl = kl_div_with_logit(ul_y.detach(), y_hat)
-    return delta_kl
-
-
+def one_hot(targets, nClass):
+    logits = torch.zeros(targets.size(0), nClass)
+    return logits.scatter_(1, targets.unsqueeze(1), 1)
