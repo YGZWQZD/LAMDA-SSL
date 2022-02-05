@@ -13,6 +13,7 @@ from torch.nn import Softmax
 from Semi_sklearn.utils import _l2_normalize,kl_div_with_logit,cross_entropy
 from torch.autograd import Variable
 import torch.nn.functional as F
+from Semi_sklearn.utils import Bn_Controller
 
 def fix_bn(m,train=False):
     classname = m.__class__.__name__
@@ -86,6 +87,8 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.it_vat=it_vat
         self.xi=xi
         self.lambda_entmin=lambda_entmin
+        self.bn_controller=Bn_Controller()
+
         if self.ema_decay is not None:
             self.ema=EMA(model=self._network,decay=ema_decay)
             self.ema.register()
@@ -126,10 +129,10 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
         _lb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
         _ulb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
-        self._network.apply(partial(fix_bn, train=True))
+
         logits_x_lb = self._network(_lb_X)
         # print(torch.any(torch.isnan(logits_x_lb)))
-        self._network.apply(partial(fix_bn, train=False))
+        self.bn_controller.freeze_bn(self._network)
         logits_x_ulb = self._network(_ulb_X)
 
         # print(torch.any(torch.isnan(logits_x_lb)))
@@ -151,8 +154,9 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         r_adv = self.eps * d
 
         y_hat = self._network(_ulb_X + r_adv.detach())
+
         # print(torch.any(torch.isnan(y_hat)))
-        self._network.apply(partial(fix_bn,train=False))
+        self.bn_controller.unfreeze_bn(self._network)
         logits_x_ulb=logits_x_ulb.detach()
 
         return logits_x_lb,lb_y,logits_x_ulb, y_hat

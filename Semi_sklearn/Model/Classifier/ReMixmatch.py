@@ -10,10 +10,12 @@ from Semi_sklearn.utils import cross_entropy
 from Semi_sklearn.utils import partial
 import numpy as np
 from torch.nn import Softmax
+import torch.nn as nn
 from Semi_sklearn.utils import class_status
 from Semi_sklearn.utils import one_hot
 from Semi_sklearn.Data_Augmentation.Mixup import Mixup
 import torch.nn.functional as F
+from Semi_sklearn.Data_Augmentation.Rotate import Rotate
 from Semi_sklearn.utils import Bn_Controller
 
 def fix_bn(m,train=False):
@@ -24,7 +26,7 @@ def fix_bn(m,train=False):
         else:
             m.eval()
 
-class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,test_dataset=None,
                  train_dataloader=None,
                  test_dataloader=None,
@@ -50,7 +52,10 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  weight_decay=None,
                  T=None,
                  num_classes=10,
-                 alpha=None
+                 alpha=None,
+                 p_target=None,
+                 lambda_s=None,
+                 lambda_rot=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     test_dataset=test_dataset,
@@ -75,26 +80,34 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
+        self.lambda_s=lambda_s
+        self.lambda_rot=lambda_rot
         self.weight_decay=weight_decay
         self.warmup=warmup
         self.T=T
         self.alpha=alpha
         self.num_classes=num_classes
-        self.bn_controller=Bn_Controller()
-
+        self.rotate_v_list=rotate_v_list = [0, 90, 180, 270]
+        self.p_model = None
+        self.p_target=p_target
+        self.bn_controller = Bn_Controller()
         if self.ema_decay is not None:
             self.ema=EMA(model=self._network,decay=ema_decay)
             self.ema.register()
         else:
             self.ema=None
+
         if isinstance(self._augmentation,dict):
-            self.weakly_augmentation=self._augmentation['augmentation']
+            self.weakly_augmentation=self._augmentation['weakly_augmentation']
+            self.strongly_augmentation = self._augmentation['strongly_augmentation']
             self.normalization = self._augmentation['normalization']
         elif isinstance(self._augmentation,(list,tuple)):
             self.weakly_augmentation = self._augmentation[0]
-            self.normalization = self._augmentation[1]
+            self.strongly_augmentation = self._augmentation[1]
+            self.normalization = self._augmentation[2]
         else:
             self.weakly_augmentation = copy.deepcopy(self._augmentation)
+            self.strongly_augmentation = copy.deepcopy(self._augmentation)
             self.normalization = copy.deepcopy(self._augmentation)
 
         if isinstance(self._optimizer,SemiOptimizer):
@@ -113,54 +126,71 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
             class_status(self._train_dataset.labled_dataset.y).num_class
+        if self.p_target is None:
+            class_counts=torch.Tensor(class_status(self._train_dataset.labled_dataset.y).class_counts).to(self.device)
+            self.p_target = (class_counts / class_counts.sum(dim=-1, keepdim=True))
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
-        lb_x = self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
-        ulb_x_1 = self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
-        ulb_x_2 = self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+        lb_x_w = self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
 
-        num_lb = lb_x.shape[0]
+        ulb_x_w = self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+        ulb_x_s_1 = self.strongly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+        ulb_x_s_2 = self.strongly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+
+        ulb_x_s_1_rot = torch.Tensor().to(self.device)
+        rot_index = []
+        for item in ulb_x_s_1:
+            _v = np.random.choice(self.rotate_v_list, 1).item()
+            ulb_x_s_1_rot = torch.cat((ulb_x_s_1_rot, Rotate(_v).fit_transform(item).unsqueeze(0)), dim=0)
+            rot_index.append(self.rotate_v_list.index(_v))
+
+        rot_index = torch.LongTensor(rot_index).to(self.device)
+        num_lb = lb_x_w.shape[0]
+
         with torch.no_grad():
             # self._network.apply(partial(fix_bn, train=True))
-            self.bn_controller.freeze_bn(self._network)
-            logits_x_ulb_w1 = self._network(ulb_x_1)
-            logits_x_ulb_w2 = self._network(ulb_x_2)
-            self.bn_controller.unfreeze_bn(self._network)
-            # print(torch.any(torch.isnan(logits_x_ulb_w1)))
-            # print(torch.any(torch.isnan(logits_x_ulb_w2)))
-
-            avg_prob_x_ulb = (torch.softmax(logits_x_ulb_w1, dim=1) + torch.softmax(logits_x_ulb_w2, dim=1)) / 2
-            avg_prob_x_ulb = (avg_prob_x_ulb / avg_prob_x_ulb.sum(dim=-1, keepdim=True))
-            # sharpening
-            sharpen_prob_x_ulb = avg_prob_x_ulb ** (1 / self.T)
+            # self._network.apply(partial(fix_bn,train=False))
+            self.bn_controller.freeze_bn(model=self._network)
+            logits_x_ulb_w = self._network(ulb_x_w)[0]
+            self.bn_controller.unfreeze_bn(model=self._network)
+            print(torch.any(torch.isnan(logits_x_ulb_w)))
+            prob_x_ulb = torch.softmax(logits_x_ulb_w, dim=1)
+            if self.p_model is None:
+                self.p_model = torch.mean(prob_x_ulb.detach(), dim=0).to(self.device)
+            else:
+                self.p_model = self.p_model * 0.999 + torch.mean(prob_x_ulb.detach(), dim=0) * 0.001
+            prob_x_ulb = prob_x_ulb * self.p_target / self.p_model
+            prob_x_ulb = (prob_x_ulb / prob_x_ulb.sum(dim=-1, keepdim=True))
+            sharpen_prob_x_ulb = prob_x_ulb ** (1 / self.T)
             sharpen_prob_x_ulb = (sharpen_prob_x_ulb / sharpen_prob_x_ulb.sum(dim=-1, keepdim=True)).detach()
+            mixed_inputs = torch.cat((lb_x_w, ulb_x_s_1, ulb_x_s_2, ulb_x_w))
             input_labels = torch.cat(
-                [one_hot(lb_y, self.num_classes).to(self.device), sharpen_prob_x_ulb, sharpen_prob_x_ulb], dim=0)
-            inputs = torch.cat([lb_x, ulb_x_1, ulb_x_2])
-            index = torch.randperm(inputs.size(0)).to(self.device)
+                [one_hot(lb_y, self.num_classes).to(self.device), sharpen_prob_x_ulb, sharpen_prob_x_ulb,
+                 sharpen_prob_x_ulb], dim=0)
+            index = torch.randperm(mixed_inputs.size(0)).to(self.device)
 
-            mixed_x, mixed_y=Mixup(self.alpha).fit((inputs,input_labels)).transform((inputs[index],input_labels[index]))
+            mixed_x, mixed_y = Mixup(self.alpha).fit((mixed_inputs, input_labels)).transform(
+                (mixed_inputs[index], input_labels[index]))
             mixed_x = list(torch.split(mixed_x, num_lb))
             mixed_x = self.interleave(mixed_x, num_lb)
 
-
-        _mix_0=self._network(mixed_x[0])
+        _mix_0 = self._network(mixed_x[0])[0]
         logits = [_mix_0]
-        # calculate BN for only the first batch
-        self.bn_controller.freeze_bn(self._network)
+        self.bn_controller.freeze_bn(model=self._network)
         for ipt in mixed_x[1:]:
-
-            _mix_i=self._network(ipt)
-
+            _mix_i = self._network(ipt)[0]
             logits.append(_mix_i)
 
-        # put interleaved samples back
+        u1_logits = self._network(ulb_x_s_1)[0]
+        logits_rot = self._network(ulb_x_s_1_rot)[1]
         logits = self.interleave(logits, num_lb)
-        self.bn_controller.unfreeze_bn(self._network)
+        self.bn_controller.unfreeze_bn(model=self._network)
         logits_x = logits[0]
-        logits_u = torch.cat(logits[1:], dim=0)
-        return logits_x,mixed_y[:num_lb],logits_u,mixed_y[num_lb:]
+        logits_u = torch.cat(logits[1:])
+
+
+        return logits_x,mixed_y[:num_lb],logits_u,mixed_y[num_lb:],u1_logits,sharpen_prob_x_ulb,logits_rot,rot_index
 
     def interleave_offsets(self, batch, nu):
         groups = [batch // (nu + 1)] * (nu + 1)
@@ -182,11 +212,14 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb,ulb_y=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y,use_hard_labels=False).mean()  # CE_loss for labeled data
-        unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
+        mix_lb_x,mix_lb_y,mix_ulb_x,mix_ulb_y,s_x,s_y,rot_x,rot_y=train_result
+        sup_loss = cross_entropy(mix_lb_x, mix_lb_y,use_hard_labels=False).mean()  # CE_loss for labeled data
+        unsup_loss=cross_entropy(mix_ulb_x, mix_ulb_y,use_hard_labels=False).mean()
+        s_loss=cross_entropy(s_x, s_y,use_hard_labels=False).mean()
+        print(rot_y.dtype)
+        rot_loss = cross_entropy(rot_x, rot_y, reduction='mean').mean()
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        loss = sup_loss + self.lambda_u * _warmup * unsup_loss
+        loss = sup_loss + self.lambda_u * _warmup * unsup_loss+self.lambda_s * _warmup *s_loss+self.lambda_rot*rot_loss
         return loss
 
     def get_predict_result(self,y_est,*args,**kwargs):

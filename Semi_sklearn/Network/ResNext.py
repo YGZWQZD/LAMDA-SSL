@@ -109,7 +109,13 @@ class CifarResNeXt(nn.Module):
         self.stage_1 = self.block('stage_1', self.stages[0], self.stages[1], 1)
         self.stage_2 = self.block('stage_2', self.stages[1], self.stages[2], 2)
         self.stage_3 = self.block('stage_3', self.stages[2], self.stages[3], 2)
-        self.classifier = nn.Linear(self.stages[3], num_classes)
+        self.num_classes = num_classes
+        if isinstance(self.num_classes,(tuple,list)):
+            self.classifier=[]
+            for num in self.num_classes:
+                self.classifier.append(nn.Linear(self.stages[3], num))
+        else:
+            self.classifier = nn.Linear(self.stages[3], self.num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -160,4 +166,9 @@ class CifarResNeXt(nn.Module):
         x = self.stage_3.forward(x)
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.view(-1, self.stages[3])
-        return self.classifier(x)
+        if isinstance(self.classifier,list):
+            result=[]
+            for c in self.classifier:
+                result.append(c(x))
+        else:
+            return self.classifier(x)

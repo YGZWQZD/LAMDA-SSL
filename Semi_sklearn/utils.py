@@ -386,7 +386,7 @@ class class_status:
         return num_class
 
     @property
-    def class_count(self):
+    def class_counts(self):
         classes, y_indices = np.unique(self.y_arr, return_inverse=True)
         class_counts = np.bincount(y_indices)
         return class_counts
@@ -409,3 +409,26 @@ def kl_div_with_logit(q_logit, p_logit):
 def one_hot(targets, nClass):
     logits = torch.zeros(targets.size(0), nClass)
     return logits.scatter_(1, targets.unsqueeze(1), 1)
+
+class Bn_Controller:
+    def __init__(self):
+        """
+        freeze_bn and unfreeze_bn must appear in pairs
+        """
+        self.backup = {}
+
+    def freeze_bn(self, model):
+        assert self.backup == {}
+        for name, m in model.named_modules():
+            if isinstance(m, nn.SyncBatchNorm) or isinstance(m, nn.BatchNorm2d):
+                self.backup[name + '.running_mean'] = m.running_mean.data.clone()
+                self.backup[name + '.running_var'] = m.running_var.data.clone()
+                self.backup[name + '.num_batches_tracked'] = m.num_batches_tracked.data.clone()
+
+    def unfreeze_bn(self, model):
+        for name, m in model.named_modules():
+            if isinstance(m, nn.SyncBatchNorm) or isinstance(m, nn.BatchNorm2d):
+                m.running_mean.data = self.backup[name + '.running_mean']
+                m.running_var.data = self.backup[name + '.running_var']
+                m.num_batches_tracked.data = self.backup[name + '.num_batches_tracked']
+        self.backup = {}

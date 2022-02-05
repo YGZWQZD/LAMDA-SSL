@@ -89,7 +89,13 @@ class WideResNet(nn.Module):
         # global average pooling and classifier
         self.bn1 = nn.BatchNorm2d(channels[3], momentum=0.001, eps=0.001)
         self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=False)
-        self.fc = nn.Linear(channels[3], num_classes)
+        self.num_classes=num_classes
+        if isinstance(self.num_classes,(list,tuple)):
+            self.fc=[]
+            for num in self.num_classes:
+                self.fc.append(nn.Linear(channels[3], num))
+        else:
+            self.fc = nn.Linear(channels[3], self.num_classes)
         self.channels = channels[3]
 
         for m in self.modules():
@@ -110,5 +116,10 @@ class WideResNet(nn.Module):
         out = self.relu(self.bn1(out))
         out = F.adaptive_avg_pool2d(out, 1)
         out = out.view(-1, self.channels)
-        output = self.fc(out)
+        if isinstance(self.fc, list):
+            output = []
+            for c in self.fc:
+                output.append(c(out))
+        else:
+            output = self.fc(out)
         return output
