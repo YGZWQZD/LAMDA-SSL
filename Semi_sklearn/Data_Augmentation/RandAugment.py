@@ -17,9 +17,8 @@ from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
 import random
 import numpy as np
 
-def augment_list():
-    # FixMatch paper
-    augs = [(AutoContrast, None, None),
+
+augs = [(AutoContrast, None, None),
             (Brightness, 0.9, 0.05),
             (Color, 0.9, 0.05),
             (Contrast, 0.9, 0.05),
@@ -33,38 +32,36 @@ def augment_list():
             (Solarize, 256, 0),
             (TranslateX, 0.3, 0),
             (TranslateY, 0.3, 0)]
-    return augs
+
 
 
 class RandAugment(Augmentation):
-    def __init__(self, n, m):
+    def __init__(self, n, m, num_bins,augment_list=None):
         super().__init__()
-        assert n >= 1
-        assert 1 <= m <= 10
         self.n = n
         self.m = m
-        self.parameter_max=10
-        self.augment_list = augment_list()
-
-    def _int_parameter(self,v,max_v):
-        return int(v * max_v / self.parameter_max)
-
-    def _float_parameter(self,v, max_v):
-        return float(v) * max_v / self.parameter_max
+        self.num_bins=num_bins
+        self.augment_list = [(AutoContrast, None, None),
+            (Brightness, 0.0, 0.9),
+            (Color, 0.0, 0.9),
+            (Contrast, 0.0, 0.9),
+            (Equalize, None, None),
+            (Identity, None, None),
+            (Posterize, 4, 8),
+            (Rotate,  0.0,30.0),
+            (Sharpness, 0.0, 0.9),
+            (ShearX, 0.0, 0.3),
+            (ShearY, 0.0, 0.3),
+            (Solarize,  0.0,255.0),
+            (TranslateX, 0.0, 150.0 / 331.0),
+            (TranslateY, 0.0,150.0 / 331.0)] if augment_list is None else augment_list
 
     def transform(self, X):
         ops = random.choices(self.augment_list, k=self.n)
-        for op, max_v, bias in ops:
-            v = np.random.randint(1, self.m)
-            if random.random() < 0.5:
-                if op in [AutoContrast,Equalize,Identity]:
-                    aug=op()
-                else:
-                    if op in [Rotate,Posterize,Solarize]:
-                        _v=self._int_parameter(v, max_v) + bias
-                    else:
-                        _v = self._float_parameter(v, max_v) + bias
-                    aug=op(v=_v)
-                X=aug.fit_transform(X)
-        X = Cutout(0.5).fit_transform(X)
+        for op, min_v, max_v in ops:
+            if min_v is None and max_v is None:
+                aug=op()
+            else:
+                aug=op(min_v=min_v,max_v=max_v,num_bins=self.num_bins,magnitude=self.m)
+            X=aug.fit_transform(X)
         return X

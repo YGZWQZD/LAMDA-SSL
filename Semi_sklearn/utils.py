@@ -14,6 +14,7 @@ from collections.abc import Sequence
 from PIL import Image
 import torch.nn.functional as F
 from torch.autograd import Variable
+import torch.nn as nn
 
 if LooseVersion(sklearn.__version__) >= '0.22.0':
     from sklearn.utils import _safe_indexing as safe_indexing
@@ -432,3 +433,11 @@ class Bn_Controller:
                 m.running_var.data = self.backup[name + '.running_var']
                 m.num_batches_tracked.data = self.backup[name + '.num_batches_tracked']
         self.backup = {}
+
+def fix_bn(m,train=False):
+    classname = m.__class__.__name__
+    if classname.find('BatchNorm') != -1:
+        if train:
+            m.train()
+        else:
+            m.eval()

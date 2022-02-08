@@ -68,16 +68,16 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     eval_epoch=eval_epoch,
                                     eval_it=eval_it,
                                     mu=mu,
+                                    weight_decay=weight_decay,
+                                    ema_decay=ema_decay,
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation
                                     )
-        self.ema_decay=ema_decay
         self.lambda_u=lambda_u
         self.threshold=threshold
         self.T=T
-        self.weight_decay=weight_decay
         self.num_classes=num_classes
         self.classwise_acc=None
         self.selected_label=None
@@ -86,39 +86,9 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.p_model=None
         self.p_target=p_target
         self.use_DA=use_DA
-        if self.ema_decay is not None:
-            self.ema=EMA(model=self._network,decay=ema_decay)
-            self.ema.register()
-        else:
-            self.ema=None
-        if isinstance(self._augmentation,dict):
-            self.weakly_augmentation=self._augmentation['weakly_augmentation']
-            self.strongly_augmentation = self._augmentation['strongly_augmentation']
-            self.normalization = self._augmentation['normalization']
-        elif isinstance(self._augmentation,(list,tuple)):
-            self.weakly_augmentation = self._augmentation[0]
-            self.strongly_augmentation = self._augmentation[1]
-            self.normalization = self._augmentation[2]
-        else:
-            self.weakly_augmentation = copy.deepcopy(self._augmentation)
-            self.strongly_augmentation = copy.deepcopy(self._augmentation)
-            self.normalization = copy.deepcopy(self._augmentation)
-
-        if isinstance(self._optimizer,SemiOptimizer):
-            no_decay = ['bias', 'bn']
-            grouped_parameters = [
-                {'params': [p for n, p in self._network.named_parameters() if not any(
-                    nd in n for nd in no_decay)], 'weight_decay': self.weight_decay},
-                {'params': [p for n, p in self._network.named_parameters() if any(
-                    nd in n for nd in no_decay)], 'weight_decay': 0.0}
-            ]
-            self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
-
-        if isinstance(self._scheduler,SemiScheduler):
-            self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
+        self._estimator_type = ClassifierMixin._estimator_type
 
     def start_fit(self):
-
         self.num_classes = self.num_classes if self.num_classes is not None else \
             class_status(self._train_dataset.labled_dataset.y).num_class
         if self.p_target is None:
@@ -127,6 +97,8 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.selected_label = torch.ones((len(self._train_dataset.unlabled_dataset),), dtype=torch.long, ) * -1
         self.selected_label = self.selected_label.to(self.device)
         self.classwise_acc = torch.zeros((self.num_classes)).to(self.device)
+        self._network.zero_grad()
+        self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
         w_lb_X=self.weakly_augmentation.fit_transform(lb_X)
@@ -171,8 +143,6 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         result=(logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask)
         return result
 
-
-
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask = train_result
         Lx = cross_entropy(logits_x_lb, lb_y, reduction='mean')
@@ -182,28 +152,6 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             Lu = cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels) * mask.mean()
         loss = Lx + self.lambda_u * Lu
         return loss
-
-    def optimize(self,*args,**kwargs):
-        self._optimizer.step()
-        self._scheduler.step()
-        if self.ema is not None:
-            self.ema.update()
-        self._network.zero_grad()
-
-    def estimate(self,X,idx=None,*args,**kwargs):
-        X=self.normalization.fit_transform(X)
-        if self.ema is not None:
-            self.ema.apply_shadow()
-        outputs = self._network(X)
-        if self.ema is not None:
-            self.ema.restore()
-        return outputs
-
-
-    def get_predict_result(self,y_est,*args,**kwargs):
-        self.y_score=Softmax(dim=-1)(y_est)
-        max_probs,y_pred=torch.max(self.y_score, dim=-1)
-        return y_pred
 
     def predict(self,X=None):
         return SemiDeepModelMixin.predict(self,X=X)

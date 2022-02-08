@@ -18,13 +18,7 @@ import torch.nn.functional as F
 from Semi_sklearn.Data_Augmentation.Rotate import Rotate
 from Semi_sklearn.utils import Bn_Controller
 
-def fix_bn(m,train=False):
-    classname = m.__class__.__name__
-    if classname.find('BatchNorm') != -1:
-        if train:
-            m.train()
-        else:
-            m.eval()
+
 
 class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,test_dataset=None,
@@ -73,6 +67,8 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     eval_epoch=eval_epoch,
                                     eval_it=eval_it,
                                     mu=mu,
+                                    weight_decay=weight_decay,
+                                    ema_decay=ema_decay,
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
@@ -91,37 +87,7 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.p_model = None
         self.p_target=p_target
         self.bn_controller = Bn_Controller()
-        if self.ema_decay is not None:
-            self.ema=EMA(model=self._network,decay=ema_decay)
-            self.ema.register()
-        else:
-            self.ema=None
-
-        if isinstance(self._augmentation,dict):
-            self.weakly_augmentation=self._augmentation['weakly_augmentation']
-            self.strongly_augmentation = self._augmentation['strongly_augmentation']
-            self.normalization = self._augmentation['normalization']
-        elif isinstance(self._augmentation,(list,tuple)):
-            self.weakly_augmentation = self._augmentation[0]
-            self.strongly_augmentation = self._augmentation[1]
-            self.normalization = self._augmentation[2]
-        else:
-            self.weakly_augmentation = copy.deepcopy(self._augmentation)
-            self.strongly_augmentation = copy.deepcopy(self._augmentation)
-            self.normalization = copy.deepcopy(self._augmentation)
-
-        if isinstance(self._optimizer,SemiOptimizer):
-            no_decay = ['bias', 'bn']
-            grouped_parameters = [
-                {'params': [p for n, p in self._network.named_parameters() if not any(
-                    nd in n for nd in no_decay)], 'weight_decay': self.weight_decay},
-                {'params': [p for n, p in self._network.named_parameters() if any(
-                    nd in n for nd in no_decay)], 'weight_decay': 0.0}
-            ]
-            self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
-
-        if isinstance(self._scheduler,SemiScheduler):
-            self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
+        self._estimator_type = ClassifierMixin._estimator_type
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
@@ -129,6 +95,8 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         if self.p_target is None:
             class_counts=torch.Tensor(class_status(self._train_dataset.labled_dataset.y).class_counts).to(self.device)
             self.p_target = (class_counts / class_counts.sum(dim=-1, keepdim=True))
+        self._network.zero_grad()
+        self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
@@ -188,8 +156,6 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.bn_controller.unfreeze_bn(model=self._network)
         logits_x = logits[0]
         logits_u = torch.cat(logits[1:])
-
-
         return logits_x,mixed_y[:num_lb],logits_u,mixed_y[num_lb:],u1_logits,sharpen_prob_x_ulb,logits_rot,rot_index
 
     def interleave_offsets(self, batch, nu):
@@ -216,36 +182,14 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         sup_loss = cross_entropy(mix_lb_x, mix_lb_y,use_hard_labels=False).mean()  # CE_loss for labeled data
         unsup_loss=cross_entropy(mix_ulb_x, mix_ulb_y,use_hard_labels=False).mean()
         s_loss=cross_entropy(s_x, s_y,use_hard_labels=False).mean()
-        print(rot_y.dtype)
+        # print(rot_y.dtype)
         rot_loss = cross_entropy(rot_x, rot_y, reduction='mean').mean()
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
         loss = sup_loss + self.lambda_u * _warmup * unsup_loss+self.lambda_s * _warmup *s_loss+self.lambda_rot*rot_loss
         return loss
 
-    def get_predict_result(self,y_est,*args,**kwargs):
-
-        self.y_score=Softmax(dim=-1)(y_est)
-        max_probs,y_pred=torch.max(self.y_score, dim=-1)
-        return y_pred
-
     def predict(self,X=None):
         return SemiDeepModelMixin.predict(self,X=X)
-
-    def optimize(self,*args,**kwargs):
-        self._optimizer.step()
-        self._scheduler.step()
-        if self.ema is not None:
-            self.ema.update()
-        self._network.zero_grad()
-
-    def estimate(self,X,idx=None,*args,**kwargs):
-        X=self.normalization.fit_transform(X)
-        if self.ema is not None:
-            self.ema.apply_shadow()
-        outputs = self._network(X)
-        if self.ema is not None:
-            self.ema.restore()
-        return outputs
 
 
 

@@ -6,14 +6,15 @@ from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from Semi_sklearn.utils import EMA
 import torch
 from Semi_sklearn.utils import partial
+from Semi_sklearn.utils import Bn_Controller
 
-def fix_bn(m,train=False):
-    classname = m.__class__.__name__
-    if classname.find('BatchNorm') != -1:
-        if train:
-            m.train()
-        else:
-            m.eval()
+# def fix_bn(m,train=False):
+#     classname = m.__class__.__name__
+#     if classname.find('BatchNorm') != -1:
+#         if train:
+#             m.train()
+#         else:
+#             m.eval()
 
 class PiModel(InductiveEstimator,SemiDeepModelMixin):
     def __init__(self,train_dataset=None,test_dataset=None,
@@ -56,6 +57,8 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                                     eval_epoch=eval_epoch,
                                     eval_it=eval_it,
                                     mu=mu,
+                                    weight_decay=weight_decay,
+                                    ema_decay=ema_decay,
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
@@ -63,68 +66,21 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
-
         self.weight_decay=weight_decay
         self.warmup=warmup
-
-        if self.ema_decay is not None:
-            self.ema=EMA(model=self._network,decay=ema_decay)
-            self.ema.register()
-        else:
-            self.ema=None
-        if isinstance(self._augmentation,dict):
-            self.weakly_augmentation=self._augmentation['augmentation']
-            self.normalization = self._augmentation['normalization']
-        elif isinstance(self._augmentation,(list,tuple)):
-            self.weakly_augmentation = self._augmentation[0]
-            self.normalization = self._augmentation[1]
-        else:
-            self.weakly_augmentation = copy.deepcopy(self._augmentation)
-            self.normalization = copy.deepcopy(self._augmentation)
-
-        if isinstance(self._optimizer,SemiOptimizer):
-            no_decay = ['bias', 'bn']
-            grouped_parameters = [
-                {'params': [p for n, p in self._network.named_parameters() if not any(
-                    nd in n for nd in no_decay)], 'weight_decay': self.weight_decay},
-                {'params': [p for n, p in self._network.named_parameters() if any(
-                    nd in n for nd in no_decay)], 'weight_decay': 0.0}
-            ]
-            self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
-
-        if isinstance(self._scheduler,SemiScheduler):
-            self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
+        self.bn_controller=Bn_Controller()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-
         lb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
         ulb_X_1=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
         ulb_X_2=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
 
-        self._network.apply(partial(fix_bn, train=True))
         logits_x_lb = self._network(lb_X)
-        self._network.apply(partial(fix_bn,train=False))
+        self.bn_controller.freeze_bn(self._network)
         logits_x_ulb_1 = self._network(ulb_X_1)
         logits_x_ulb_2 = self._network(ulb_X_2)
+        self.bn_controller.unfreeze_bn(self._network)
         return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
-
-
-
-    def optimize(self,*args,**kwargs):
-        self._optimizer.step()
-        self._scheduler.step()
-        if self.ema is not None:
-            self.ema.update()
-        self._network.zero_grad()
-
-    def estimate(self,X,idx=None,*args,**kwargs):
-        X=self.normalization.fit_transform(X)
-        if self.ema is not None:
-            self.ema.apply_shadow()
-        outputs = self._network(X)
-        if self.ema is not None:
-            self.ema.restore()
-        return outputs
 
 
     def predict(self,X=None):

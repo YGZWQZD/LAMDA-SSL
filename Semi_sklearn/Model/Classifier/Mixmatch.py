@@ -16,13 +16,13 @@ from Semi_sklearn.Data_Augmentation.Mixup import Mixup
 import torch.nn.functional as F
 from Semi_sklearn.utils import Bn_Controller
 
-def fix_bn(m,train=False):
-    classname = m.__class__.__name__
-    if classname.find('BatchNorm') != -1:
-        if train:
-            m.train()
-        else:
-            m.eval()
+# def fix_bn(m,train=False):
+#     classname = m.__class__.__name__
+#     if classname.find('BatchNorm') != -1:
+#         if train:
+#             m.train()
+#         else:
+#             m.eval()
 
 class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,test_dataset=None,
@@ -68,6 +68,8 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     eval_epoch=eval_epoch,
                                     eval_it=eval_it,
                                     mu=mu,
+                                    weight_decay=weight_decay,
+                                    ema_decay=ema_decay,
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
@@ -81,38 +83,14 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.alpha=alpha
         self.num_classes=num_classes
         self.bn_controller=Bn_Controller()
-
-        if self.ema_decay is not None:
-            self.ema=EMA(model=self._network,decay=ema_decay)
-            self.ema.register()
-        else:
-            self.ema=None
-        if isinstance(self._augmentation,dict):
-            self.weakly_augmentation=self._augmentation['augmentation']
-            self.normalization = self._augmentation['normalization']
-        elif isinstance(self._augmentation,(list,tuple)):
-            self.weakly_augmentation = self._augmentation[0]
-            self.normalization = self._augmentation[1]
-        else:
-            self.weakly_augmentation = copy.deepcopy(self._augmentation)
-            self.normalization = copy.deepcopy(self._augmentation)
-
-        if isinstance(self._optimizer,SemiOptimizer):
-            no_decay = ['bias', 'bn']
-            grouped_parameters = [
-                {'params': [p for n, p in self._network.named_parameters() if not any(
-                    nd in n for nd in no_decay)], 'weight_decay': self.weight_decay},
-                {'params': [p for n, p in self._network.named_parameters() if any(
-                    nd in n for nd in no_decay)], 'weight_decay': 0.0}
-            ]
-            self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
-
-        if isinstance(self._scheduler,SemiScheduler):
-            self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
+        self._estimator_type = ClassifierMixin._estimator_type
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
             class_status(self._train_dataset.labled_dataset.y).num_class
+        self.it_total = 0
+        self._network.zero_grad()
+        self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
@@ -189,30 +167,9 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         loss = sup_loss + self.lambda_u * _warmup * unsup_loss
         return loss
 
-    def get_predict_result(self,y_est,*args,**kwargs):
-
-        self.y_score=Softmax(dim=-1)(y_est)
-        max_probs,y_pred=torch.max(self.y_score, dim=-1)
-        return y_pred
-
     def predict(self,X=None):
         return SemiDeepModelMixin.predict(self,X=X)
 
-    def optimize(self,*args,**kwargs):
-        self._optimizer.step()
-        self._scheduler.step()
-        if self.ema is not None:
-            self.ema.update()
-        self._network.zero_grad()
-
-    def estimate(self,X,idx=None,*args,**kwargs):
-        X=self.normalization.fit_transform(X)
-        if self.ema is not None:
-            self.ema.apply_shadow()
-        outputs = self._network(X)
-        if self.ema is not None:
-            self.ema.restore()
-        return outputs
 
 
 

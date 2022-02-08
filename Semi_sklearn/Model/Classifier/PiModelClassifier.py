@@ -8,11 +8,6 @@ import numpy as np
 import torch
 from Semi_sklearn.Model.Pimodel import PiModel
 
-def fix_bn(m):
-    classname = m.__class__.__name__
-    if classname.find('BatchNorm') != -1:
-        m.eval()
-
 class PiModelClassifier(PiModel,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  test_dataset=None,
@@ -63,6 +58,7 @@ class PiModelClassifier(PiModel,ClassifierMixin):
                              mu=mu,
                              ema_decay=ema_decay,
                              weight_decay=weight_decay)
+        self._estimator_type = ClassifierMixin._estimator_type
 
 
     def get_loss(self,train_result,*args,**kwargs):
@@ -72,13 +68,6 @@ class PiModelClassifier(PiModel,ClassifierMixin):
         unsup_loss = consistency_loss(logits_x_ulb_1.detach(),logits_x_ulb_2.detach())
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
-
-
-
-    def get_predict_result(self,y_est,*args,**kwargs):
-        self.y_score=Softmax(dim=-1)(y_est)
-        max_probs,y_pred=torch.max(self.y_score, dim=-1)
-        return y_pred
 
     def predict(self,X=None):
         return SemiDeepModelMixin.predict(self,X=X)
