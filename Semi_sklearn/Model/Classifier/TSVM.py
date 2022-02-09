@@ -1,3 +1,5 @@
+import copy
+
 from Semi_sklearn.Base.TransductiveEstimator import TransductiveEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.svm import SVC
@@ -54,25 +56,52 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
                     decision_function_shape = self.decision_function_shape,
                     break_ties = self.break_ties,
                     random_state = self.random_state)
+        self._estimator_type = ClassifierMixin._estimator_type
         self.unlabled_X=None
         self.unlabled_y=None
+        self.class_dict=None
+        self.rev_class_dict=None
 
     def fit(self,X,y,unlabled_X):
+        L=len(X)
         N = len(X) + len(unlabled_X)
         sample_weight = np.ones(N)
         sample_weight[len(X):] = 1.0*self.Cu/self.Cl
+        classes, y_indices = np.unique(y, return_inverse=True)
+        # for i in range(len(y)):
+        #     if y[i]==0:
+        #         y[i]=-1
+        if len(classes)!=2:
+            raise ValueError('TSVM can only be used in binary classification.')
+        # print(classes)
+
+        self.class_dict={classes[0]:-1,classes[1]:1}
+        self.rev_class_dict = {-1:classes[0] ,  1:classes[1]}
+        y=copy.copy(y)
+        for _ in range(L):
+            y[_]=self.class_dict[y[_]]
+
         self.clf.fit(X, y)
+
         unlabled_y = self.clf.predict(unlabled_X)
-        unlabled_y = np.expand_dims(unlabled_y, 1)
+
+        # y = np.expand_dims(copy.copy(y), 1)
+
+        # unlabled_y = np.expand_dims(unlabled_y, 1)
+
         u_X_id = np.arange(len(unlabled_y))
         _X = np.vstack([X, unlabled_X])
-        _y = np.vstack([y, unlabled_y])
+        _y = np.hstack([y, unlabled_y])
+
+
         while self.Cu < self.Cl:
+            print(self.Cu)
             self.clf.fit(_X, _y, sample_weight=sample_weight)
             while True:
                 unlabled_y_d = self.clf.decision_function(unlabled_X)    # linear: w^Tx + b
-                unlabled_y_= unlabled_y.reshape(-1)
-                epsilon = 1 - unlabled_y_ * unlabled_y_d   # calculate function margin
+
+                epsilon = 1 - unlabled_y * unlabled_y_d   # calculate function margin
+
                 positive_set, positive_id = epsilon[unlabled_y > 0], u_X_id[unlabled_y > 0]
                 negative_set, negative_id = epsilon[unlabled_y < 0], u_X_id[unlabled_y < 0]
                 positive_max_id = positive_id[np.argmax(positive_set)]
@@ -81,26 +110,38 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
                 if a > 0 and b > 0 and a + b > 2.0:
                     unlabled_y[positive_max_id] = unlabled_y[positive_max_id] * -1
                     unlabled_y[negative_max_id] = unlabled_y[negative_max_id] * -1
-                    unlabled_y = np.expand_dims(unlabled_y, 1)
-                    _y = np.vstack([y, unlabled_y])
+                    # unlabled_y = np.expand_dims(unlabled_y, 1)
+                    _y = np.hstack([y, unlabled_y])
                     self.clf.fit(_X, _y, sample_weight=sample_weight)
                 else:
                     break
             self.Cu = min(2*self.Cu, self.Cl)
             sample_weight[len(X):] = 1.0*self.Cu/self.Cl
-            self.unlabled_X = unlabled_X
-            self.unlabled_y=unlabled_y
+        self.unlabled_X = unlabled_X
+        self.unlabled_y = unlabled_y
+        return self
 
     def predict(self,X=None,Transductive=True):
         if Transductive:
-            return self.unlabled_y
+            result=self.unlabled_y
         else:
-            return self.clf.predict(X)
+            result= self.clf.predict(X)
+        _len=len(result)
+        result=copy.copy(result)
+        for _ in range(_len):
+            result[_]=self.rev_class_dict[result[_]]
+        return result
 
     def score(self,X=None, y=None,sample_weight=None,Transductive=True):
+
         if Transductive:
             return self.clf.score(self.unlabled_X,self.unlabled_y,sample_weight)
         else:
+
+            _len=len(X)
+            y=copy.copy(y)
+            for _ in range(_len):
+                y[_] = self.class_dict[y[_]]
             return self.clf.score(X, y,sample_weight)
 
 
