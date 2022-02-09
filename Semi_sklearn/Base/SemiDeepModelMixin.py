@@ -242,6 +242,7 @@ class SemiDeepModelMixin(SemiEstimator):
 
                 self.end_batch_test()
 
+    @torch.no_grad()
     def predict(self,X=None):
 
         self.init_test_dataset(X)
@@ -256,6 +257,7 @@ class SemiDeepModelMixin(SemiEstimator):
 
         return self.y_pred
 
+    @torch.no_grad()
     def evaluate(self,X,y=None):
 
         if isinstance(X,Dataset) and y is None:
@@ -308,11 +310,15 @@ class SemiDeepModelMixin(SemiEstimator):
         pass
 
     def start_predict(self, *args, **kwargs):
-        self.y_est = torch.Tensor().to(self.device)
         self._network.eval()
+        if self.ema is not None:
+            self.ema.apply_shadow()
+        self.y_est = torch.Tensor().to(self.device)
 
     def end_predict(self, *args, **kwargs):
         self.y_pred = self.get_predict_result(self.y_est)
+        if self.ema is not None:
+            self.ema.restore()
         self._network.train()
 
     def optimize(self,*args,**kwargs):
@@ -322,16 +328,13 @@ class SemiDeepModelMixin(SemiEstimator):
             self.ema.update()
         self._network.zero_grad()
 
-
+    @torch.no_grad()
     def estimate(self,X,idx=None,*args,**kwargs):
         X = self.normalization.fit_transform(X)
-        if self.ema is not None:
-            self.ema.apply_shadow()
         outputs = self._network(X)
-        if self.ema is not None:
-            self.ema.restore()
         return outputs
 
+    @torch.no_grad()
     def get_predict_result(self,y_est,*args,**kwargs):
         if self._estimator_type=='classifier':
             print('classifier')
