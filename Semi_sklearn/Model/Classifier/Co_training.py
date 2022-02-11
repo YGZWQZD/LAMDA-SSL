@@ -13,6 +13,7 @@ class Co_training(InductiveEstimator,ClassifierMixin):
         self.n=n
         self.k=k
         self.s=s
+        self._estimator_type = ClassifierMixin._estimator_type
 
         if isinstance(self.base_estimator,(list,tuple)):
             self.base_estimator,self.base_estimator_2=self.base_estimator[0],self.base_estimator_2[1]
@@ -34,7 +35,7 @@ class Co_training(InductiveEstimator,ClassifierMixin):
         X_2=copy.copy(X_2)
         y=copy.copy(y)
 
-        unlabled_y=np.ones(unlabled_X)*-1
+        unlabled_y=np.ones(len(unlabled_X))*-1
 
         u_idx=np.arange(len(unlabled_X))
 
@@ -46,14 +47,14 @@ class Co_training(InductiveEstimator,ClassifierMixin):
 
         it = 0  # number of cotraining iterations we've done so far
 
-        while it != self.k and u_idx:
+        while it != self.k and len(u_idx):
             it += 1
 
             self.base_estimator.fit(X, y)
             self.base_estimator_2.fit(X_2, y)
 
-            y1_prob = self.base_estimator.predict_proba(unlabled_X)
-            y2_prob = self.base_estimator_2.predict_proba(unlabled_X_2)
+            y1_prob = self.base_estimator.predict_proba(unlabled_X[pool])
+            y2_prob = self.base_estimator_2.predict_proba(unlabled_X_2[pool])
 
             n_list, p_list = [], []
 
@@ -72,26 +73,87 @@ class Co_training(InductiveEstimator,ClassifierMixin):
                     p_list.append(i)
 
             # label the samples and remove thes newly added samples from U_
+
             unlabled_y[[pool[x] for x in p_list]] = 1
             unlabled_y[[pool[x] for x in n_list]] = 0
 
-            X.extend([unlabled_X[u_idx[x]] for x in p_list])
-            X.extend([unlabled_X[u_idx[x]] for x in n_list])
 
-            X_2.extend([unlabled_X_2[u_idx[x]] for x in p_list])
-            X_2.extend([unlabled_X_2[u_idx[x]] for x in n_list])
 
-            y.extend([unlabled_y[u_idx[x]] for x in p_list])
-            y.extend([unlabled_y[u_idx[x]] for x in n_list])
+            for x in p_list:
+                X = np.vstack([X, unlabled_X[pool[x]]])
+                X_2 = np.vstack([X_2, unlabled_X_2[pool[x]]])
+                y=np.hstack([y,unlabled_y[pool[x]]])
+
+            for x in n_list:
+                X = np.vstack([X, unlabled_X[pool[x]]])
+                X_2 = np.vstack([X_2, unlabled_X_2[pool[x]]])
+                y=np.hstack([y,unlabled_y[pool[x]]])
+
 
             pool = [elem for elem in pool if not (elem in p_list or elem in n_list)]
 
             # add new elements to U_
             add_counter = 0  # number we have added from U to U_
             num_to_add = len(p_list) + len(n_list)
-            while add_counter != num_to_add and u_idx:
+            while add_counter != num_to_add and len(u_idx):
                 add_counter += 1
-                pool.append(u_idx.pop())
+                pool.append(u_idx[0])
+                u_idx=u_idx[1:]
 
         self.base_estimator.fit(X, y)
         self.base_estimator_2.fit(X_2, y)
+
+    def supports_proba(self, clf, x):
+        """Checks if a given classifier supports the 'predict_proba' method, given a single vector x"""
+        try:
+            clf.predict_proba([x])
+            return True
+        except:
+            return False
+
+    def predict(self, X, X_2=None):
+
+        if isinstance(X,(list,tuple)):
+            X,X_2=X[0],X[1]
+
+        y1 = self.base_estimator.predict(X)
+        y2 = self.base_estimator_2.predict(X_2)
+
+        proba_supported = self.supports_proba(self.base_estimator, X[0]) and self.supports_proba(self.base_estimator, X_2[0])
+
+        # fill y_pred with -1 so we can identify the samples in which the classifiers failed to agree
+        y_pred = np.asarray([-1] * X.shape[0])
+
+        for i, (y1_i, y2_i) in enumerate(zip(y1, y2)):
+            if y1_i == y2_i:
+                y_pred[i] = y1_i
+            elif proba_supported:
+                y1_probs = self.base_estimator.predict_proba([X[i]])[0]
+                y2_probs = self.base_estimator_2.predict_proba([X_2[i]])[0]
+                sum_y_probs = [prob1 + prob2 for (prob1, prob2) in zip(y1_probs, y2_probs)]
+                max_sum_prob = max(sum_y_probs)
+                y_pred[i] = sum_y_probs.index(max_sum_prob)
+
+            else:
+                # the classifiers disagree and don't support probability, so we guess
+                y_pred[i] = random.randint(0, 1)
+
+        # check that we did everything right
+        assert not (-1 in y_pred)
+
+        return y_pred
+
+    def predict_proba(self, X1, X2):
+        """Predict the probability of the samples belonging to each class."""
+        y_proba = np.full((X1.shape[0], 2), -1, np.float)
+
+        y1_proba = self.base_estimator.predict_proba(X1)
+        y2_proba = self.base_estimator_2.predict_proba(X2)
+
+        for i, (y1_i_dist, y2_i_dist) in enumerate(zip(y1_proba, y2_proba)):
+            y_proba[i][0] = (y1_i_dist[0] + y2_i_dist[0]) / 2
+            y_proba[i][1] = (y1_i_dist[1] + y2_i_dist[1]) / 2
+
+        _epsilon = 0.0001
+        assert all(abs(sum(y_dist) - 1) <= _epsilon for y_dist in y_proba)
+        return y_proba
