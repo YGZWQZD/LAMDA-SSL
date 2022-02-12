@@ -165,7 +165,7 @@ class SemiDeepModelMixin(SemiEstimator):
             self._train_dataset.init_dataset(labled_X=X, labled_y=y,unlabled_X=unlabled_X)
 
     def init_train_dataloader(self):
-        self.labled_dataloader,self.unlabled_dataloader=self._train_dataloader.get_dataloader(dataset=self._train_dataset,
+        self.labled_dataloader,self.unlabled_dataloader=self._train_dataloader.init_dataloader(dataset=self._train_dataset,
                                                                                    sampler=self._train_sampler,
                                                                                    batch_sampler=self._train_batch_sampler,
                                                                                    mu=self.mu)
@@ -177,7 +177,7 @@ class SemiDeepModelMixin(SemiEstimator):
             self._test_dataset=self._test_dataset.init_dataset(X=X)
 
     def init_test_dataloader(self):
-        self._pre_dataloader=self._test_dataloader.get_dataloader(self._test_dataset,
+        self._pre_dataloader=self._test_dataloader.init_dataloader(self._test_dataset,
                                                             sampler=self._test_sampler,
                                                             batch_sampler=self._test_batch_sampler)
 

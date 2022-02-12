@@ -24,12 +24,16 @@ class LabledDataset(Dataset):
 
     def __len__(self):
         return self.len
+
     def get_X(self):
         return self.X
+
     def get_y(self):
         return self.y
+
     def set_X(self,X):
         self.X=X
+
     def set_y(self,y):
         self.y=y
 

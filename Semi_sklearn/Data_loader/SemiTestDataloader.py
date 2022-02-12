@@ -29,7 +29,7 @@ class SemiTestDataLoader:
         self.dataset=None
         self.dataloader=None
 
-    def get_dataloader(self,dataset=None,sampler=None,batch_sampler=None):
+    def init_dataloader(self,dataset=None,sampler=None,batch_sampler=None):
         self.dataset=dataset
         if sampler is not None and isinstance(sampler,SemiSampler):
             self.sampler=sampler.init_sampler(self.dataset)

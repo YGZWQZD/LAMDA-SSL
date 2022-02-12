@@ -146,7 +146,7 @@ class SemiTrainDataLoader:
         self.len_unlabled=None
         self.batch_size_adjust=batch_size_adjust
 
-    def get_dataloader(self,dataset=None,labled_dataset=None,unlabled_dataset=None,sampler=None,batch_sampler=None,mu=None):
+    def init_dataloader(self,dataset=None,labled_dataset=None,unlabled_dataset=None,sampler=None,batch_sampler=None,mu=None):
         if dataset is not None:
             self.labled_dataset=dataset.get_dataset(labled=True)
             self.unlabled_dataset=dataset.get_dataset(labled=False)
