@@ -1,19 +1,26 @@
+import copy
+
 import numpy as np
 import sklearn
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 
 class TriTraining(InductiveEstimator,ClassifierMixin):
-    def __init__(self, classifier):
-        if sklearn.base.is_classifier(classifier):
-            self.classifiers = [sklearn.base.clone(classifier) for i in range(3)]
+    def __init__(self, base_estimator,base_estimator_2=None,base_estimator_3=None):
+
+        if isinstance(base_estimator,(list,tuple)):
+            self.estimators=base_estimator
         else:
-            self.classifiers = [sklearn.base.clone(classifier[i]) for i in range(3)]
+            self.estimators=[base_estimator,base_estimator_2,base_estimator_3]
+        if self.estimators[1] is None:
+            self.estimators[1]=copy.copy(self.estimators[0])
+        if self.estimators[2] is None:
+            self.estimators[2] = copy.copy(self.estimators[0])
 
     def fit(self, X, y, unlabled_X):
         for i in range(3):
             sample = sklearn.utils.resample(X, y)
-            self.classifiers[i].fit(*sample)
+            self.estimators[i].fit(*sample)
         e_prime = [0.5] * 3
         l_prime = [0] * 3
         e = [0] * 3
@@ -30,8 +37,8 @@ class TriTraining(InductiveEstimator,ClassifierMixin):
                 update[i] = False
                 e[i] = self.measure_error(X, y, j, k)
                 if e[i] < e_prime[i]:
-                    U_y_j = self.classifiers[j].predict(X)
-                    U_y_k = self.classifiers[k].predict(X)
+                    U_y_j = self.estimators[j].predict(unlabled_X)
+                    U_y_k = self.estimators[k].predict(unlabled_X)
                     Li_X[i] = unlabled_X[U_y_j == U_y_k]  # when two models agree on the label, save it
                     Li_y[i] = U_y_j[U_y_j == U_y_k]
                     if l_prime[i] == 0:  # no updated before
@@ -46,23 +53,24 @@ class TriTraining(InductiveEstimator,ClassifierMixin):
 
             for i in range(3):
                 if update[i]:
-                    self.classifiers[i].fit(np.append(X, Li_X[i], axis=0), np.append(y, Li_y[i], axis=0))
+                    self.estimators[i].fit(np.append(X, Li_X[i], axis=0), np.append(y, Li_y[i], axis=0))
                     e_prime[i] = e[i]
                     l_prime[i] = len(Li_y[i])
 
             if update == [False] * 3:
                 improve = False  # if no classifier was updated, no improvement
+        return self
 
     def predict(self, X):
-        pred = np.asarray([self.classifiers[i].predict(X) for i in range(3)])
+        pred = np.asarray([self.estimators[i].predict(X) for i in range(3)])
         pred[0][pred[1] == pred[2]] = pred[1][pred[1] == pred[2]]
         return pred[0]
 
 
 
     def measure_error(self, X, y, j, k):
-        j_pred = self.classifiers[j].predict(X)
-        k_pred = self.classifiers[k].predict(X)
+        j_pred = self.estimators[j].predict(X)
+        k_pred = self.estimators[k].predict(X)
         wrong_index = np.logical_and(j_pred != y, k_pred == j_pred)
         # wrong_index =np.logical_and(j_pred != y_test, k_pred!=y_test)
         return sum(wrong_index) / sum(j_pred == k_pred)

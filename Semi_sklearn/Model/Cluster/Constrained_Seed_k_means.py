@@ -11,23 +11,35 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
         self.max_iterations = max_iterations
 
     def fit(self, X, y=None, unlabled_X=None,clusters=None):
+        assert y is not None or clusters is not None
+        if clusters is None:
+            clusters = {}
+            for _ in range(self.k):
+                clusters[_] = set()
+            for _ in range(len(X)):
+                clusters[y[_]].add(_)
+
         # index_list = list(range(len(X)))
         # random.shuffle(index_list)
         #
         # c = X[index_list[:self.k]]
-        assert clusters is not None
 
-        c=np.array([])
+        # print(clusters)
+
+        c=[]
         for _ in range(self.k):
             s=clusters[_]
-            l_set=len(set)
+            l_set=len(s)
             if l_set==0:
                 raise ValueError('Set is empty!')
             sum=0
             for idx in s:
                 sum+=X[idx]
             sum=sum/l_set
-            c=np.vstack([c,sum])
+            c.append(sum)
+        c=np.array(c)
+
+        _X=np.vstack([X,unlabled_X])
 
 
 
@@ -37,32 +49,37 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
 
             self.clusters = copy.copy(clusters)
 
-            self.unlabled=np.ones(len(X))
+            self.unlabled=[True]*len(_X)
 
-            self.is_clustered=np.ones(len(X))*-1
+            self.is_clustered=np.array([-1]*len(_X))
 
             for _ in range(self.k):
                 s = self.clusters[_]
                 for idx in s:
                     self.is_clustered[idx]=_
-                    self.unlabled[idx]=0
+                    self.unlabled[idx]=False
 
-            self.unlabled=self.unlabled.tolist()
+            # self.unlabled=self.unlabled.tolist()
 
-            self.unlabled_set=X[self.unlabled]
+            # print(self.unlabled)
+            unlabled_idx=np.arange(len(_X))
+            self.unlabled_set=unlabled_idx[self.unlabled]
 
             for x_index in self.unlabled_set:
-                distances = np.array([np.linalg.norm(X[x_index] - c[centroid]) for centroid in c])
-                r=np.argmin(distances)
+
+                # print(c)
+                distances = np.array([np.linalg.norm(_X[x_index] - c[centroid]) for centroid in range(len(c))])
+                r=np.argmin(distances).item()
+                # print(r)
                 self.clusters[r].add(x_index)
                 self.is_clustered[x_index]=r
 
-            previous = dict(c)
+            previous = c
 
             for _center in self.clusters:
                 lst = []
                 for index_value in self.clusters[_center]:
-                    lst.append(X[index_value])
+                    lst.append(_X[index_value])
                 avgArr = np.array(lst)
 
                 if len(lst) != 0:
@@ -79,6 +96,7 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
 
         self.center = c
         self.y = self.is_clustered
+        return self
 
     def violate_constraints(self, data_index, cluster_index, ml, cl):
         for i in ml[data_index]:
@@ -96,6 +114,6 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
         else:
             result = np.array([])
             for _ in range(len(X)):
-                distances = np.array([np.linalg.norm(X[_] - self.center[centroid]) for centroid in self.center])
+                distances = np.array([np.linalg.norm(X[_] - self.center[centroid]) for centroid in range(len(self.center))])
                 result = np.hstack([result, np.argmin(distances)])
         return result

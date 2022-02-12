@@ -1,13 +1,14 @@
 from Semi_sklearn.Base.TransductiveEstimator import TransductiveEstimator
 from sklearn.base import ClassifierMixin
 import numpy as np
-from sklearn.semi_supervised._label_propagation import LabelPropagation
-class Label_propagation(TransductiveEstimator,ClassifierMixin):
+from sklearn.semi_supervised._label_propagation import LabelSpreading
+class Label_spreading(TransductiveEstimator,ClassifierMixin):
     def __init__(
         self,
         kernel="rbf",
         gamma=20,
         n_neighbors=7,
+        alpha=0.2,
         max_iter=30,
         tol=1e-3,
         n_jobs=None,
@@ -20,13 +21,14 @@ class Label_propagation(TransductiveEstimator,ClassifierMixin):
         self.kernel = kernel
         self.gamma = gamma
         self.n_neighbors = n_neighbors
+        self.alpha=alpha
 
         # clamping factor
 
         self.n_jobs = n_jobs
 
-        self.model=LabelPropagation(kernel=self.kernel,gamma=self.gamma,n_neighbors=self.n_neighbors,
-                                  max_iter=self.max_iter,tol=self.tol,n_jobs=n_jobs)
+        self.model=LabelSpreading(kernel=self.kernel,gamma=self.gamma,n_neighbors=self.n_neighbors,
+                                  alpha=self.alpha,max_iter=self.max_iter,tol=self.tol,n_jobs=n_jobs)
 
         self._estimator_type=ClassifierMixin._estimator_type
 

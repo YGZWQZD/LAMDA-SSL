@@ -1,11 +1,11 @@
 import copy
 
-from Semi_sklearn.Base.TransductiveEstimator import TransductiveEstimator
+from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.svm import SVC
 import numpy as np
 
-class TSVM(TransductiveEstimator,ClassifierMixin):
+class TSVM(InductiveEstimator,ClassifierMixin):
     def __init__(
             self,
             Cl=1.0,
@@ -121,11 +121,9 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
         self.unlabled_y = unlabled_y
         return self
 
-    def predict(self,X=None,Transductive=True):
-        if Transductive:
-            result=self.unlabled_y
-        else:
-            result= self.clf.predict(X)
+    def predict(self,X=None):
+
+        result= self.clf.predict(X)
         _len=len(result)
         result=copy.copy(result)
         for _ in range(_len):
@@ -143,3 +141,6 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
             for _ in range(_len):
                 y[_] = self.class_dict[y[_]]
             return self.clf.score(X, y,sample_weight)
+
+
+
