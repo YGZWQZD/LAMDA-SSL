@@ -1,6 +1,7 @@
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
 import numpy as np
-class Mixup(Augmentation):
+
+class Mixup(Transformer):
     def __init__(self, alpha):
         super().__init__()
         self.alpha = alpha

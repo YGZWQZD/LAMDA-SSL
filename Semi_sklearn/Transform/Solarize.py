@@ -1,9 +1,10 @@
 import PIL.Image
 import torch
-
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+import numpy as np
+from Semi_sklearn.Transform.Transformer import Transformer
 import torchvision.transforms.functional as F
-class Solarize(Augmentation):
+
+class Solarize(Transformer):
     def __init__(self, min_v,max_v,num_bins,magnitude,v=None):
         super().__init__()
         self.max_v=max_v
@@ -14,6 +15,8 @@ class Solarize(Augmentation):
         self.v=float(self.magnitudes[self.magnitude].item()) if v is None else v
 
     def transform(self,X):
+        if isinstance(X,np.ndarray):
+            X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
             X=PIL.ImageOps.solarize(X, self.v)
             return X

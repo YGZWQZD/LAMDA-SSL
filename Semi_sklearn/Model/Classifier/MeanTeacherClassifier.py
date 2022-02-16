@@ -8,13 +8,20 @@ from Semi_sklearn.Model.MeanTeacher import MeanTeacher
 
 class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
     def __init__(self,train_dataset=None,
+                 valid_dataset=None,
                  test_dataset=None,
+
                  train_dataloader=None,
+                 valid_dataloader=None,
                  test_dataloader=None,
+
                  augmentation=None,
                  network=None,
+
                  train_sampler=None,
                  train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
                  epoch=1,
@@ -32,21 +39,30 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                  ema_decay=None,
                  weight_decay=None
                  ):
-        SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
+        MeanTeacher.__init__(self,train_dataset=train_dataset,
+                                    valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
+
                                     train_dataloader=train_dataloader,
+                                    valid_dataloader=valid_dataloader,
                                     test_dataloader=test_dataloader,
+
                                     augmentation=augmentation,
                                     network=network,
                                     train_sampler=train_sampler,
                                     train_batch_sampler=train_batch_sampler,
+                                    valid_sampler=valid_sampler,
+                                    valid_batch_sampler=valid_batch_sampler,
                                     test_sampler=test_sampler,
-                                    test_batch_Sampler=test_batch_sampler,
+                                    test_batch_sampler=test_batch_sampler,
+
                                     epoch=epoch,
                                     num_it_epoch=num_it_epoch,
                                     num_it_total=num_it_total,
+                                    warmup=warmup,
                                     eval_epoch=eval_epoch,
                                     eval_it=eval_it,
+                                    lambda_u=lambda_u,
                                     mu=mu,
                                     weight_decay=weight_decay,
                                     ema_decay=ema_decay,
@@ -66,8 +82,8 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 
-    def predict(self,X=None):
-        return SemiDeepModelMixin.predict(self,X=X)
+    def predict(self,X=None,valid=None):
+        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
 
 
 

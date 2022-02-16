@@ -1,9 +1,9 @@
 import torch
 from torchvision.transforms import transforms
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
 from Semi_sklearn.utils import to_image,to_numpy
 import numpy as np
-class Normalization(Augmentation):
+class Normalization(Transformer):
     def __init__(self,mean=None,std=None):
         super().__init__()
         self.mean=mean

@@ -22,13 +22,18 @@ def de_interleave(x, size):
 
 
 class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
-    def __init__(self,train_dataset=None,test_dataset=None,
+    def __init__(self,train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
                  train_dataloader=None,
+                 valid_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
                  network=None,
                  train_sampler=None,
                  train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
                  epoch=1,
@@ -53,15 +58,19 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  p_target=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
+                                    valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
+                                    valid_dataloader=valid_dataloader,
                                     test_dataloader=test_dataloader,
                                     augmentation=augmentation,
                                     network=network,
                                     train_sampler=train_sampler,
                                     train_batch_sampler=train_batch_sampler,
+                                    valid_sampler=valid_sampler,
+                                    valid_batch_sampler=valid_batch_sampler,
                                     test_sampler=test_sampler,
-                                    test_batch_Sampler=test_batch_sampler,
+                                    test_batch_sampler=test_batch_sampler,
                                     epoch=epoch,
                                     num_it_epoch=num_it_epoch,
                                     num_it_total=num_it_total,
@@ -75,6 +84,7 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     device=device,
                                     evaluation=evaluation
                                     )
+
         self.lambda_u=lambda_u
         self.threshold=threshold
         self.T=T
@@ -88,7 +98,14 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.use_DA=use_DA
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def init_transform(self):
+        self._train_dataset.add_unlabled_transform(copy.deepcopy(self.train_dataset.unlabled_transform),dim=0,x=1)
+        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
+
     def start_fit(self):
+        # print(self._train_dataset.labled_dataset.y)
         self.num_classes = self.num_classes if self.num_classes is not None else \
             class_status(self._train_dataset.labled_dataset.y).num_class
         if self.p_target is None:
@@ -101,9 +118,8 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        w_lb_X=self.weakly_augmentation.fit_transform(lb_X)
-        w_ulb_X=self.weakly_augmentation.fit_transform(ulb_X)
-        s_ulb_X=self.strongly_augmentation.fit_transform(ulb_X)
+        w_lb_X=lb_X[0]
+        w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
         num_lb = w_lb_X.shape[0]
         pseudo_counter = Counter(self.selected_label.tolist())
         if max(pseudo_counter.values()) < len(self._train_dataset.unlabled_dataset):  # not all(5w) -1
@@ -153,6 +169,6 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         loss = Lx + self.lambda_u * Lu
         return loss
 
-    def predict(self,X=None):
-        return SemiDeepModelMixin.predict(self,X=X)
+    def predict(self,X=None,valid=None):
+        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
 

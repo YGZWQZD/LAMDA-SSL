@@ -1,9 +1,9 @@
 import copy
 
 from torch.utils.data.dataloader import DataLoader
-from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
 from Semi_sklearn.Sampler.SemiSampler import SemiSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
+
 class SemiTrainDataLoader:
     def __init__(self,
                  batch_size=1,
@@ -55,7 +55,7 @@ class SemiTrainDataLoader:
         elif isinstance(self.Iterable,dict):
             self.labled_Iterable,self.unlabled_Iterable = self.Iterable['labled'], self.Iterable['unlabled']
         else:
-            self.labled_Iterable,self.unlabled_Iterable=copy.copy(self.Iterable), copy.copy(self.Iterable)
+            self.labled_Iterable,self.unlabled_Iterable = copy.copy(self.Iterable), copy.copy(self.Iterable)
 
         self.num_workers=num_workers
         if isinstance(self.num_workers,(list,tuple)):
@@ -201,7 +201,6 @@ class SemiTrainDataLoader:
             self.unlabled_batch_sampler=self.unlabled_batch_sampler.init_sampler(self.unlabled_sampler)
 
         if self.labled_batch_sampler is None and self.labled_sampler is None:
-
             self.labled_dataloader=DataLoader(dataset=self.labled_dataset,
                                 batch_size=self.labled_batch_size,
                                 shuffle = self.labled_shuffle,
@@ -246,6 +245,7 @@ class SemiTrainDataLoader:
                                 persistent_workers = self.labled_persistent_workers)
 
         if self.unlabled_batch_sampler is None and self.unlabled_sampler is None:
+
             self.unlabled_dataloader=DataLoader(dataset=self.unlabled_dataset,
                                 batch_size=self.unlabled_batch_size,
                                 shuffle = self.unlabled_shuffle,
@@ -261,6 +261,7 @@ class SemiTrainDataLoader:
                                 generator = self.unlabled_generator,
                                 prefetch_factor = self.unlabled_prefetch_factor,
                                 persistent_workers = self.unlabled_persistent_workers)
+
         elif self.unlabled_batch_sampler is not None:
             self.unlabled_dataloader=DataLoader(dataset=self.unlabled_dataset,
                                 batch_sampler = self.unlabled_batch_sampler,

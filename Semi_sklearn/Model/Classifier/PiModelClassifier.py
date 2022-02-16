@@ -10,13 +10,17 @@ from Semi_sklearn.Model.Pimodel import PiModel
 
 class PiModelClassifier(PiModel,ClassifierMixin):
     def __init__(self,train_dataset=None,
+                 valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
+                 valid_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
                  network=None,
                  train_sampler=None,
                  train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
                  epoch=1,
@@ -35,13 +39,17 @@ class PiModelClassifier(PiModel,ClassifierMixin):
                  weight_decay=None
                  ):
         PiModel.__init__(self,train_dataset=train_dataset,
+                             valid_dataset=valid_dataset,
                              test_dataset=test_dataset,
                              train_dataloader=train_dataloader,
+                             valid_dataloader=valid_dataloader,
                              test_dataloader=test_dataloader,
                              augmentation=augmentation,
                              network=network,
                              train_sampler=train_sampler,
                              train_batch_sampler=train_batch_sampler,
+                             valid_sampler=valid_sampler,
+                             valid_batch_sampler=valid_batch_sampler,
                              test_sampler=test_sampler,
                              test_batch_sampler=test_batch_sampler,
                              epoch=epoch,
@@ -69,8 +77,8 @@ class PiModelClassifier(PiModel,ClassifierMixin):
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 
-    def predict(self,X=None):
-        return SemiDeepModelMixin.predict(self,X=X)
+    def predict(self,X=None,valid=None):
+        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
 
 
 

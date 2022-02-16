@@ -1,11 +1,11 @@
 from torchvision.datasets.vision import VisionDataset
-from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
+from Semi_sklearn.Dataset.TrainDataset import SemiTrainDataset
 from Semi_sklearn.Dataset.CV.LabledVisionDataset import LabledVisionDataset
 from Semi_sklearn.Dataset.CV.UnlabledVisionDataset import UnlabledVisionDataset
 from Semi_sklearn.utils import indexing
 from Semi_sklearn.utils import partial
 
-class SemiTrainVisionDataset(SemiTrainDataset, VisionDataset):
+class TrainDataset(SemiTrainDataset, VisionDataset):
     def __init__(
             self,
             root=None,

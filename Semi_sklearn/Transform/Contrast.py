@@ -1,10 +1,11 @@
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
 import torchvision.transforms.functional as F
 import random
 import torch
 import PIL
+import numpy as np
 
-class Sharpness(Augmentation):
+class Contrast(Transformer):
     def __init__(self, min_v,max_v,num_bins,magnitude,v=None):
         super().__init__()
         self.max_v=max_v
@@ -16,18 +17,20 @@ class Sharpness(Augmentation):
 
 
     def transform(self,X):
+        if isinstance(X,np.ndarray):
+            X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
             _v = self.v if random.random() < 0.5 else self.v * -1
-            X=PIL.ImageEnhance.Sharpness(X).enhance(1.0+_v)
+            X=PIL.ImageEnhance.Contrast(X).enhance(1.0+_v)
             return X
         elif isinstance(X,torch.Tensor):
             if len(X.shape)==4:
                 for _ in range(X.shape[0]):
                     _v = self.v if random.random() < 0.5 else self.v * -1
-                    X[_]=F.adjust_sharpness(X[_],1.0+_v)
+                    X[_]=F.adjust_contrast(X[_],1.0+_v)
             else:
                 _v = self.v if random.random() < 0.5 else self.v * -1
-                X = F.adjust_sharpness(X,1.0+_v)
+                X = F.adjust_contrast(X,1.0+_v)
             return X
         else:
             raise ValueError('No data to augment')

@@ -1,15 +1,14 @@
 import copy
-import copyreg
 import numbers
 
 import PIL.Image
 
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
 
 import numpy as np
 import torch
 
-class CutoutAbs(Augmentation):
+class CutoutAbs(Transformer):
     def __init__(self, v,fill):
         super().__init__()
         self.v=v
@@ -24,20 +23,19 @@ class CutoutAbs(Augmentation):
             self.fill=fill
 
     def transform(self,X):
-
+        if isinstance(X,np.ndarray):
+            X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
-            X = X.copy()
             w, h = X.size[0], X.size[1]
             x0 = np.random.uniform(w)
             y0 = np.random.uniform(h)
-            x0 = int(max(0, x0 - self.vx*w / 2.))
-            y0 = int(max(0, y0 - self.vy*h / 2.))
-            x1 = int(min(w, x0 + self.vx*w))
-            y1 = int(min(h, y0 + self.vy*h))
-
+            x0 = int(max(0, x0 - self.vx / 2.))
+            y0 = int(max(0, y0 - self.vy / 2.))
+            x1 = int(min(w, x0 + self.vx))
+            y1 = int(min(h, y0 + self.vy))
             xy = (x0, y0, x1, y1)
-
             PIL.ImageDraw.Draw(X).rectangle(xy, self.fill)
+            return X
 
         elif isinstance(X,torch.Tensor):
             X=copy.copy(X)
@@ -50,10 +48,10 @@ class CutoutAbs(Augmentation):
                 for _ in range(X.shape[0]):
                     x0 = np.random.uniform(w)
                     y0 = np.random.uniform(h)
-                    x0 = int(max(0, x0 - self.vx * w / 2.))
-                    y0 = int(max(0, y0 - self.vy * h / 2.))
-                    x1 = int(min(w, x0 + self.vx * w))
-                    y1 = int(min(h, y0 + self.vy * h))
+                    x0 = int(max(0, x0 - self.vx / 2.))
+                    y0 = int(max(0, y0 - self.vy  / 2.))
+                    x1 = int(min(w, x0 + self.vx ))
+                    y1 = int(min(h, y0 + self.vy ))
 
                     X[_, 0, x0:x1, y0:y1].copy_(torch.Tensor([self.fill[0]]))
                     X[_, 1, x0:x1, y0:y1].copy_(torch.Tensor([self.fill[1]]))
@@ -61,10 +59,10 @@ class CutoutAbs(Augmentation):
             else:
                 x0 = np.random.uniform(w)
                 y0 = np.random.uniform(h)
-                x0 = int(max(0, x0 - self.vx * w / 2.))
-                y0 = int(max(0, y0 - self.vy * h / 2.))
-                x1 = int(min(w, x0 + self.vx * w))
-                y1 = int(min(h, y0 + self.vy * h))
+                x0 = int(max(0, x0 - self.vx / 2.))
+                y0 = int(max(0, y0 - self.vy  / 2.))
+                x1 = int(min(w, x0 + self.vx ))
+                y1 = int(min(h, y0 + self.vy ))
                 X[0,x0:x1,y0:y1].copy_(torch.Tensor([self.fill[0]]))
                 X[1,x0:x1,y0:y1].copy_(torch.Tensor([self.fill[1]]))
                 X[2,x0:x1,y0:y1].copy_(torch.Tensor([self.fill[2]]))

@@ -1,4 +1,5 @@
 # pylint: disable=unused-argument
+import copy
 from copy import deepcopy
 from distutils.version import LooseVersion
 from functools import partial
@@ -15,6 +16,7 @@ from PIL import Image
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.nn as nn
+
 
 if LooseVersion(sklearn.__version__) >= '0.22.0':
     from sklearn.utils import _safe_indexing as safe_indexing
@@ -38,11 +40,15 @@ def indexing_list_tuple_of_data(data, i, indexings=None):
     return [indexing(x, i, ind)
             for x, ind in zip(data, indexings)]
 
+def indexing_sparse(data,i):
+    data=copy.copy(data)
+    data = data.toarray().squeeze(0)
+    return data[i]
 
 def indexing_ndframe(data, i):
-    # During fit, DataFrames are converted to dict, which is why we
-    # might need _indexing_dict.
     if hasattr(data, 'iloc'):
+        data=data.copy(data)
+        data = {k: data[k].values.reshape(-1, 1) for k in data}
         return data.iloc[i]
     return indexing_dict(data, i)
 
@@ -55,12 +61,7 @@ def indexing_other(data, i):
 def indexing_dataset(data,i):
     return data[i]
 
-# def get_subset(data,i):
-#     if data is None:
-#         return None
-#     if isinstance(data, torch.utils.data.Dataset):
-#         return data.subdataset(i)
-#     if isinstance(data, dict):
+
 
 
 def get_indexing_method(data):
@@ -70,8 +71,10 @@ def get_indexing_method(data):
         return indexing_dataset
 
     if isinstance(data, dict):
-        # dictionary of containers
         return indexing_dict
+
+    if is_sparse(data):
+        return indexing_sparse
 
     if isinstance(data, (list, tuple)):
         try:
@@ -83,7 +86,6 @@ def get_indexing_method(data):
             return indexing_other
 
     if is_pandas_ndframe(data):
-
         return indexing_ndframe
 
     return indexing_other
@@ -117,7 +119,6 @@ def flatten(arr):
 def apply_to_data(data, func, unpack_dict=False):
 
     apply_ = partial(apply_to_data, func=func, unpack_dict=unpack_dict)
-
     if isinstance(data, dict):
         if unpack_dict:
             return [apply_(v) for v in data.values()]
@@ -128,7 +129,6 @@ def apply_to_data(data, func, unpack_dict=False):
             return [apply_(x) for x in data]
         except TypeError:
             return func(data)
-
     return func(data)
 
 def is_sparse(x):
@@ -137,16 +137,16 @@ def is_sparse(x):
     except AttributeError:
         return False
 
-def _len(x):
-    if is_sparse(x):
-        return x.shape[0]
-    return len(x)
-
-def get_len(data):
+def _len(data):
     if data is None:
         return 0
     if isinstance(data,torch.utils.data.Dataset):
         return data.__len__()
+    if is_sparse(data):
+        return data.shape[0]
+    return len(data)
+
+def get_len(data):
     lens = [apply_to_data(data, _len, unpack_dict=True)]
     lens = list(flatten(lens))
     len_set = set(lens)
@@ -181,7 +181,11 @@ def to_tensor(X, device=None, accept_sparse=False):
     if isinstance(X, dict):
         return {key: to_tensor_(val) for key, val in X.items()}
     if isinstance(X, (list, tuple)):
-        return [to_tensor_(x) for x in X]
+        try:
+            indexing(X[0],0)
+            return [to_tensor_(x) for x in X]
+        except:
+            return torch.as_tensor(np.array(X), device=device)
     if np.isscalar(X):
         return torch.as_tensor(X, device=device)
     if isinstance(X, Sequence):
@@ -229,7 +233,6 @@ class partial:
     """New function with partial application of the given arguments
     and keywords.
     """
-
     __slots__ = "func", "args", "keywords", "__dict__", "__weakref__"
 
     def __new__(*args, **keywords):
@@ -434,10 +437,10 @@ class Bn_Controller:
                 m.num_batches_tracked.data = self.backup[name + '.num_batches_tracked']
         self.backup = {}
 
-def fix_bn(m,train=False):
-    classname = m.__class__.__name__
-    if classname.find('BatchNorm') != -1:
-        if train:
-            m.train()
-        else:
-            m.eval()
+# def fix_bn(m,train=False):
+#     classname = m.__class__.__name__
+#     if classname.find('BatchNorm') != -1:
+#         if train:
+#             m.train()
+#         else:
+#             m.eval()

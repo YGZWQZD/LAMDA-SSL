@@ -12,7 +12,7 @@ import numpy as np
 from torch.nn import Softmax
 from Semi_sklearn.utils import class_status
 from Semi_sklearn.utils import one_hot
-from Semi_sklearn.Data_Augmentation.Mixup import Mixup
+from Semi_sklearn.Transform.Mixup import Mixup
 import torch.nn.functional as F
 from Semi_sklearn.utils import Bn_Controller
 
@@ -25,13 +25,18 @@ from Semi_sklearn.utils import Bn_Controller
 #             m.eval()
 
 class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
-    def __init__(self,train_dataset=None,test_dataset=None,
+    def __init__(self,train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
                  train_dataloader=None,
+                 valid_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
                  network=None,
                  train_sampler=None,
                  train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
                  epoch=1,
@@ -53,15 +58,19 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  alpha=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
+                                    valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
+                                    valid_dataloader=valid_dataloader,
                                     test_dataloader=test_dataloader,
                                     augmentation=augmentation,
                                     network=network,
                                     train_sampler=train_sampler,
                                     train_batch_sampler=train_batch_sampler,
+                                    valid_sampler=valid_sampler,
+                                    valid_batch_sampler=valid_batch_sampler,
                                     test_sampler=test_sampler,
-                                    test_batch_Sampler=test_batch_sampler,
+                                    test_batch_sampler=test_batch_sampler,
                                     epoch=epoch,
                                     num_it_epoch=num_it_epoch,
                                     num_it_total=num_it_total,
@@ -85,6 +94,12 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.bn_controller=Bn_Controller()
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def init_transform(self):
+        self._train_dataset.add_unlabled_transform(copy.deepcopy(self.train_dataset.unlabled_transform),dim=0,x=1)
+        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
+
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
             class_status(self._train_dataset.labled_dataset.y).num_class
@@ -94,9 +109,8 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
-        lb_x = self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
-        ulb_x_1 = self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
-        ulb_x_2 = self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+        lb_x=lb_X[0]
+        ulb_x_1,ulb_x_2=ulb_X[0],ulb_X[1]
 
         num_lb = lb_x.shape[0]
         with torch.no_grad():
@@ -167,9 +181,8 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         loss = sup_loss + self.lambda_u * _warmup * unsup_loss
         return loss
 
-    def predict(self,X=None):
-        return SemiDeepModelMixin.predict(self,X=X)
-
+    def predict(self,X=None,valid=None):
+        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
 
 
 

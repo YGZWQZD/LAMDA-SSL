@@ -1,14 +1,17 @@
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
 import torchvision.transforms.functional as F
 import PIL
 import torch
+import numpy as np
 
-class Invert(Augmentation):
+class Invert(Transformer):
 
     def __init__(self):
         super().__init__()
 
     def transform(self,X):
+        if isinstance(X,np.ndarray):
+            X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
             X=PIL.ImageOps.invert(X)
             return X

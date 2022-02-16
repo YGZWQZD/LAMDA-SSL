@@ -1,10 +1,11 @@
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
 import torchvision.transforms.functional as F
 import random
 import torch
 import PIL
+import numpy as np
 
-class Brightness(Augmentation):
+class Brightness(Transformer):
     def __init__(self, min_v,max_v,num_bins,magnitude,v=None):
         super().__init__()
         self.max_v=max_v
@@ -16,6 +17,8 @@ class Brightness(Augmentation):
 
 
     def transform(self,X):
+        if isinstance(X,np.ndarray):
+            X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
             _v = self.v if random.random() < 0.5 else self.v * -1
             X=PIL.ImageEnhance.Brightness(X).enhance(1.0+_v)

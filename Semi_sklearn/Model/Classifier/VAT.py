@@ -24,15 +24,18 @@ from Semi_sklearn.utils import Bn_Controller
 #             m.eval()
 
 class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
-    def __init__(self,
-                 train_dataset=None,
+    def __init__(self,train_dataset=None,
+                 valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
+                 valid_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
                  network=None,
                  train_sampler=None,
                  train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
                  epoch=1,
@@ -57,15 +60,19 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  lambda_entmin=0.06
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
+                                    valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
+                                    valid_dataloader=valid_dataloader,
                                     test_dataloader=test_dataloader,
                                     augmentation=augmentation,
                                     network=network,
                                     train_sampler=train_sampler,
                                     train_batch_sampler=train_batch_sampler,
+                                    valid_sampler=valid_sampler,
+                                    valid_batch_sampler=valid_batch_sampler,
                                     test_sampler=test_sampler,
-                                    test_batch_Sampler=test_batch_sampler,
+                                    test_batch_sampler=test_batch_sampler,
                                     epoch=epoch,
                                     num_it_epoch=num_it_epoch,
                                     num_it_total=num_it_total,
@@ -100,9 +107,8 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-
-        _lb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(lb_X))
-        _ulb_X=self.weakly_augmentation.fit_transform(copy.deepcopy(ulb_X))
+        _lb_X=lb_X[0]
+        _ulb_X=ulb_X[0]
 
         logits_x_lb = self._network(_lb_X)
         # print(torch.any(torch.isnan(logits_x_lb)))
@@ -147,8 +153,7 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         loss = sup_loss + self.lambda_u * unsup_loss * unsup_warmup + self.lambda_entmin * entmin_loss
         return loss
 
-    def predict(self,X=None):
-        return SemiDeepModelMixin.predict(self,X=X)
-
+    def predict(self,X=None,valid=None):
+        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
 
 

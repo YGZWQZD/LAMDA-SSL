@@ -7,7 +7,6 @@ from sklearn.utils import check_random_state
 from Semi_sklearn.utils import to_numpy,get_indexing_method,indexing
 
 def get_split_num(X,labled_size=0.1):
-
     len_X = get_len(X)
     labled_size_type = np.asarray(labled_size).dtype.kind
     # if labled_size is not None and labled_size_type not in ("i", "f"):

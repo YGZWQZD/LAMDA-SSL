@@ -18,7 +18,7 @@ class Co_training(InductiveEstimator,ClassifierMixin):
         if isinstance(self.base_estimator,(list,tuple)):
             self.base_estimator,self.base_estimator_2=self.base_estimator[0],self.base_estimator[1]
         if self.base_estimator_2 is None:
-            self.base_estimator_2=copy.copy(self.base_estimator)
+            self.base_estimator_2=copy.deepcopy(self.base_estimator)
 
         random.seed()
 

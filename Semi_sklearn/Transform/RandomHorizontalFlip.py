@@ -1,15 +1,17 @@
 import torch
-
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+import numpy as np
+from Semi_sklearn.Transform.Transformer import Transformer
 from torchvision import transforms
 import PIL.Image
 
-class RandomHorizontalFlip(Augmentation):
+class RandomHorizontalFlip(Transformer):
     def __init__(self):
         super().__init__()
         self.augmentation=transforms.RandomHorizontalFlip()
 
     def transform(self,X=None):
+        if isinstance(X,np.ndarray):
+            X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
             X = self.augmentation(X)
             return X

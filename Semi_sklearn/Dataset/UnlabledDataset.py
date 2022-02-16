@@ -1,67 +1,106 @@
-from torch.utils.data import Dataset
-from scipy import sparse
-import torch
-from ..utils import get_indexing_method,get_len,indexing
+import copy
 
-    
+import torch
+
+from Semi_sklearn.exceptions import TransformError
+from Semi_sklearn.utils import indexing
+from torch.utils.data.dataset import Dataset
+import os
+from Semi_sklearn.utils import get_len,get_indexing_method
+
 class UnlabledDataset(Dataset):
-    def __init__(
-            self
-    ):
+    def __init__(self,
+                 transform=None
+                 ):
+        # if isinstance(root, (str, bytes)):
+        #     root = os.path.expanduser(root)
+        # self.root = root
+        self.transform=transform
         self.X=None
         self.y=None
         self.len=None
-        self.data_initialized = False
-        self.has_lable=False
+        self.X_indexing_method=None
+        self.y_indexing_method=None
+        self.data_initialized=False
 
-    def init_dataset(self,X=None,y=None):
-        self.X=X
-        self.y=y
-
-        self.len=get_len(self.X)
+    def init_dataset(self, X=None, y=None):
+        self.X = X
+        self.y = y
+        self.len=get_len(X)
         self.X_indexing_method = get_indexing_method(self.X)
         self.y_indexing_method = get_indexing_method(self.y)
-        if self.y is not None:
-            self.has_lable=True
-
         self.data_initialized = True
-    def __len__(self):
-        return self.len
+        return self
 
-    def get_X(self):
-        return self.X
+    def to_list(self,l):
+        if isinstance(l, tuple):
+            l= list(l)
+        elif not isinstance(l,list):
+            l=[l]
+        return l
 
-    def get_y(self):
-        # if self.has_lable is not True:
-        #     raise RuntimeError('No lables')
-        return self.y
+    def insert(self,l,pos,item):
+        if isinstance(l,dict):
+            l[pos]=item
+        else:
+            l=self.to_list(l)
+            l = l[:pos] + [item] + l[pos:]
+        return l
 
-    def set_X(self,X):
-        self.X=X
+    def add_transform(self,transform,dim=1,x=0,y=0):
+        if dim==0:
+            self.transform=self.insert(self.transform,x,transform)
+        else:
+            if not isinstance(self.transform, (dict, tuple, list)):
+                self.transform=[self.transform]
+            self.transform[x]=self.insert(self.transform[x],y,transform)
 
-    def set_y(self,y):
-        self.y = y
-        if self.has_lable is not True and y is not None:
-            self.has_lable=True
+    def _transform(self,X,transform):
 
+        if isinstance(transform,(list,tuple)):
+            for item in transform:
+                X=self._transform(X,item)
+        elif callable(transform):
+            X = transform(X)
+        elif hasattr(transform,'fit_transform'):
+            X = transform.fit_transform(X)
+        elif hasattr(transform,'transform'):
+            X = transform.transform(X)
+        elif hasattr(transform,'forward'):
+            X = transform.forward(X)
+        else:
+            raise TransformError('Transforms is not Callable!')
+        return X
 
+    def apply_transform(self,X,y):
+        if self.transform is not None:
+            if isinstance(self.transform, (tuple, list)):
+                list_X = []
+                for item in self.transform:
+                    _X = self._transform(X, item)
+                    list_X.append(_X)
+                X = list_X
 
-    def _transform(self,X,y):
-        y = torch.Tensor([0]) if y is None else y
-        if sparse.issparse(X):
-            X = X.toarray().squeeze(0)
-        return X, y
+            elif isinstance(self.transform, dict):
+                dict_X = {}
+                for key, val in self.transform.items():
+                    _X = self._transform(X, val)
+                    dict_X[key] = val
+                X = dict_X
+            else:
+                X=self._transform(X,self.transform)
+        y=torch.Tensor([-1]) if y is None else y
+        return X,y
 
     def __getitem__(self, i):
+        X, y = self.X, self.y
 
+        Xi = indexing(X,i)
+        yi = indexing(y,i)
+        Xi = copy.deepcopy(Xi)
+        yi=copy.deepcopy(yi)
+        Xi, yi = self.apply_transform(Xi, yi)
+        return i,Xi, yi
 
-        X=self.X
-        y=self.y
-        if hasattr(X, 'iloc'):
-            X = {k: X[k].values.reshape(-1, 1) for k in X}
-
-        Xi = indexing(X, i, self.X_indexing_method)
-        yi = indexing(y, i, self.y_indexing_method)
-
-        Xi, yi = self._transform(Xi, yi)
-        return i, Xi, yi
+    def __len__(self):
+        return get_len(self.X) if self.len is None else self.len

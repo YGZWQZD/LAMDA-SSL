@@ -3,16 +3,20 @@ from math import ceil
 import torch
 from Semi_sklearn.Base.SemiEstimator import SemiEstimator
 from torch.utils.data.dataset import Dataset
-from Semi_sklearn.Dataset.SemiTrainDataset import SemiTrainDataset
+from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from abc import abstractmethod
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from Semi_sklearn.utils import EMA
+from Semi_sklearn.utils import to_device
 from torch.nn import Softmax
 
 class SemiDeepModelMixin(SemiEstimator):
-    def __init__(self, train_dataset=None, test_dataset=None,
+    def __init__(self, train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
                  train_dataloader=None,
+                 valid_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
                  network=None,
@@ -30,13 +34,17 @@ class SemiDeepModelMixin(SemiEstimator):
                  evaluation=None,
                  train_sampler=None,
                  train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
                  test_sampler=None,
-                 test_batch_Sampler=None,
+                 test_batch_sampler=None,
                  parallel=None
                  ):
         self.train_dataset=train_dataset
+        self.valid_dataset = valid_dataset if valid_dataset is not None else test_dataset
         self.test_dataset=test_dataset
         self.train_dataloader=train_dataloader
+        self.valid_dataloader=valid_dataloader if valid_dataloader is not None else test_dataloader
         self.test_dataloader=test_dataloader
         self.augmentation=augmentation
         self.network=network
@@ -56,25 +64,41 @@ class SemiDeepModelMixin(SemiEstimator):
         self.num_it_epoch=num_it_epoch
         self.num_it_total=num_it_total
         self.evaluation=evaluation
+
         self.train_sampler=train_sampler
         self.train_batch_sampler=train_batch_sampler
+
+        self.valid_sampler=valid_sampler if valid_sampler is not None else test_sampler
+        self.valid_batch_sampler=valid_batch_sampler if valid_batch_sampler is not None else test_batch_sampler
+
         self.test_sampler=test_sampler
-        self.test_batch_sampler=test_batch_Sampler
+        self.test_batch_sampler=test_batch_sampler
+
         self.parallel=parallel
         self._optimizer=copy.deepcopy(self.optimizer)
         self._network=copy.deepcopy(self.network)
         self._scheduler=copy.deepcopy(self.scheduler)
+
         self._train_sampler=copy.deepcopy(self.train_sampler)
+        self._valid_sampler = copy.deepcopy(self.valid_sampler)
         self._test_sampler=copy.deepcopy(self.test_sampler)
+
         self._train_batch_sampler=copy.deepcopy(self.train_batch_sampler)
+        self._valid_batch_sampler=copy.deepcopy(self.valid_batch_sampler)
         self._test_batch_sampler=copy.deepcopy(self.test_batch_sampler)
+
         self._train_dataset=copy.deepcopy(self.train_dataset)
+        self._valid_dataset = copy.deepcopy(self.valid_dataset)
         self._test_dataset=copy.deepcopy(self.test_dataset)
+
         self._train_dataloader=copy.deepcopy(self.train_dataloader)
+        self._valid_dataloader=copy.deepcopy(self.valid_dataloader)
         self._test_dataloader = copy.deepcopy(self.test_dataloader)
+
         self._augmentation=copy.deepcopy(self.augmentation)
         self._evaluation=copy.deepcopy(self.evaluation)
         self._parallel=copy.deepcopy(self.parallel)
+
         self._epoch=0
         self.it_total=0
         self.loss=None
@@ -87,6 +111,7 @@ class SemiDeepModelMixin(SemiEstimator):
         self.init_epoch()
         self.init_ema()
         self.init_augmentation()
+        self.init_transform()
         self.init_optimizer()
         self.init_scheduler()
 
@@ -98,33 +123,24 @@ class SemiDeepModelMixin(SemiEstimator):
             self._parallel=self._parallel.init_parallel(self._network)
 
     def init_augmentation(self):
-        if 'strongly_augmentation' in self._augmentation.keys():
-            if isinstance(self._augmentation, dict):
-                self.weakly_augmentation = self._augmentation['augmentation'] \
-                    if 'augmentation' in self._augmentation.keys() \
-                    else self._augmentation['weakly_augmentation']
+        if isinstance(self._augmentation, dict):
+            self.weakly_augmentation = self._augmentation['augmentation'] \
+                if 'augmentation' in self._augmentation.keys() \
+                else self._augmentation['weakly_augmentation']
+            if 'strongly_augmentation' in self._augmentation.keys():
                 self.strongly_augmentation = self._augmentation['strongly_augmentation']
-                self.normalization = self._augmentation['normalization']
-            elif isinstance(self._augmentation, (list, tuple)):
-                self.weakly_augmentation = self._augmentation[0]
+        elif isinstance(self._augmentation, (list, tuple)):
+            self.weakly_augmentation = self._augmentation[0]
+            if len(self._augmentation) > 1:
                 self.strongly_augmentation = self._augmentation[1]
-                self.normalization = self._augmentation[2]
-            else:
-                self.weakly_augmentation = copy.deepcopy(self._augmentation)
-                self.strongly_augmentation = copy.deepcopy(self._augmentation)
-                self.normalization = copy.deepcopy(self._augmentation)
         else:
-            if isinstance(self._augmentation,dict):
-                self.weakly_augmentation=self._augmentation['augmentation'] \
-                    if 'augmentation' in self._augmentation.keys() \
-                    else self._augmentation['weakly_augmentation']
-                self.normalization = self._augmentation['normalization']
-            elif isinstance(self._augmentation,(list,tuple)):
-                self.weakly_augmentation = self._augmentation[0]
-                self.normalization = self._augmentation[1]
-            else:
-                self.weakly_augmentation = copy.deepcopy(self._augmentation)
-                self.normalization = copy.deepcopy(self._augmentation)
+            self.weakly_augmentation = copy.deepcopy(self._augmentation)
+        if self.strongly_augmentation is None:
+            self.strongly_augmentation = copy.deepcopy(self.weakly_augmentation)
+
+    def init_transform(self):
+        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
 
     def init_ema(self):
         if self.ema_decay is not None:
@@ -157,7 +173,7 @@ class SemiDeepModelMixin(SemiEstimator):
             self.epoch=ceil(self.num_it_total/self.num_it_epoch)
 
     def init_train_dataset(self,X=None,y=None,unlabled_X=None):
-        if isinstance(X,SemiTrainDataset):
+        if isinstance(X,TrainDataset):
             self._train_dataset=X
         elif isinstance(X,Dataset) and y is None:
             self._train_dataset.init_dataset(labled_dataset=X, unlabled_dataset=unlabled_X)
@@ -170,18 +186,35 @@ class SemiDeepModelMixin(SemiEstimator):
                                                                                    batch_sampler=self._train_batch_sampler,
                                                                                    mu=self.mu)
 
-    def init_test_dataset(self, X=None):
-        if isinstance(X,Dataset):
-            self._test_dataset=X
+    def init_pred_dataset(self, X=None,valid=False):
+        if valid:
+            if isinstance(X,Dataset):
+                self._valid_dataset=X
+            else:
+                # print('init_pred_dataset')
+                self._valid_dataset=self._valid_dataset.init_dataset(X=X)
         else:
-            self._test_dataset=self._test_dataset.init_dataset(X=X)
+            if isinstance(X,Dataset):
+                self._test_dataset=X
+            else:
+                self._test_dataset=self._test_dataset.init_dataset(X=X)
 
-    def init_test_dataloader(self):
-        self._pre_dataloader=self._test_dataloader.init_dataloader(self._test_dataset,
+    def init_pred_dataloader(self,valid=False):
+        # print(self.valid_dataloader)
+        if valid:
+            # print('init_pred_dataloader')
+            # print(self._valid_dataset)
+            self._pred_dataloader=self._valid_dataloader.init_dataloader(self._valid_dataset,
+                                                            sampler=self._valid_sampler,
+                                                            batch_sampler=self._valid_batch_sampler)
+        else:
+            self._pred_dataloader=self._test_dataloader.init_dataloader(self._test_dataset,
                                                             sampler=self._test_sampler,
                                                             batch_sampler=self._test_batch_sampler)
 
-
+        # print(self._pred_dataloader)
+        # for i ,X,y in self._pred_dataloader:
+        #     print(i,X,y)
 
     def fit(self,X=None,y=None,unlabled_X=None,valid_X=None,valid_y=None):
         self.init_train_dataset(X,y,unlabled_X)
@@ -201,7 +234,7 @@ class SemiDeepModelMixin(SemiEstimator):
             self.train_batch_loop(valid_X,valid_y)
             self.end_epoch()
             if valid_X is not None and self.eval_epoch is not None and self._epoch % self.eval_epoch==0:
-                self.evaluate(X=valid_X,y=valid_y)
+                self.evaluate(X=valid_X,y=valid_y,valid=True)
 
     def train_batch_loop(self,valid_X=None,valid_y=None):
         for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self.labled_dataloader, self.unlabled_dataloader):
@@ -210,11 +243,12 @@ class SemiDeepModelMixin(SemiEstimator):
 
             self.start_batch_train()
 
-            lb_idx = lb_idx.to(self.device)
-            lb_X = lb_X.to(self.device)
-            lb_y = lb_y.to(self.device)
-            ulb_idx = ulb_idx.to(self.device)
-            ulb_X = ulb_X.to(self.device)
+            lb_idx = to_device(lb_idx,self.device)
+
+            lb_X = to_device(lb_X,self.device)
+            lb_y = to_device(lb_y,self.device)
+            ulb_idx = to_device(ulb_idx,self.device)
+            ulb_X  = to_device(ulb_X,self.device)
 
             train_result = self.train(lb_X=lb_X, lb_y=lb_y, ulb_X=ulb_X, lb_idx=lb_idx, ulb_idx=ulb_idx)
 
@@ -227,15 +261,15 @@ class SemiDeepModelMixin(SemiEstimator):
             print(self.it_total)
 
             if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
-                self.evaluate(X=valid_X, y=valid_y)
+                self.evaluate(X=valid_X, y=valid_y,valid=True)
 
-    def test_batch_loop(self):
+    def pred_batch_loop(self):
         with torch.no_grad():
-            for idx,X,_ in self._pre_dataloader:
+            for idx,X,_ in self._pred_dataloader:
                 self.start_batch_test()
 
-                idx=idx.to(self.device)
-                X=X.to(self.device)
+                idx=to_device(idx,self.device)
+                X=to_device(X,self.device)
 
                 _est=self.estimate(X=X,idx=idx)
                 self.y_est=torch.cat((self.y_est,_est),0)
@@ -243,27 +277,27 @@ class SemiDeepModelMixin(SemiEstimator):
                 self.end_batch_test()
 
     @torch.no_grad()
-    def predict(self,X=None):
+    def predict(self,X=None,valid=False):
 
-        self.init_test_dataset(X)
+        self.init_pred_dataset(X,valid)
 
-        self.init_test_dataloader()
+        self.init_pred_dataloader(valid)
 
         self.start_predict()
 
-        self.test_batch_loop()
+        self.pred_batch_loop()
 
         self.end_predict()
 
         return self.y_pred
 
     @torch.no_grad()
-    def evaluate(self,X,y=None):
+    def evaluate(self,X,y=None,valid=False):
 
         if isinstance(X,Dataset) and y is None:
             y=getattr(X,'y')
 
-        y_pred=self.predict(X).cpu()
+        y_pred=self.predict(X,valid=valid).cpu()
         y_score=self.y_score.cpu()
 
         if self.evaluation is None:
@@ -330,19 +364,16 @@ class SemiDeepModelMixin(SemiEstimator):
 
     @torch.no_grad()
     def estimate(self,X,idx=None,*args,**kwargs):
-        X = self.normalization.fit_transform(X)
         outputs = self._network(X)
         return outputs
 
     @torch.no_grad()
     def get_predict_result(self,y_est,*args,**kwargs):
         if self._estimator_type=='classifier':
-            print('classifier')
             self.y_score = Softmax(dim=-1)(y_est)
             max_probs, y_pred = torch.max(self.y_score, dim=-1)
             return y_pred
         else:
-            print('not classifier')
             self.y_score=y_est
             return y_est
 
@@ -353,17 +384,3 @@ class SemiDeepModelMixin(SemiEstimator):
     @abstractmethod
     def get_loss(self,train_result,*args,**kwargs):
         raise NotImplementedError
-
-
-
-
-
-
-
-
-
-
-
-
-
-

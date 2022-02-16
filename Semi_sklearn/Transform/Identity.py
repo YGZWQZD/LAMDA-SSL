@@ -1,6 +1,7 @@
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
+import numpy as np
 
-class Identity(Augmentation):
+class Identity(Transformer):
     def __init__(self):
         super().__init__()
 

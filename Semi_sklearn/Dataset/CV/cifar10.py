@@ -1,13 +1,14 @@
 import numpy as np
-from .SemiVisionDataset import  SemiVisionDataset
+from Semi_sklearn.Dataset.SemiDataset import SemiDataset
+from Semi_sklearn.Dataset.VisionMixin import VisionMixin
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 import os
 import pickle
 from Semi_sklearn.Split.SemiSplit import SemiSplit
-from Semi_sklearn.Dataset.CV.SemiTrainVisionDataset import SemiTrainVisionDataset
-from Semi_sklearn.Dataset.CV.LabledVisionDataset import LabledVisionDataset
-from Semi_sklearn.Dataset.CV.UnlabledVisionDataset import UnlabledVisionDataset
-class CIFAR10(SemiVisionDataset):
+from Semi_sklearn.Dataset.TrainDataset import TrainDataset
+from Semi_sklearn.Dataset.LabledDataset import LabledDataset
+from Semi_sklearn.Dataset.UnlabledDataset import UnlabledDataset
+class CIFAR10(SemiDataset,VisionMixin):
     base_folder = "cifar-10-batches-py"
     url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
     filename = "cifar-10-python.tar.gz"
@@ -34,37 +35,64 @@ class CIFAR10(SemiVisionDataset):
     def __init__(
         self,
         root: str,
+        transforms=None,
         transform = None,
         target_transform = None,
+        unlabled_transform=None,
+        valid_transform=None,
+        test_transform=None,
+        valid_size=None,
         labled_size=0.1,
         stratified=False,
         shuffle=True,
         random_state=None,
-        download: bool = False
-
+        download: bool = False,
+        default=True
     ) -> None:
+
         self.labled_X=None
         self.labled_y=None
         self.unlabled_X=None
         self.unlabled_y=None
+        self.valid_X=None
+        self.valid_y=None
         self.test_X=None
         self.test_y=None
+
         self.labled_dataset=None
         self.unlabled_dataset=None
         self.train_dataset=None
+        self.valid_dataset = None
         self.test_dataset=None
+
         self.data_initialized=False
+
         self.len_test=None
+        self.len_valid = None
         self.len_labled=None
         self.len_unlabled=None
+
         self.labled_X_indexing_method=None
         self.labled_y_indexing_method =None
         self.unlabled_X_indexing_method =None
         self.unlabled_y_indexing_method =None
+        self.valid_X_indexing_method=None
+        self.valid_indexing_method=None
         self.test_X_indexing_method=None
         self.test_y_indexing_method=None
-        super().__init__(root, transform=transform, target_transform=target_transform,labled_size=labled_size,
-                        stratified=stratified,shuffle=shuffle,random_state=random_state)
+
+
+        SemiDataset.__init__(self,transforms=transforms,transform=transform, target_transform=target_transform,
+                             unlabled_transform=unlabled_transform,test_transform=test_transform,
+                             valid_transform=valid_transform,labled_size=labled_size,valid_size=valid_size,
+                             stratified=stratified,shuffle=shuffle,random_state=random_state)
+        if default:
+            VisionMixin.__init__(self)
+
+        if isinstance(root, (str, bytes)):
+            root = os.path.expanduser(root)
+        self.root = root
+
         if download:
             self.download()
 
@@ -110,35 +138,57 @@ class CIFAR10(SemiVisionDataset):
                 else:
                     test_y.extend(entry["fine_labels"])
         test_X = np.vstack(test_X).reshape(-1, 3, 32, 32)
-        # test_X = test_X.transpose((0, 2, 3, 1))
+        test_X = test_X.transpose((0, 2, 3, 1))
 
-        self.train_X = []
-        self.train_y = []
+        train_X = []
+        train_y = []
         for file_name, checksum in self.train_list:
             file_path = os.path.join(self.root, self.base_folder, file_name)
             with open(file_path, "rb") as f:
                 entry = pickle.load(f, encoding="latin1")
-                self.train_X.append(entry["data"])
+                train_X.append(entry["data"])
                 if "labels" in entry:
-                    self.train_y.extend(entry["labels"])
+                    train_y.extend(entry["labels"])
                 else:
-                    self.train_y.extend(entry["fine_labels"])
-        self.train_X = np.vstack(self.train_X).reshape(-1, 3, 32, 32)
-        # self.train_X = self.train_X.transpose((0, 2, 3, 1))
-        labled_X, labled_y, unlabled_X, unlabled_y = SemiSplit(X=self.train_X, y=self.train_y,
-                                                               labled_size=self.labled_size,
-                                                               stratified=self.stratified,
-                                                               shuffle=self.shuffle,
-                                                               random_state=self.random_state
-                                                               )
-        self.test_dataset=LabledVisionDataset()
+                    train_y.extend(entry["fine_labels"])
+        train_X = np.vstack(train_X).reshape(-1, 3, 32, 32)
+        train_X = train_X.transpose((0, 2, 3, 1))
+
+        if self.valid_size is not None:
+            valid_X, valid_y, train_X, train_y = SemiSplit(X=train_X, y=train_y,
+                                                                   labled_size=self.valid_size,
+                                                                   stratified=self.stratified,
+                                                                   shuffle=self.shuffle,
+                                                                   random_state=self.random_state
+                                                                   )
+        else:
+            valid_X=None
+            valid_y=None
+
+        if self.labled_size is not None:
+            labled_X, labled_y, unlabled_X, unlabled_y = SemiSplit(X=train_X,y=train_y,
+                                                                   labled_size=self.labled_size,
+                                                                   stratified=self.stratified,
+                                                                   shuffle=self.shuffle,
+                                                                   random_state=self.random_state
+                                                                   )
+        else:
+            labled_X, labled_y=train_X,train_y
+            unlabled_X, unlabled_y=None,None
+        self.test_dataset=LabledDataset(transform=self.test_transform)
         self.test_dataset.init_dataset(test_X,test_y)
-        self.train_dataset = SemiTrainVisionDataset()
-        labled_dataset=LabledVisionDataset()
+        self.valid_dataset=LabledDataset(transform=self.valid_transform)
+        self.valid_dataset.init_dataset(valid_X,valid_y)
+        self.train_dataset = TrainDataset(transforms=self.transforms,transform=self.transform,
+                                          target_transform=self.target_transform,unlabled_transform=self.unlabled_transform)
+        labled_dataset=LabledDataset(transforms=self.transforms,transform=self.transform,
+                                          target_transform=self.target_transform)
         labled_dataset.init_dataset(labled_X, labled_y)
-        unlabled_dataset=UnlabledVisionDataset()
+        unlabled_dataset=UnlabledDataset(transform=self.unlabled_transform)
         unlabled_dataset.init_dataset(unlabled_X, unlabled_y)
         self.train_dataset.init_dataset(labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset)
+
+
 
 
 

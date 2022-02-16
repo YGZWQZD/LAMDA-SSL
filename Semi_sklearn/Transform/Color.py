@@ -1,10 +1,12 @@
-import torch
-import numpy as np
-import PIL
-from Semi_sklearn.Data_Augmentation.Augmentation import Augmentation
+from Semi_sklearn.Transform.Transformer import Transformer
 import torchvision.transforms.functional as F
 import random
-class Rotate(Augmentation):
+import torch
+import PIL
+import numpy as np
+
+
+class Color(Transformer):
     def __init__(self, min_v,max_v,num_bins,magnitude,v=None):
         super().__init__()
         self.max_v=max_v
@@ -14,21 +16,22 @@ class Rotate(Augmentation):
         self.magnitudes=torch.linspace(min_v, max_v, num_bins)
         self.v=float(self.magnitudes[self.magnitude].item())if v is None else v
 
-    def transform(self,X,rand=False):
 
+    def transform(self,X):
+        if isinstance(X,np.ndarray):
+            X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
-            _v=self.v if random.random() < 0.5 else self.v*-1
-            X=X.rotate(_v)
+            _v = self.v if random.random() < 0.5 else self.v * -1
+            X=PIL.ImageEnhance.Color(X).enhance(1.0+_v)
             return X
         elif isinstance(X,torch.Tensor):
             if len(X.shape)==4:
                 for _ in range(X.shape[0]):
                     _v = self.v if random.random() < 0.5 else self.v * -1
-                    X[_]=F.rotate(X[_],_v)
+                    X[_]=F.adjust_saturation(X[_],1.0+_v)
             else:
                 _v = self.v if random.random() < 0.5 else self.v * -1
-                X = F.rotate(X,_v)
+                X = F.adjust_saturation(X,1.0+_v)
             return X
-
         else:
             raise ValueError('No data to augment')
