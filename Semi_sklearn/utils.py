@@ -3,6 +3,7 @@ import copy
 from copy import deepcopy
 from distutils.version import LooseVersion
 from functools import partial
+from numbers import Number
 from reprlib import recursive_repr
 import PIL.Image
 import sklearn
@@ -78,11 +79,12 @@ def get_indexing_method(data):
 
     if isinstance(data, (list, tuple)):
         try:
+            if isinstance(data[0],(Number,str)):
+                raise TypeError('Can not index data!')
             indexing(data[0], 0)
             indexings = [get_indexing_method(x) for x in data]
             return partial(indexing_list_tuple_of_data, indexings=indexings)
         except TypeError:
-
             return indexing_other
 
     if is_pandas_ndframe(data):
@@ -138,13 +140,16 @@ def is_sparse(x):
         return False
 
 def _len(data):
+    if isinstance(data,(Number,str)):
+        raise TypeError('Can not get the lengeth of data!')
     if data is None:
         return 0
-    if isinstance(data,torch.utils.data.Dataset):
+    elif isinstance(data,torch.utils.data.Dataset):
         return data.__len__()
-    if is_sparse(data):
+    elif is_sparse(data):
         return data.shape[0]
-    return len(data)
+    else:
+        return len(data)
 
 def get_len(data):
     lens = [apply_to_data(data, _len, unpack_dict=True)]

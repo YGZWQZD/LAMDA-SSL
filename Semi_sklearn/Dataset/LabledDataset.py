@@ -23,7 +23,7 @@ class LabledDataset(Dataset):
     def init_dataset(self, X=None, y=None):
         self.X = X
         self.y = y
-        self.len=get_len(X)
+        self.len=get_len(self.X)
         self.X_indexing_method = get_indexing_method(self.X)
         self.y_indexing_method = get_indexing_method(self.y)
         self.data_initialized = True

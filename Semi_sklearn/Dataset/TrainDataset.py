@@ -9,7 +9,7 @@ class TrainDataset(Dataset):
                  transform=None,
                  target_transform=None,
                  unlabled_transform=None,
-                 labled_size=0.1,
+                 labled_size=None,
                  stratified=False,
                  shuffle=True,
                  random_state=None):
@@ -44,7 +44,7 @@ class TrainDataset(Dataset):
     def init_dataset(self,labled_X=None,labled_y=None,unlabled_X=None,
                     unlabled_y=None,labled_dataset=None,unlabled_dataset=None):
         if labled_X is not None:
-            if unlabled_X is None:
+            if unlabled_X is None and self.labled_size is not None:
                 labled_X,labled_y,unlabled_X,unlabled_y=SemiSplit(X=labled_X,y=labled_y,
                                                                 labled_size=self.labled_size,
                                                                 stratified=self.stratified,
@@ -58,7 +58,7 @@ class TrainDataset(Dataset):
             if unlabled_dataset is not None:
                 self.unlabled_dataset=unlabled_dataset
                 self.labled_dataset=labled_dataset
-            else:
+            elif self.labled_size is not None:
                 labled_X=getattr(labled_dataset,'X')
                 labled_y=getattr(labled_dataset,'y')
                 labled_X,labled_y,unlabled_X,unlabled_y=SemiSplit(X=labled_X,y=labled_y,

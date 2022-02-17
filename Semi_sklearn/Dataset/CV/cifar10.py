@@ -47,7 +47,6 @@ class CIFAR10(SemiDataset,VisionMixin):
         shuffle=True,
         random_state=None,
         download: bool = False,
-        default=True
     ) -> None:
 
         self.labled_X=None
@@ -86,8 +85,8 @@ class CIFAR10(SemiDataset,VisionMixin):
                              unlabled_transform=unlabled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,labled_size=labled_size,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
-        if default:
-            VisionMixin.__init__(self)
+        VisionMixin.__init__(self,mean=self.mean,std=self.std)
+
 
         if isinstance(root, (str, bytes)):
             root = os.path.expanduser(root)
@@ -187,9 +186,6 @@ class CIFAR10(SemiDataset,VisionMixin):
         unlabled_dataset=UnlabledDataset(transform=self.unlabled_transform)
         unlabled_dataset.init_dataset(unlabled_X, unlabled_y)
         self.train_dataset.init_dataset(labled_dataset=labled_dataset,unlabled_dataset=unlabled_dataset)
-
-
-
 
 
 

@@ -17,7 +17,7 @@ class SemiDataset(Dataset):
                  test_transform=None,
                  test_size=None,
                  valid_size=None,
-                 labled_size=0.1,
+                 labled_size=None,
                  stratified=False,
                  shuffle=True,
                  random_state=None):

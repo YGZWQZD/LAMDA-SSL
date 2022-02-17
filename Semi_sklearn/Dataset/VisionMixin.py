@@ -3,8 +3,9 @@ from Semi_sklearn.Transform.ToTensor import ToTensor
 from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
 class VisionMixin:
-    def __init__(self):
-        self.init_transforms()
+    def __init__(self,mean,std):
+        self.mean=mean
+        self.std=std
 
     def init_transforms(self):
         self.transforms=None

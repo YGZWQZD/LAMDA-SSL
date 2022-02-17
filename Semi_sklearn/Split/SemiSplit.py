@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.utils.validation import check_array
 from sklearn.utils import _approximate_mode
 from Semi_sklearn.utils import get_len
 from math import ceil
