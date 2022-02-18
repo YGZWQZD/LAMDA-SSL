@@ -8,7 +8,7 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 #  Base Structure
 
-![Base](.\Imgs\Base.png)
+![Base](./Imgs/Base.png)
 
 
 
@@ -16,7 +16,7 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 #  Data Management
 
-![Dataset](.\Imgs\Dataset.png)
+![Dataset](./Imgs/Dataset.png)
 
 #  Model
 
