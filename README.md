@@ -8,13 +8,15 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 #  Base Structure
 
-![Base](D:\jialh-ml\Work\Semi-sklearn\Imgs\Base.png)
+![Base](.\Imgs\Base.png)
+
+
 
 
 
 #  Data Management
 
-![Dataset](D:\jialh-ml\Work\Semi-sklearn\Imgs\Dataset.png)
+![Dataset](.\Imgs\Dataset.png)
 
 #  Model
 
