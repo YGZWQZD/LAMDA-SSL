@@ -6,10 +6,11 @@ from Semi_sklearn.Transform.CutoutAbs import CutoutAbs
 import numpy as np
 
 class Cutout(Transformer):
-    def __init__(self, v,fill):
+    def __init__(self, v,fill,random_v=True):
         super().__init__()
         self.v=v
         self.fill=fill
+        self.random_v=random_v
         assert 0.0 <= v <= 0.5
 
     def transform(self,X):
@@ -21,7 +22,7 @@ class Cutout(Transformer):
             v = self.v * X.shape[-2]
         else:
             raise ValueError('No data to augment')
-        X=CutoutAbs(v,self.fill).fit_transform(X)
+        X=CutoutAbs(v,self.fill,self.random_v).fit_transform(X)
 
         return X
 

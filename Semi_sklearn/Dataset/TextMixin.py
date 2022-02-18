@@ -1,8 +1,9 @@
 import copy
 
 from Semi_sklearn.Transform.Vocab import Vocab
-from collections import Counter,OrderedDict
+
 from sklearn.pipeline import Pipeline
+
 from Semi_sklearn.Transform.Tokenizer import Tokenizer
 from Semi_sklearn.Transform.Adjust_length import Adjust_length
 from Semi_sklearn.Transform.ToTensor import ToTensor
@@ -20,30 +21,39 @@ class TextMixin:
         self.default_index=default_index
 
     def init_transforms(self):
+
         if self.vectors is not None:
-            self.transform=Pipeline([('Tokenizer',Tokenizer('basic_english')),
-                              ('Adjust_length',Adjust_length(length=300)),
-                              ('Vectors', self.vectors),
-                              ('ToTensor',ToTensor())
-                              ])
+            self.vocab=Vocab(vectors=self.vectors.vec)
+
         else:
             if hasattr(self,'X'):
-                text=self.X
+                text=copy.copy(self.X)
             elif hasattr(self,'labled_X'):
-                text=self.labled_X
+                text=copy.copy(self.labled_X)
             else:
                 text=None
 
-            self.transform=Pipeline([('Tokenizer',Tokenizer('basic_english')),
-                              ('Adjust_length',Adjust_length(length=300)),
-                              ('Word_vocab', Vocab(text=text,word_vocab=self.word_vocab,
-                                                   min_freq=self.min_freq,
-                                                   special_first=self.special_first,
-                                                   specials=self.specials,
-                                                   default_index=self.default_index,
-                                                   )),
-                              ('ToTensor',ToTensor())
-                              ])
+            self.vocab=Vocab(text=text,word_vocab=self.word_vocab,
+                             min_freq=self.min_freq,
+                             special_first=self.special_first,
+                             specials=self.specials,
+                             default_index=self.default_index)
+
+            # self.transform=Pipeline([('Tokenizer',Tokenizer('basic_english')),
+            #                   ('Adjust_length',Adjust_length(length=300)),
+            #                   ('Word_vocab', Vocab(text=text,word_vocab=self.word_vocab,
+            #                                        min_freq=self.min_freq,
+            #                                        special_first=self.special_first,
+            #                                        specials=self.specials,
+            #                                        default_index=self.default_index,
+            #                                        )),
+            #                   ('ToTensor',ToTensor())
+            #                   ])
+        self.transform = Pipeline([('Tokenizer', Tokenizer('basic_english')),
+                                   ('Adjust_length', Adjust_length(length=300)),
+                                   ('Vocab', self.vocab),
+                                   ('ToTensor', ToTensor())
+                                   ])
         self.valid_transform=copy.deepcopy(self.transform)
         self.test_transform=copy.deepcopy(self.transform)
         self.unlabled_transform=copy.deepcopy(self.transform)

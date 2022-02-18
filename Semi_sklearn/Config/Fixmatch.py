@@ -2,7 +2,7 @@ from Semi_sklearn.Transform.Normalization import Normalization
 from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
 from Semi_sklearn.Transform.RandomCrop import RandomCrop
 from Semi_sklearn.Transform.RandAugment import RandAugment
-from Semi_sklearn.Dataset.CV.cifar10 import CIFAR10
+from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 from Semi_sklearn.Opitimizer.SGD import SGD
 from Semi_sklearn.Scheduler.Cosine_scheduler import Cosine_schedeler
 from Semi_sklearn.Network.WideResNet import WideResNet

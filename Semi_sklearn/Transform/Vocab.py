@@ -1,18 +1,25 @@
 from torchtext.vocab import vocab
 from collections import Counter,OrderedDict
 from Semi_sklearn.Transform.Transformer import Transformer
+from Semi_sklearn.Transform.Tokenizer import Tokenizer
 
 class Vocab(Transformer):
-    def __init__(self,text,min_freq=1,specials=["<unk>","<pad>"],special_first=True,word_vocab=None,default_index=None):
+    def __init__(self,word_vocab=None,vectors=None,text=None,min_freq=1,specials=["<unk>","<pad>"],special_first=True,default_index=None,tokenizer=None):
         super(Vocab, self).__init__()
         self.text=text
         self.specials=specials
         self.min_freq=min_freq
         self.special_first=special_first
         self.word_vocab=word_vocab
-        if self.word_vocab is None:
+        self.vectors=vectors
+        self.tokenizer=Tokenizer('basic_english','en') if tokenizer is None else tokenizer
+        if self.vectors is not None:
+            self.word_vocab=self.vectors.stoi
+        elif self.word_vocab is None:
             counter = Counter()
             for item in text:
+                if isinstance(item ,str):
+                    item=self.tokenizer.fit_transform(item)
                 counter.update(item)
             if specials is not None:
                 for tok in specials:
@@ -27,10 +34,12 @@ class Vocab(Transformer):
                     ordered_dict.update({symbol: min_freq})
                     ordered_dict.move_to_end(symbol, last=not special_first)
             self.word_vocab = vocab(ordered_dict, min_freq=min_freq)
-        self.default_index = self.word_vocab["<unk>"] if default_index is None else default_index
-        self.word_vocab.set_default_index(self.default_index)
+            self.default_index = self.word_vocab["<unk>"] if default_index is None else default_index
+            self.word_vocab.set_default_index(self.default_index)
 
 
     def transform(self,X):
-        return self.word_vocab(X)
+        if self.vectors is not None:
+            return [self.word_vocab[item] for item in X]
+        return [self.word_vocab(item) for item in X]
 
