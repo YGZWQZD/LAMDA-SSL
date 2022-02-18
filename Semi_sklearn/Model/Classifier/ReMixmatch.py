@@ -137,7 +137,7 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             self.bn_controller.freeze_bn(model=self._network)
             logits_x_ulb_w = self._network(ulb_x_w)[0]
             self.bn_controller.unfreeze_bn(model=self._network)
-            print(torch.any(torch.isnan(logits_x_ulb_w)))
+            # print(torch.any(torch.isnan(logits_x_ulb_w)))
             prob_x_ulb = torch.softmax(logits_x_ulb_w, dim=1)
             if self.p_model is None:
                 self.p_model = torch.mean(prob_x_ulb.detach(), dim=0).to(self.device)

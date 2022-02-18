@@ -1,12 +1,13 @@
 from Semi_sklearn.Transform.Transformer import Transformer
-from nltk.corpus import wordnet
+import nltk
 class Synonyms(Transformer):
     def __init__(self,n=None):
         super(Synonyms, self).__init__()
         self.n=n
+        nltk.download('wordnet')
     def transform(self,X):
         synonyms = set()
-        for syn in wordnet.synsets(X):
+        for syn in nltk.corpus.wordnet.synsets(X):
             for l in syn.lemmas():
                 synonym = l.name().replace("_", " ").replace("-", " ").lower()
                 synonym = "".join([char for char in synonym if char in ' qwertyuiopasdfghjklzxcvbnm'])

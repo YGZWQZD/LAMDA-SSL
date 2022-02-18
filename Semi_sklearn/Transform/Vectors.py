@@ -2,10 +2,19 @@ from torchtext import vocab
 from Semi_sklearn.Transform.Transformer import Transformer
 import torch
 class Vectors(Transformer):
-    def __init__(self,name, cache=None, url=None, unk_init=None, max_vectors=None,lower_case_backup=True):
+    def __init__(self,name, cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True,
+                 pad_token='<pad>',unk_token='<unk>'):
         super(Vectors, self).__init__()
         self.vec=vocab.Vectors(name,cache,url,unk_init,max_vectors)
+        self.unk_init = torch.Tensor.zero_ if unk_init is None else unk_init
+        self.pad_init = torch.Tensor.zero_ if pad_init is None else pad_init
         self.lower_case_backup=lower_case_backup
+        self.vec.stoi[pad_token]=self.vec.vectors.shape[0]
+        self.vec.stoi[unk_token] = self.vec.vectors.shape[0]+1
+        self.vec.vectors=torch.cat([self.vec.vectors,self.pad_init(torch.Tensor(self.vec.vectors.shape[1])),
+                                    self.unk_init(torch.Tensor(self.vec.vectors.shape[1]))],dim=0)
+
+
 
     def transform(self,X):
         if isinstance(X,tuple):
@@ -21,3 +30,4 @@ class Vectors(Transformer):
                 return self.vec[X]
             else:
                 return self.vec.vectors[X]
+

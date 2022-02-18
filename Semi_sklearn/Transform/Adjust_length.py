@@ -12,4 +12,6 @@ class Adjust_length(Transformer):
             X=self.pad(X)
         else:
             X=self.truncate(X)
+        # print('adjust')
+        # print(len(X))
         return X

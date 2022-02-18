@@ -20,7 +20,8 @@ class TextRCNN(nn.Module):
 
 
     def forward(self, x):
-
+        print(x.shape)
+        print(x.dtype)
         embed = self.embedding(x)  # [batch_size, seq_len, embeding]=[64, 32, 64]
         out, _ = self.lstm(embed)
         out = torch.cat((embed, out), 2)

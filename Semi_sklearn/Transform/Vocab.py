@@ -15,6 +15,7 @@ class Vocab(Transformer):
         self.tokenizer=Tokenizer('basic_english','en') if tokenizer is None else tokenizer
         if self.vectors is not None:
             self.word_vocab=self.vectors.stoi
+            self.default_index = self.word_vocab["<unk>"] if default_index is None else default_index
         elif self.word_vocab is None:
             counter = Counter()
             for item in text:
@@ -38,8 +39,10 @@ class Vocab(Transformer):
             self.word_vocab.set_default_index(self.default_index)
 
 
+
     def transform(self,X):
+        # print(len(X))
         if self.vectors is not None:
-            return [self.word_vocab[item] for item in X]
-        return [self.word_vocab(item) for item in X]
+            return [self.word_vocab[item] if item in self.word_vocab.keys() else self.default_index for item in X]
+        return [self.word_vocab[item] for item in X]
 

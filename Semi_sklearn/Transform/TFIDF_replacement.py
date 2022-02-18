@@ -12,19 +12,22 @@ class TFIDF_replacement(Transformer):
         self.cache_len=cache_len
         tot_counter=Counter()
         idf_counter=Counter()
-        len_text=len(text)
-        len_tot=0
+        self.len_text=len(text)
+        self.len_tot=0
         for line in text:
             if isinstance(line,str):
                 line=self.tokenizer.fit_transform(line)
             cur_counter=Counter()
             tot_counter.update(line)
             cur_counter.update(line)
-            for key,val in cur_counter.keys():
+            for key,val in cur_counter.items():
                 idf_counter.update([key])
-                len_tot+=val
-        self.idf={k: math.log(len_text/v) for k,v in idf_counter.items()}
-        self.tf={k:1.0*v/len_tot for k,v in tot_counter.items()}
+                self.len_tot+=val
+
+        self.idf={k: math.log((self.len_text+1)/(v+1)) for k,v in idf_counter.items()}
+        self.tf={k:1.0*v/self.len_tot for k,v in tot_counter.items()}
+        print(len(self.idf))
+        print(len(self.tf))
         self.tf_idf_keys = []
         self.tf_idf_values = []
         self.tfidf={}
@@ -73,7 +76,7 @@ class TFIDF_replacement(Transformer):
     def get_replace_prob(self, X):
         cur_tf_idf = defaultdict(int)
         for word in X:
-            cur_tf_idf[word] += 1. / len(X) * self.idf[word]
+            cur_tf_idf[word] += 1. / len(X) * self.idf[word] if word in self.idf.keys() else 1. / len(X) *math.log(self.len_text)
         replace_prob = []
         for word in X:
             replace_prob += [cur_tf_idf[word]]
