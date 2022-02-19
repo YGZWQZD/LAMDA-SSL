@@ -102,7 +102,7 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labled_dataset.y).num_class
+            class_status(self._train_dataset.labeled_dataset.y).num_class
         self._network.zero_grad()
         self._network.train()
 

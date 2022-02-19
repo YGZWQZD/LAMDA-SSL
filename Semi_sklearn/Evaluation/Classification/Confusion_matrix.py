@@ -5,10 +5,10 @@ class Confusion_matrix(EvaluationClassification):
     def __init__(self,labels=None, sample_weight=None, normalize=None):
         super().__init__()
 
-        self.lables=labels
+        self.labels=labels
         self.sample_weight = sample_weight
         self.normalize = normalize
-        self.score=partial(confusion_matrix,labels=self.lables,
+        self.score=partial(confusion_matrix,labels=self.labels,
                            sample_weight=self.sample_weight,
                            normalize=self.normalize)
     def scoring(self,y_true,y_pred=None,y_score=None):

@@ -23,34 +23,34 @@ class SemiGMM(InductiveEstimator,ClassifierMixin):
         self.max_iterations=max_iterations
         self._estimator_type = ClassifierMixin._estimator_type
 
-    def fit(self,X,y,unlabled_X):
+    def fit(self,X,y,unlabeled_X):
         # print(X)
         L=len(X)
-        U=len(unlabled_X)
+        U=len(unlabeled_X)
         m=L+U
-        lable_set={}
+        labele_set={}
 
         for _ in range(self.n_class):
-            lable_set[_]=set()
+            labele_set[_]=set()
         for _ in range(L):
-            lable_set[y[_]].add(_)
+            labele_set[y[_]].add(_)
         self.mu=[]
         self.alpha=[]
 
         # for i in range(self.n_class):
-        #     self.alpha.append(1.0*len(lable_set[i])/L)
+        #     self.alpha.append(1.0*len(labele_set[i])/L)
         #     _mu=0
-        #     for item in lable_set[i]:
+        #     for item in labele_set[i]:
         #         _mu=_mu+X[item]
-        #     _mu=_mu/len(lable_set[i])
+        #     _mu=_mu/len(labele_set[i])
         #     self.mu.append(_mu)
             # _sigma=0
-            # for item in lable_set[i]:
+            # for item in labele_set[i]:
             #     dis=X[item]-self.mu[i]
             #     if len(dis.shape)==1:
             #         dis = np.expand_dims(dis, axis=0)
             #     _sigma=_sigma+np.matmul(dis.T,dis)
-            # _sigma=_sigma/len(lable_set[i])
+            # _sigma=_sigma/len(labele_set[i])
             # self.sigma.append(_sigma)
 
         # self.mu=np.array(self.mu)
@@ -71,9 +71,9 @@ class SemiGMM(InductiveEstimator,ClassifierMixin):
             for j in range(U):
                 _sum=0
                 for i in range(self.n_class):
-                    _sum+=self.alpha[i]*normfun(unlabled_X[j],self.mu[i],self.sigma[i])
+                    _sum+=self.alpha[i]*normfun(unlabeled_X[j],self.mu[i],self.sigma[i])
                 for i in range(self.n_class):
-                    self.gamma[j][i]=self.alpha[i]*normfun(unlabled_X[j],self.mu[i],self.sigma[i])/_sum
+                    self.gamma[j][i]=self.alpha[i]*normfun(unlabeled_X[j],self.mu[i],self.sigma[i])/_sum
                     # print(self.gamma[j][i])
 
 
@@ -82,12 +82,12 @@ class SemiGMM(InductiveEstimator,ClassifierMixin):
                 _sum_mu=0
                 _sum_sigma=np.zeros((X.shape[1],X.shape[1]))
                 _norm=0
-                _norm+=len(lable_set[i])
+                _norm+=len(labele_set[i])
 
-                for j in lable_set[i]:
+                for j in labele_set[i]:
                     _sum_mu+=X[j]
                 for j in range(U):
-                    _sum_mu+=self.gamma[j][i]*unlabled_X[j]
+                    _sum_mu+=self.gamma[j][i]*unlabeled_X[j]
                     _norm+=self.gamma[j][i]
                 #print(_norm)
                 self.mu[i]=_sum_mu/_norm
@@ -96,12 +96,12 @@ class SemiGMM(InductiveEstimator,ClassifierMixin):
                 self.alpha[i]=_norm/m
 
 
-                for j in lable_set[i]:
+                for j in labele_set[i]:
                     _sum_sigma+=np.outer(X[j]-self.mu[i],X[j]-self.mu[i])
 
                 for j in range(U):
-                    _sum_sigma += self.gamma[j][i]*np.outer(unlabled_X[j] - self.mu[i], unlabled_X[j] - self.mu[i])
-                    # print(unlabled_X[j])
+                    _sum_sigma += self.gamma[j][i]*np.outer(unlabeled_X[j] - self.mu[i], unlabeled_X[j] - self.mu[i])
+                    # print(unlabeled_X[j])
                     # print(self.mu[i])
                 #print(_sum_sigma)
                 self.sigma[i]=_sum_sigma/_norm

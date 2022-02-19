@@ -9,7 +9,7 @@ class Constrained_k_means(TransductiveEstimator,ClusterMixin):
         self.max_iterations=max_iterations
         self.y=None
 
-    def fit(self,X,y=None,unlabled_X=None,cl=None,ml=None):
+    def fit(self,X,y=None,unlabeled_X=None,cl=None,ml=None):
 
         index_list = list(range(len(X)))
         random.shuffle(index_list)

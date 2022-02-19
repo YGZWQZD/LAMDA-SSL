@@ -8,7 +8,7 @@ from torch.utils.data.dataset import Dataset
 import os
 from Semi_sklearn.utils import get_len,get_indexing_method
 
-class UnlabledDataset(Dataset):
+class UnlabeledDataset(Dataset):
     def __init__(self,
                  transform=None
                  ):

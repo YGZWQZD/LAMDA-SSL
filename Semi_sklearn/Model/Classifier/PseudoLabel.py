@@ -12,7 +12,7 @@ import numpy as np
 from torch.nn import Softmax
 from Semi_sklearn.utils import Bn_Controller
 
-class PseudoLable(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,

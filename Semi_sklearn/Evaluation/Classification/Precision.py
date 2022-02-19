@@ -8,12 +8,12 @@ class Precision(EvaluationClassification):
                 sample_weight=None,
                 zero_division="warn",):
         super().__init__()
-        self.lables=labels
+        self.labels=labels
         self.pos_label=pos_label
         self.average=average
         self.sample_weight=sample_weight
         self.zero_division=zero_division
-        self.score=partial(precision_score,labels=self.lables,pos_label=self.pos_label,
+        self.score=partial(precision_score,labels=self.labels,pos_label=self.pos_label,
                            average=self.average,sample_weight=self.sample_weight,
                            zero_division=self.zero_division)
     def scoring(self,y_true,y_pred=None,y_score=None):

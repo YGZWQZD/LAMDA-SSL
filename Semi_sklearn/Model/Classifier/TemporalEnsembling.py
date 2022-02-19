@@ -92,10 +92,10 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def start_fit(self):
         n_classes = self.num_classes if self.num_classes is not None else \
-                        class_status(self._train_dataset.labled_dataset.y).num_class
+                        class_status(self._train_dataset.labeled_dataset.y).num_class
 
         n_samples = self.num_samples if self.num_samples is not None else \
-                        self._train_dataset.unlabled_dataset.__len__()
+                        self._train_dataset.unlabeled_dataset.__len__()
         self.epoch_pslab = self.create_soft_pslab(n_samples=n_samples,
                                            n_classes=n_classes,dtype='rand')
         self.ema_pslab   = self.create_soft_pslab(n_samples=n_samples,

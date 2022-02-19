@@ -17,7 +17,7 @@ class TriTraining(InductiveEstimator,ClassifierMixin):
         if self.estimators[2] is None:
             self.estimators[2] = copy.deepcopy(self.estimators[0])
 
-    def fit(self, X, y, unlabled_X):
+    def fit(self, X, y, unlabeled_X):
         for i in range(3):
             sample = sklearn.utils.resample(X, y)
             self.estimators[i].fit(*sample)
@@ -37,9 +37,9 @@ class TriTraining(InductiveEstimator,ClassifierMixin):
                 update[i] = False
                 e[i] = self.measure_error(X, y, j, k)
                 if e[i] < e_prime[i]:
-                    U_y_j = self.estimators[j].predict(unlabled_X)
-                    U_y_k = self.estimators[k].predict(unlabled_X)
-                    Li_X[i] = unlabled_X[U_y_j == U_y_k]  # when two models agree on the label, save it
+                    U_y_j = self.estimators[j].predict(unlabeled_X)
+                    U_y_k = self.estimators[k].predict(unlabeled_X)
+                    Li_X[i] = unlabeled_X[U_y_j == U_y_k]  # when two models agree on the label, save it
                     Li_y[i] = U_y_j[U_y_j == U_y_k]
                     if l_prime[i] == 0:  # no updated before
                         l_prime[i] = int(e[i] / (e_prime[i] - e[i]) + 1)

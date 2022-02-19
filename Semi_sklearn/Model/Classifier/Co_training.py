@@ -22,22 +22,22 @@ class Co_training(InductiveEstimator,ClassifierMixin):
 
         random.seed()
 
-    def fit(self, X, y, unlabled_X,X_2=None,unlabled_X_2=None):
+    def fit(self, X, y, unlabeled_X,X_2=None,unlabeled_X_2=None):
 
         if isinstance(X,(list,tuple)):
             X,X_2=X[0],X[1]
 
-        if isinstance(unlabled_X,(list,tuple)):
-            unlabled_X,unlabled_X_2=unlabled_X[0],unlabled_X[1]
+        if isinstance(unlabeled_X,(list,tuple)):
+            unlabeled_X,unlabeled_X_2=unlabeled_X[0],unlabeled_X[1]
 
-        # unlabled_X=copy.copy(unlabled_X)
+        # unlabeled_X=copy.copy(unlabeled_X)
         X=copy.copy(X)
         X_2=copy.copy(X_2)
         y=copy.copy(y)
 
-        unlabled_y=np.ones(len(unlabled_X))*-1
+        unlabeled_y=np.ones(len(unlabeled_X))*-1
 
-        u_idx=np.arange(len(unlabled_X))
+        u_idx=np.arange(len(unlabeled_X))
 
         random.shuffle(u_idx)
 
@@ -53,8 +53,8 @@ class Co_training(InductiveEstimator,ClassifierMixin):
             self.base_estimator.fit(X, y)
             self.base_estimator_2.fit(X_2, y)
 
-            y1_prob = self.base_estimator.predict_proba(unlabled_X[pool])
-            y2_prob = self.base_estimator_2.predict_proba(unlabled_X_2[pool])
+            y1_prob = self.base_estimator.predict_proba(unlabeled_X[pool])
+            y2_prob = self.base_estimator_2.predict_proba(unlabeled_X_2[pool])
 
             n_list, p_list = [], []
 
@@ -74,20 +74,20 @@ class Co_training(InductiveEstimator,ClassifierMixin):
 
             # label the samples and remove thes newly added samples from U_
 
-            unlabled_y[[pool[x] for x in p_list]] = 1
-            unlabled_y[[pool[x] for x in n_list]] = 0
+            unlabeled_y[[pool[x] for x in p_list]] = 1
+            unlabeled_y[[pool[x] for x in n_list]] = 0
 
 
 
             for x in p_list:
-                X = np.vstack([X, unlabled_X[pool[x]]])
-                X_2 = np.vstack([X_2, unlabled_X_2[pool[x]]])
-                y=np.hstack([y,unlabled_y[pool[x]]])
+                X = np.vstack([X, unlabeled_X[pool[x]]])
+                X_2 = np.vstack([X_2, unlabeled_X_2[pool[x]]])
+                y=np.hstack([y,unlabeled_y[pool[x]]])
 
             for x in n_list:
-                X = np.vstack([X, unlabled_X[pool[x]]])
-                X_2 = np.vstack([X_2, unlabled_X_2[pool[x]]])
-                y=np.hstack([y,unlabled_y[pool[x]]])
+                X = np.vstack([X, unlabeled_X[pool[x]]])
+                X_2 = np.vstack([X_2, unlabeled_X_2[pool[x]]])
+                y=np.hstack([y,unlabeled_y[pool[x]]])
 
 
             pool = [elem for elem in pool if not (elem in p_list or elem in n_list)]

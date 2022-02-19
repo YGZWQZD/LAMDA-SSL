@@ -28,8 +28,8 @@ class TextMixin:
         else:
             if hasattr(self,'X'):
                 text=copy.copy(self.X)
-            elif hasattr(self,'labled_X'):
-                text=copy.copy(self.labled_X)
+            elif hasattr(self,'labeled_X'):
+                text=copy.copy(self.labeled_X)
             else:
                 text=None
 
@@ -56,6 +56,6 @@ class TextMixin:
                                    ])
         self.valid_transform=copy.deepcopy(self.transform)
         self.test_transform=copy.deepcopy(self.transform)
-        self.unlabled_transform=copy.deepcopy(self.transform)
+        self.unlabeled_transform=copy.deepcopy(self.transform)
         self.target_transfrom=None
         self.transforms=None

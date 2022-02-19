@@ -84,11 +84,11 @@ class ICT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def init_transform(self):
         self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labled_dataset.y).num_class
+            class_status(self._train_dataset.labeled_dataset.y).num_class
         self.it_total = 0
         self._network.zero_grad()
         self._network.train()

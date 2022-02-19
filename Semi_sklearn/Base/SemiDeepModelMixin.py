@@ -140,7 +140,7 @@ class SemiDeepModelMixin(SemiEstimator):
 
     def init_transform(self):
         self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
 
     def init_ema(self):
         if self.ema_decay is not None:
@@ -172,16 +172,16 @@ class SemiDeepModelMixin(SemiEstimator):
         if self.num_it_total is not None and self.num_it_epoch is not None:
             self.epoch=ceil(self.num_it_total/self.num_it_epoch)
 
-    def init_train_dataset(self,X=None,y=None,unlabled_X=None):
+    def init_train_dataset(self,X=None,y=None,unlabeled_X=None):
         if isinstance(X,TrainDataset):
             self._train_dataset=X
         elif isinstance(X,Dataset) and y is None:
-            self._train_dataset.init_dataset(labled_dataset=X, unlabled_dataset=unlabled_X)
+            self._train_dataset.init_dataset(labeled_dataset=X, unlabeled_dataset=unlabeled_X)
         else:
-            self._train_dataset.init_dataset(labled_X=X, labled_y=y,unlabled_X=unlabled_X)
+            self._train_dataset.init_dataset(labeled_X=X, labeled_y=y,unlabeled_X=unlabeled_X)
 
     def init_train_dataloader(self):
-        self.labled_dataloader,self.unlabled_dataloader=self._train_dataloader.init_dataloader(dataset=self._train_dataset,
+        self.labeled_dataloader,self.unlabeled_dataloader=self._train_dataloader.init_dataloader(dataset=self._train_dataset,
                                                                                    sampler=self._train_sampler,
                                                                                    batch_sampler=self._train_batch_sampler,
                                                                                    mu=self.mu)
@@ -216,8 +216,8 @@ class SemiDeepModelMixin(SemiEstimator):
         # for i ,X,y in self._pred_dataloader:
         #     print(i,X,y)
 
-    def fit(self,X=None,y=None,unlabled_X=None,valid_X=None,valid_y=None):
-        self.init_train_dataset(X,y,unlabled_X)
+    def fit(self,X=None,y=None,unlabeled_X=None,valid_X=None,valid_y=None):
+        self.init_train_dataset(X,y,unlabeled_X)
         self.init_train_dataloader()
         self.start_fit()
         self.epoch_loop(valid_X,valid_y)
@@ -237,7 +237,7 @@ class SemiDeepModelMixin(SemiEstimator):
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
 
     def train_batch_loop(self,valid_X=None,valid_y=None):
-        for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self.labled_dataloader, self.unlabled_dataloader):
+        for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self.labeled_dataloader, self.unlabeled_dataloader):
             if self.it_epoch >= self.num_it_epoch or self.it_total >= self.num_it_total:
                 break
 

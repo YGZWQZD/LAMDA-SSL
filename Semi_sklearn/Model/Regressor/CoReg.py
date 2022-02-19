@@ -21,17 +21,17 @@ class CoReg(InductiveEstimator,RegressorMixin):
 
 
 
-    def fit(self,X,y,unlabled_X):
+    def fit(self,X,y,unlabeled_X):
         X1=copy.copy(X)
         X2=copy.copy(X)
         y1=copy.copy(y)
         y2=copy.copy(y)
-        unlabled_X=copy.copy(unlabled_X)
+        unlabeled_X=copy.copy(unlabeled_X)
         self.h1.fit(X1, y1)
         self.h2.fit(X2, y2)
 
         U_X_pool, U_idx_pool = shuffle(
-            unlabled_X,  range(unlabled_X.shape[0]))
+            unlabeled_X,  range(unlabeled_X.shape[0]))
         U_X_pool = U_X_pool[:self.pool_size]
         U_idx_pool = U_idx_pool[:self.pool_size]
 
@@ -92,9 +92,9 @@ class CoReg(InductiveEstimator,RegressorMixin):
             else:
                 self.h1.fit(X1, y1)
                 self.h2.fit(X2, y2)
-                unlabled_X = np.delete(unlabled_X, to_remove, axis=0)
+                unlabeled_X = np.delete(unlabeled_X, to_remove, axis=0)
                 U_X_pool, U_idx_pool = shuffle(
-                    unlabled_X, range(unlabled_X.shape[0]))
+                    unlabeled_X, range(unlabeled_X.shape[0]))
                 U_X_pool = U_X_pool[:self.pool_size]
                 U_idx_pool = U_idx_pool[:self.pool_size]
         return self

@@ -10,7 +10,7 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
         self.tolerance = tolerance
         self.max_iterations = max_iterations
 
-    def fit(self, X, y=None, unlabled_X=None,clusters=None):
+    def fit(self, X, y=None, unlabeled_X=None,clusters=None):
         assert y is not None or clusters is not None
         if clusters is None:
             clusters = {}
@@ -39,7 +39,7 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
             c.append(sum)
         c=np.array(c)
 
-        _X=np.vstack([X,unlabled_X])
+        _X=np.vstack([X,unlabeled_X])
 
 
 
@@ -49,7 +49,7 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
 
             self.clusters = copy.copy(clusters)
 
-            self.unlabled=[True]*len(_X)
+            self.unlabeled=[True]*len(_X)
 
             self.is_clustered=np.array([-1]*len(_X))
 
@@ -57,15 +57,15 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
                 s = self.clusters[_]
                 for idx in s:
                     self.is_clustered[idx]=_
-                    self.unlabled[idx]=False
+                    self.unlabeled[idx]=False
 
-            # self.unlabled=self.unlabled.tolist()
+            # self.unlabeled=self.unlabeled.tolist()
 
-            # print(self.unlabled)
-            unlabled_idx=np.arange(len(_X))
-            self.unlabled_set=unlabled_idx[self.unlabled]
+            # print(self.unlabeled)
+            unlabeled_idx=np.arange(len(_X))
+            self.unlabeled_set=unlabeled_idx[self.unlabeled]
 
-            for x_index in self.unlabled_set:
+            for x_index in self.unlabeled_set:
 
                 # print(c)
                 distances = np.array([np.linalg.norm(_X[x_index] - c[centroid]) for centroid in range(len(c))])

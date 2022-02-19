@@ -3,8 +3,8 @@ from Semi_sklearn.Dataset.TextMixin import TextMixin
 from torchtext.utils import download_from_url,extract_archive
 import io
 from Semi_sklearn.Split.SemiSplit import SemiSplit
-from Semi_sklearn.Dataset.LabledDataset import LabledDataset
-from Semi_sklearn.Dataset.UnlabledDataset import UnlabledDataset
+from Semi_sklearn.Dataset.LabeledDataset import LabeledDataset
+from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 import os
 
@@ -22,7 +22,7 @@ class  IMDB(SemiDataset,TextMixin):
         transforms=None,
         transform = None,
         target_transform = None,
-        unlabled_transform=None,
+        unlabeled_transform=None,
         valid_transform=None,
         test_transform=None,
         valid_size=None,
@@ -34,7 +34,7 @@ class  IMDB(SemiDataset,TextMixin):
         min_freq=1, special_first=True, default_index=None):
 
         SemiDataset.__init__(self,transforms=transforms,transform=transform, target_transform=target_transform,
-                             unlabled_transform=unlabled_transform,test_transform=test_transform,
+                             unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
 
@@ -67,24 +67,24 @@ class  IMDB(SemiDataset,TextMixin):
     def _init_dataset(self):
         test_X=[]
         test_y=[]
-        labled_X=[]
-        labled_y=[]
-        unlabled_X=[]
+        labeled_X=[]
+        labeled_y=[]
+        unlabeled_X=[]
         for fname in self.extracted_files:
             if 'urls' in fname or 'Bow' in fname:
                 continue
             if 'train' in fname:
                 if 'pos' in fname :
                     with io.open(fname, encoding="utf8") as f:
-                        labled_X.append(f.read())
-                    labled_y.append(1)
+                        labeled_X.append(f.read())
+                    labeled_y.append(1)
                 elif 'neg' in fname:
                     with io.open(fname, encoding="utf8") as f:
-                        labled_X.append(f.read())
-                    labled_y.append(0)
+                        labeled_X.append(f.read())
+                    labeled_y.append(0)
                 elif 'unsup' in fname:
                     with io.open(fname, encoding="utf8") as f:
-                        unlabled_X.append(f.read())
+                        unlabeled_X.append(f.read())
 
             elif 'test' in fname:
                 if 'pos' in fname :
@@ -97,8 +97,8 @@ class  IMDB(SemiDataset,TextMixin):
                     test_y.append(0)
 
         if self.valid_size is not None:
-            valid_X, valid_y, labled_X, labled_y = SemiSplit(X=labled_X, y=labled_y,
-                                                                   labled_size=self.valid_size,
+            valid_X, valid_y, labeled_X, labeled_y = SemiSplit(X=labeled_X, y=labeled_y,
+                                                                   labeled_size=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
                                                                    random_state=self.random_state
@@ -107,19 +107,19 @@ class  IMDB(SemiDataset,TextMixin):
             valid_X = None
             valid_y = None
 
-        self.test_dataset = LabledDataset(transform=self.test_transform)
+        self.test_dataset = LabeledDataset(transform=self.test_transform)
         self.test_dataset.init_dataset(test_X, test_y)
-        self.valid_dataset = LabledDataset(transform=self.valid_transform)
+        self.valid_dataset = LabeledDataset(transform=self.valid_transform)
         self.valid_dataset.init_dataset(valid_X, valid_y)
         self.train_dataset = TrainDataset(transforms=self.transforms, transform=self.transform,
                                           target_transform=self.target_transform,
-                                          unlabled_transform=self.unlabled_transform)
-        labled_dataset = LabledDataset(transforms=self.transforms, transform=self.transform,
+                                          unlabeled_transform=self.unlabeled_transform)
+        labeled_dataset = LabeledDataset(transforms=self.transforms, transform=self.transform,
                                        target_transform=self.target_transform)
-        labled_dataset.init_dataset(labled_X, labled_y)
-        unlabled_dataset = UnlabledDataset(transform=self.unlabled_transform)
-        unlabled_dataset.init_dataset(unlabled_X)
-        self.train_dataset.init_dataset(labled_dataset=labled_dataset, unlabled_dataset=unlabled_dataset)
+        labeled_dataset.init_dataset(labeled_X, labeled_y)
+        unlabeled_dataset = UnlabeledDataset(transform=self.unlabeled_transform)
+        unlabeled_dataset.init_dataset(unlabeled_X)
+        self.train_dataset.init_dataset(labeled_dataset=labeled_dataset, unlabeled_dataset=unlabeled_dataset)
 
 
 

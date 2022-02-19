@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset
-from .LabledDataset import LabledDataset
-from Semi_sklearn.Dataset.UnlabledDataset import UnlabledDataset
+from .LabeledDataset import LabeledDataset
+from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from ..Split.SemiSplit import SemiSplit
 
 class TrainDataset(Dataset):
@@ -8,8 +8,8 @@ class TrainDataset(Dataset):
                  transforms=None,
                  transform=None,
                  target_transform=None,
-                 unlabled_transform=None,
-                 labled_size=None,
+                 unlabeled_transform=None,
+                 labeled_size=None,
                  stratified=False,
                  shuffle=True,
                  random_state=None):
@@ -17,22 +17,22 @@ class TrainDataset(Dataset):
         self.transforms=transforms
         self.transform = transform
         self.target_transform=target_transform
-        self.unlabled_transform = unlabled_transform
+        self.unlabeled_transform = unlabeled_transform
 
-        self.labled_size=labled_size
+        self.labeled_size=labeled_size
         self.stratified=stratified
         self.shuffle=shuffle
         self.random_state=random_state
 
-        self.labled_X=None
-        self.labled_y=None
-        self.unlabled_X=None
-        self.unlabled_y=None
-        self.len_labled=None
-        self.len_unlabled=None
-        self.labled_dataset=LabledDataset(transforms=self.transforms,transform=self.unlabled_transform,
+        self.labeled_X=None
+        self.labeled_y=None
+        self.unlabeled_X=None
+        self.unlabeled_y=None
+        self.len_labeled=None
+        self.len_unlabeled=None
+        self.labeled_dataset=LabeledDataset(transforms=self.transforms,transform=self.unlabeled_transform,
                                           target_transform=self.target_transform)
-        self.unlabled_dataset=UnlabledDataset(transform=self.unlabled_transform)
+        self.unlabeled_dataset=UnlabeledDataset(transform=self.unlabeled_transform)
         self.data_initialized=False
 
 
@@ -41,76 +41,76 @@ class TrainDataset(Dataset):
             "_init_dataset method of SemiTrainDataset class must be implemented."
         )
 
-    def init_dataset(self,labled_X=None,labled_y=None,unlabled_X=None,
-                    unlabled_y=None,labled_dataset=None,unlabled_dataset=None):
-        if labled_X is not None:
-            if unlabled_X is None and self.labled_size is not None:
-                labled_X,labled_y,unlabled_X,unlabled_y=SemiSplit(X=labled_X,y=labled_y,
-                                                                labled_size=self.labled_size,
+    def init_dataset(self,labeled_X=None,labeled_y=None,unlabeled_X=None,
+                    unlabeled_y=None,labeled_dataset=None,unlabeled_dataset=None):
+        if labeled_X is not None:
+            if unlabeled_X is None and self.labeled_size is not None:
+                labeled_X,labeled_y,unlabeled_X,unlabeled_y=SemiSplit(X=labeled_X,y=labeled_y,
+                                                                labeled_size=self.labeled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
                                                                 random_state=self.random_state
                                                                 )
-            self.unlabled_dataset.init_dataset(unlabled_X, unlabled_y)
-            self.labled_dataset.init_dataset(labled_X,labled_y)
+            self.unlabeled_dataset.init_dataset(unlabeled_X, unlabeled_y)
+            self.labeled_dataset.init_dataset(labeled_X,labeled_y)
 
-        elif labled_dataset is not None:
-            if unlabled_dataset is not None:
-                self.unlabled_dataset=unlabled_dataset
-                self.labled_dataset=labled_dataset
-            elif self.labled_size is not None:
-                labled_X=getattr(labled_dataset,'X')
-                labled_y=getattr(labled_dataset,'y')
-                labled_X,labled_y,unlabled_X,unlabled_y=SemiSplit(X=labled_X,y=labled_y,
-                                                                labled_size=self.labled_size,
+        elif labeled_dataset is not None:
+            if unlabeled_dataset is not None:
+                self.unlabeled_dataset=unlabeled_dataset
+                self.labeled_dataset=labeled_dataset
+            elif self.labeled_size is not None:
+                labeled_X=getattr(labeled_dataset,'X')
+                labeled_y=getattr(labeled_dataset,'y')
+                labeled_X,labeled_y,unlabeled_X,unlabeled_y=SemiSplit(X=labeled_X,y=labeled_y,
+                                                                labeled_size=self.labeled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
                                                                 random_state=self.random_state,
                                                                 )
-                self.unlabled_dataset.init_dataset(unlabled_X, unlabled_y)
-                self.labled_dataset.init_dataset(labled_X, labled_y)
+                self.unlabeled_dataset.init_dataset(unlabeled_X, unlabeled_y)
+                self.labeled_dataset.init_dataset(labeled_X, labeled_y)
         else:
             self._init_dataset()
 
-        self.labled_X = getattr(self.labled_dataset,'X')
-        self.labled_y = getattr(self.labled_dataset,'y')
-        self.unlabled_X = getattr(self.unlabled_dataset,'X')
-        self.unlabled_y = getattr(self.unlabled_dataset,'y')
-        self.len_labled=self.labled_dataset.__len__()
-        self.len_unlabled = self.unlabled_dataset.__len__()
+        self.labeled_X = getattr(self.labeled_dataset,'X')
+        self.labeled_y = getattr(self.labeled_dataset,'y')
+        self.unlabeled_X = getattr(self.unlabeled_dataset,'X')
+        self.unlabeled_y = getattr(self.unlabeled_dataset,'y')
+        self.len_labeled=self.labeled_dataset.__len__()
+        self.len_unlabeled = self.unlabeled_dataset.__len__()
         self.data_initialized=True
         return self
 
     def add_transform(self,transform,dim,x,y):
-        self.labled_dataset.add_transform(transform,dim,x,y=0)
+        self.labeled_dataset.add_transform(transform,dim,x,y=0)
 
     def add_target_transform(self,target_transform,dim,x,y=0):
-        self.labled_dataset.add_target_transform(target_transform,dim,x,y)
+        self.labeled_dataset.add_target_transform(target_transform,dim,x,y)
 
     def add_transforms(self,transforms,dim,x,y=0):
-        self.labled_dataset.add_transforms(transforms, dim, x, y)
+        self.labeled_dataset.add_transforms(transforms, dim, x, y)
 
-    def add_unlabled_transform(self,unlabled_transform,dim,x,y=0):
-        self.unlabled_dataset.add_transform(unlabled_transform,dim,x,y)
+    def add_unlabeled_transform(self,unlabeled_transform,dim,x,y=0):
+        self.unlabeled_dataset.add_transform(unlabeled_transform,dim,x,y)
 
-    def get_dataset(self,labled):
-        if labled:
-            return self.labled_dataset
+    def get_dataset(self,labeled):
+        if labeled:
+            return self.labeled_dataset
         else:
-            return self.unlabled_dataset
+            return self.unlabeled_dataset
 
-    def __getitem__(self, i, labled=True):
-        if labled:
-            i,Xi,yi=self.labled_dataset[i]
+    def __getitem__(self, i, labeled=True):
+        if labeled:
+            i,Xi,yi=self.labeled_dataset[i]
         else:
-            i,Xi,yi=self.unlabled_dataset[i]
+            i,Xi,yi=self.unlabeled_dataset[i]
         return i, Xi, yi
 
-    def __len__(self,labled=True):
-        if labled:
-            return self.len_labled
+    def __len__(self,labeled=True):
+        if labeled:
+            return self.len_labeled
         else:
-            return self.len_unlabled
+            return self.len_unlabeled
 
 
 

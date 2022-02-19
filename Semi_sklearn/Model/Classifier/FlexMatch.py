@@ -99,19 +99,19 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._estimator_type = ClassifierMixin._estimator_type
 
     def init_transform(self):
-        self._train_dataset.add_unlabled_transform(copy.deepcopy(self.train_dataset.unlabled_transform),dim=0,x=1)
+        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
 
     def start_fit(self):
-        # print(self._train_dataset.labled_dataset.y)
+        # print(self._train_dataset.labeled_dataset.y)
         self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labled_dataset.y).num_class
+            class_status(self._train_dataset.labeled_dataset.y).num_class
         if self.p_target is None:
-            class_counts=torch.Tensor(class_status(self._train_dataset.labled_dataset.y).class_counts).to(self.device)
+            class_counts=torch.Tensor(class_status(self._train_dataset.labeled_dataset.y).class_counts).to(self.device)
             self.p_target = (class_counts / class_counts.sum(dim=-1, keepdim=True))
-        self.selected_label = torch.ones((len(self._train_dataset.unlabled_dataset),), dtype=torch.long, ) * -1
+        self.selected_label = torch.ones((len(self._train_dataset.unlabeled_dataset),), dtype=torch.long, ) * -1
         self.selected_label = self.selected_label.to(self.device)
         self.classwise_acc = torch.zeros((self.num_classes)).to(self.device)
         self._network.zero_grad()
@@ -122,7 +122,7 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
         num_lb = w_lb_X.shape[0]
         pseudo_counter = Counter(self.selected_label.tolist())
-        if max(pseudo_counter.values()) < len(self._train_dataset.unlabled_dataset):  # not all(5w) -1
+        if max(pseudo_counter.values()) < len(self._train_dataset.unlabeled_dataset):  # not all(5w) -1
             if self.thresh_warmup:
                 for i in range(self.num_classes):
                     self.classwise_acc[i] = pseudo_counter[i] / max(pseudo_counter.values())

@@ -4,7 +4,7 @@ from Semi_sklearn.utils import indexing
 from torch.utils.data.dataset import Dataset
 from Semi_sklearn.utils import get_len,get_indexing_method
 
-class LabledDataset(Dataset):
+class LabeledDataset(Dataset):
     def __init__(self,
                  transforms=None,
                  transform=None,

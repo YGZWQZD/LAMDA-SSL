@@ -57,14 +57,14 @@ class S3VM(InductiveEstimator,ClassifierMixin):
                     break_ties = self.break_ties,
                     random_state = self.random_state)
         self._estimator_type = ClassifierMixin._estimator_type
-        self.unlabled_X=None
-        self.unlabled_y=None
+        self.unlabeled_X=None
+        self.unlabeled_y=None
         self.class_dict=None
         self.rev_class_dict=None
 
-    def fit(self,X,y,unlabled_X):
+    def fit(self,X,y,unlabeled_X):
         L=len(X)
-        N = len(X) + len(unlabled_X)
+        N = len(X) + len(unlabeled_X)
         sample_weight = np.ones(N)
         sample_weight[len(X):] = 1.0*self.Cu/self.Cl
         classes, y_indices = np.unique(y, return_inverse=True)
@@ -83,42 +83,42 @@ class S3VM(InductiveEstimator,ClassifierMixin):
 
         self.clf.fit(X, y)
 
-        unlabled_y = self.clf.predict(unlabled_X)
+        unlabeled_y = self.clf.predict(unlabeled_X)
 
         # y = np.expand_dims(copy.copy(y), 1)
 
-        # unlabled_y = np.expand_dims(unlabled_y, 1)
+        # unlabeled_y = np.expand_dims(unlabeled_y, 1)
 
-        u_X_id = np.arange(len(unlabled_y))
-        _X = np.vstack([X, unlabled_X])
-        _y = np.hstack([y, unlabled_y])
+        u_X_id = np.arange(len(unlabeled_y))
+        _X = np.vstack([X, unlabeled_X])
+        _y = np.hstack([y, unlabeled_y])
 
 
         while self.Cu < self.Cl:
             print(self.Cu)
             self.clf.fit(_X, _y, sample_weight=sample_weight)
             while True:
-                unlabled_y_d = self.clf.decision_function(unlabled_X)    # linear: w^Tx + b
+                unlabeled_y_d = self.clf.decision_function(unlabeled_X)    # linear: w^Tx + b
 
-                epsilon = 1 - unlabled_y * unlabled_y_d   # calculate function margin
+                epsilon = 1 - unlabeled_y * unlabeled_y_d   # calculate function margin
 
-                positive_set, positive_id = epsilon[unlabled_y > 0], u_X_id[unlabled_y > 0]
-                negative_set, negative_id = epsilon[unlabled_y < 0], u_X_id[unlabled_y < 0]
+                positive_set, positive_id = epsilon[unlabeled_y > 0], u_X_id[unlabeled_y > 0]
+                negative_set, negative_id = epsilon[unlabeled_y < 0], u_X_id[unlabeled_y < 0]
                 positive_max_id = positive_id[np.argmax(positive_set)]
                 negative_max_id = negative_id[np.argmax(negative_set)]
                 a, b = epsilon[positive_max_id], epsilon[negative_max_id]
                 if a > 0 and b > 0 and a + b > 2.0:
-                    unlabled_y[positive_max_id] = unlabled_y[positive_max_id] * -1
-                    unlabled_y[negative_max_id] = unlabled_y[negative_max_id] * -1
-                    # unlabled_y = np.expand_dims(unlabled_y, 1)
-                    _y = np.hstack([y, unlabled_y])
+                    unlabeled_y[positive_max_id] = unlabeled_y[positive_max_id] * -1
+                    unlabeled_y[negative_max_id] = unlabeled_y[negative_max_id] * -1
+                    # unlabeled_y = np.expand_dims(unlabeled_y, 1)
+                    _y = np.hstack([y, unlabeled_y])
                     self.clf.fit(_X, _y, sample_weight=sample_weight)
                 else:
                     break
             self.Cu = min(2*self.Cu, self.Cl)
             sample_weight[len(X):] = 1.0*self.Cu/self.Cl
-        self.unlabled_X = unlabled_X
-        self.unlabled_y = unlabled_y
+        self.unlabeled_X = unlabeled_X
+        self.unlabeled_y = unlabeled_y
         return self
 
     def predict(self,X=None):
@@ -133,7 +133,7 @@ class S3VM(InductiveEstimator,ClassifierMixin):
     def score(self,X=None, y=None,sample_weight=None,Transductive=True):
 
         if Transductive:
-            return self.clf.score(self.unlabled_X,self.unlabled_y,sample_weight)
+            return self.clf.score(self.unlabeled_X,self.unlabeled_y,sample_weight)
         else:
 
             _len=len(X)

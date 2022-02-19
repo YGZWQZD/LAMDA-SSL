@@ -12,7 +12,7 @@ from torch.utils.data.sampler import RandomSampler,SequentialSampler
 from sklearn.pipeline import Pipeline
 
 # dataset
-dataset=CIFAR10(root='..\Download\cifar-10-python',labled_size=4000,stratified=True,shuffle=True,download=False)
+dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
 train_dataset=dataset.train_dataset
 test_dataset=dataset.test_dataset

@@ -80,10 +80,10 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
         self.bn_controller=Bn_Controller()
 
     def init_transform(self):
-        self._train_dataset.add_unlabled_transform(copy.deepcopy(self.train_dataset.unlabled_transform),dim=0,x=1)
+        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
         lb_X=lb_X[0]

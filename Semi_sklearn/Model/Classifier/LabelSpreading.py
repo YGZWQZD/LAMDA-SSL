@@ -32,29 +32,29 @@ class Label_spreading(TransductiveEstimator,ClassifierMixin):
 
         self._estimator_type=ClassifierMixin._estimator_type
 
-    def fit(self,X,y,unlabled_X=None):
-        U=len(unlabled_X)
-        N = len(X) + len(unlabled_X)
-        _X = np.vstack([X, unlabled_X])
-        unlabled_y = np.ones(U)*-1
-        _y = np.hstack([y, unlabled_y])
+    def fit(self,X,y,unlabeled_X=None):
+        U=len(unlabeled_X)
+        N = len(X) + len(unlabeled_X)
+        _X = np.vstack([X, unlabeled_X])
+        unlabeled_y = np.ones(U)*-1
+        _y = np.hstack([y, unlabeled_y])
         self.model.fit(_X,_y)
 
-        self.unlabled_X=unlabled_X
-        self.unlabled_y=self.model.transduction_[-U:]
-        self.unlabled_y_proba=self.model.label_distributions_[-U:]
+        self.unlabeled_X=unlabeled_X
+        self.unlabeled_y=self.model.transduction_[-U:]
+        self.unlabeled_y_proba=self.model.label_distributions_[-U:]
         return self
 
     def predict(self,X=None,Transductive=True):
         if Transductive:
-            result=self.unlabled_y
+            result=self.unlabeled_y
         else:
             result= self.model.predict(X)
         return result
 
     def predict_proba(self,X=None,Transductive=True):
         if Transductive:
-            result=self.unlabled_y_proba
+            result=self.unlabeled_y_proba
         else:
             result= self.model.predict_proba(X)
         return result

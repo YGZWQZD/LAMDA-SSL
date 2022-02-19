@@ -5,33 +5,33 @@ from math import ceil
 from sklearn.utils import check_random_state
 from Semi_sklearn.utils import to_numpy,get_indexing_method,indexing
 
-def get_split_num(X,labled_size=0.1):
+def get_split_num(X,labeled_size=0.1):
     len_X = get_len(X)
-    labled_size_type = np.asarray(labled_size).dtype.kind
-    # if labled_size is not None and labled_size_type not in ("i", "f"):
-    #     raise ValueError("Invalid value for labled_size: {}".format(labled_size))
+    labeled_size_type = np.asarray(labeled_size).dtype.kind
+    # if labeled_size is not None and labeled_size_type not in ("i", "f"):
+    #     raise ValueError("Invalid value for labeled_size: {}".format(labeled_size))
     if (
-        labled_size_type == "i"
-        and (labled_size >= len_X or labled_size <= 0)
-        or labled_size_type == "f"
-        and (labled_size <= 0 or labled_size >= 1)
+        labeled_size_type == "i"
+        and (labeled_size >= len_X or labeled_size <= 0)
+        or labeled_size_type == "f"
+        and (labeled_size <= 0 or labeled_size >= 1)
         ):
         raise ValueError(
-            "labled_size={0} should be either positive and smaller"
+            "labeled_size={0} should be either positive and smaller"
             " than the number of samples {1} or a float in the "
-            "(0, 1) range".format(labled_size, len_X)
+            "(0, 1) range".format(labeled_size, len_X)
         )
 
-    if labled_size_type == "f":
-        num_labled = ceil(labled_size * len_X)
+    if labeled_size_type == "f":
+        num_labeled = ceil(labeled_size * len_X)
     else:
-        num_labled = float(labled_size)
-    num_unlabled=len_X-num_labled
-    return num_labled,num_unlabled
+        num_labeled = float(labeled_size)
+    num_unlabeled=len_X-num_labeled
+    return num_labeled,num_unlabeled
 
-def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=None):
+def get_split_index(y,num_labeled,num_unlabeled,stratified,shuffle,random_state=None):
     rng=check_random_state(seed=random_state)
-    num_total=num_labled+num_unlabled
+    num_total=num_labeled+num_unlabeled
     if stratified:
         try:
             y_arr=to_numpy(y)
@@ -52,15 +52,15 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
                 " be less than 2."
             )
 
-        if num_unlabled < num_classes :
+        if num_unlabeled < num_classes :
             raise ValueError(
-                "The unlabled_size = %d should be greater or "
-                "equal to the number of classes = %d" % (num_unlabled, num_classes)
+                "The unlabeled_size = %d should be greater or "
+                "equal to the number of classes = %d" % (num_unlabeled, num_classes)
             )
-        if num_labled < num_classes :
+        if num_labeled < num_classes :
             raise ValueError(
-                "The labled_size = %d should be greater or "
-                "equal to the number of classes = %d" % (num_labled, num_classes)
+                "The labeled_size = %d should be greater or "
+                "equal to the number of classes = %d" % (num_labeled, num_classes)
             )
 
         # Find the sorted list of instances for each class:
@@ -68,12 +68,12 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
         class_indices = np.split(
             np.argsort(y_indices, kind="mergesort"), np.cumsum(class_counts)[:-1]
         )
-        n_i = _approximate_mode(class_counts, num_labled, rng)
+        n_i = _approximate_mode(class_counts, num_labeled, rng)
         class_counts_remaining = class_counts - n_i
-        t_i = _approximate_mode(class_counts_remaining, num_unlabled,rng)
+        t_i = _approximate_mode(class_counts_remaining, num_unlabeled,rng)
 
-        ind_unlabled = []
-        ind_labled = []
+        ind_unlabeled = []
+        ind_labeled = []
 
         for i in range(num_classes):
             if shuffle:
@@ -81,33 +81,33 @@ def get_split_index(y,num_labled,num_unlabled,stratified,shuffle,random_state=No
             else:
                 permutation = np.arange(class_counts[i])
             perm_indices_class_i = class_indices[i].take(permutation, mode="clip")
-            ind_labled.extend(perm_indices_class_i[: n_i[i]])
-            ind_unlabled.extend(perm_indices_class_i[n_i[i] : n_i[i] + t_i[i]])
+            ind_labeled.extend(perm_indices_class_i[: n_i[i]])
+            ind_unlabeled.extend(perm_indices_class_i[n_i[i] : n_i[i] + t_i[i]])
         if shuffle:
-            ind_labled = rng.permutation(ind_labled)
-            ind_unlabled = rng.permutation(ind_unlabled)
+            ind_labeled = rng.permutation(ind_labeled)
+            ind_unlabeled = rng.permutation(ind_unlabeled)
     else:
         if shuffle:
             permutation = rng.permutation(num_total)
         else:
             permutation = np.arange(num_total)
-        ind_labled = permutation[:num_labled]
-        ind_unlabled = permutation[num_labled : (num_labled + num_unlabled)]
-    return ind_labled,ind_unlabled
+        ind_labeled = permutation[:num_labeled]
+        ind_unlabeled = permutation[num_labeled : (num_labeled + num_unlabeled)]
+    return ind_labeled,ind_unlabeled
 
-def SemiSplit(stratified,shuffle,random_state=None, X=None, y=None,labled_size=None):
-        num_labled, num_unlabled = get_split_num(X, labled_size)
-        ind_labled, ind_unlabled = get_split_index(y=y, num_labled=num_labled, num_unlabled=num_unlabled,
+def SemiSplit(stratified,shuffle,random_state=None, X=None, y=None,labeled_size=None):
+        num_labeled, num_unlabeled = get_split_num(X, labeled_size)
+        ind_labeled, ind_unlabeled = get_split_index(y=y, num_labeled=num_labeled, num_unlabeled=num_unlabeled,
                                                    stratified=stratified, shuffle=shuffle,
                                                    random_state=random_state
                                                    )
         X_indexing = get_indexing_method(X)
         y_indexing = get_indexing_method(y)
-        labled_X = indexing(X, ind_labled, X_indexing)
-        labled_y = indexing(y, ind_labled, y_indexing)
-        unlabled_X = indexing(X, ind_unlabled, X_indexing)
-        unlabled_y = indexing(y, ind_unlabled, y_indexing)
-        return labled_X, labled_y, unlabled_X, unlabled_y
+        labeled_X = indexing(X, ind_labeled, X_indexing)
+        labeled_y = indexing(y, ind_labeled, y_indexing)
+        unlabeled_X = indexing(X, ind_unlabeled, X_indexing)
+        unlabeled_y = indexing(y, ind_unlabeled, y_indexing)
+        return labeled_X, labeled_y, unlabeled_X, unlabeled_y
 
 
         
