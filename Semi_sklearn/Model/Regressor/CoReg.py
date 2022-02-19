@@ -1,10 +1,10 @@
 import copy
-
 from sklearn.base import RegressorMixin
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import shuffle
 import numpy as np
+
 class CoReg(InductiveEstimator,RegressorMixin):
     def __init__(self, k1=3, k2=3, p1=2, p2=5, max_iters=100, pool_size=100):
         super(CoReg, self).__init__()

@@ -5,7 +5,7 @@ from sklearn.base import ClassifierMixin
 from sklearn.svm import SVC
 import numpy as np
 
-class TSVM(InductiveEstimator,ClassifierMixin):
+class S3VM(InductiveEstimator,ClassifierMixin):
     def __init__(
             self,
             Cl=1.0,

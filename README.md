@@ -106,7 +106,7 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 
 
-####  Consistency Regularization
+###  Consistency Regularization
 
 
 
@@ -194,7 +194,7 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 
 
-####  ICT ()
+####  ICT (√)
 
 
 

@@ -6,16 +6,23 @@ class Mixup(Transformer):
         super().__init__()
         self.alpha = alpha
         self.lam=None
-        self.x=None
-        self.y=None
+        self.X=None
 
     def fit(self,X,y=None,**fit_params):
-        self.x,self.y=X
+        self.X=X
+        self.y=None
         return self
 
     def transform(self,X):
-        _x,_y=X
         self.lam = np.random.beta(self.alpha, self.alpha)
-        mixed_x = self.lam * self.x + (1 - self.lam) * _x
-        mixed_y = self.lam * self.y + (1 - self.lam) * _y
-        return mixed_x, mixed_y
+        if self.y is not None and isinstance(X,(list,tuple)):
+            X,y=X[0],X[1]
+            X = self.lam * self.X + (1 - self.lam) * X
+            y = self.lam * self.y + (1 - self.lam) * y
+            return X,y
+        else:
+            if isinstance(X,(list,tuple)):
+                X=type(X)(self.lam * self.X[i]+(1 - self.lam) * X[i] for i in range(len(X)))
+            else:
+                X=self.lam * self.X+(1 - self.lam) * X
+            return X
