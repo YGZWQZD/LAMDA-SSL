@@ -11,7 +11,5 @@ class ToTensor(Transformer):
         if isinstance(X,PIL.Image.Image):
             return transforms.ToTensor()(X)
         else:
-            print(len(X))
             X=torch.LongTensor(X)
-            print(X.shape)
             return X

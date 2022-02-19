@@ -1,9 +1,12 @@
 from Semi_sklearn.Transform.Transformer import Transformer
 import random
+from Semi_sklearn.Transform.EDA_tokenizer import EDA_tokenzier
+
 class Random_swap(Transformer):
-    def __init__(self,n=1):
+    def __init__(self,n=1,tokenizer=None):
         super(Random_swap, self).__init__()
         self.n=n
+        self.tokenizer=tokenizer if tokenizer is not None else EDA_tokenzier()
 
     def swap(self,X):
         random_idx_1 = random.randint(0, len(X) - 1)
@@ -18,6 +21,12 @@ class Random_swap(Transformer):
         return X
 
     def transform(self,X):
+        tokenized=True
+        if isinstance(X, str):
+            X = self.tokenizer.fit_transform(X)
+            tokenized = False
         for _ in range(self.n):
             X = self.swap(X)
+        if tokenized is not True:
+            X=' '.join(X)
         return X

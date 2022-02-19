@@ -238,9 +238,6 @@ class SemiDeepModelMixin(SemiEstimator):
 
     def train_batch_loop(self,valid_X=None,valid_y=None):
         for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self.labled_dataloader, self.unlabled_dataloader):
-            print(len(lb_X))
-            print(len(ulb_X))
-            print(lb_X[0].shape)
             if self.it_epoch >= self.num_it_epoch or self.it_total >= self.num_it_total:
                 break
 

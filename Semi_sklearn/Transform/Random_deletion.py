@@ -1,11 +1,16 @@
 from Semi_sklearn.Transform.Transformer import Transformer
 import random
+from Semi_sklearn.Transform.EDA_tokenizer import EDA_tokenzier
 class Random_deletion(Transformer):
-    def __init__(self,p):
+    def __init__(self,p,tokenizer=None):
         super(Random_deletion, self).__init__()
         self.p=p
+        self.tokenizer=tokenizer if tokenizer is not None else EDA_tokenzier()
     def transform(self,X):
-
+        tokenized=True
+        if isinstance(X, str):
+            X = self.tokenizer.fit_transform(X)
+            tokenized = False
         # obviously, if there's only one word, don't delete it
         if len(X) == 1:
             return X
@@ -20,6 +25,7 @@ class Random_deletion(Transformer):
         # if you end up deleting all words, just return a random word
         if len(new_words) == 0:
             rand_int = random.randint(0, len(X) - 1)
-            return [X[rand_int]]
-
+            new_words=[X[rand_int]]
+        if tokenized is not True:
+            new_words=' '.join(new_words)
         return new_words

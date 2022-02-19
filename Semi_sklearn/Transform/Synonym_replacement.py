@@ -1,9 +1,11 @@
 from Semi_sklearn.Transform.Transformer import Transformer
 from Semi_sklearn.Transform.Synonyms import Synonyms
 import random
+from Semi_sklearn.Transform.EDA_tokenizer import EDA_tokenzier
+
 class Synonym_replacement(Transformer):
 
-    def __init__(self,n=1):
+    def __init__(self,n=1,tokenizer=None):
         super(Synonym_replacement, self).__init__()
         self.n=n
         self.stop_words = ['i', 'me', 'my', 'myself', 'we', 'our',
@@ -27,8 +29,13 @@ class Synonym_replacement(Transformer):
                   'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too',
                   'very', 's', 't', 'can', 'will', 'just', 'don',
                   'should', 'now', '']
+        self.tokenizer = tokenizer if tokenizer is not None else EDA_tokenzier()
 
     def transform(self,X):
+        tokenized=True
+        if isinstance(X, str):
+            X = self.tokenizer.fit_transform(X)
+            tokenized = False
         random_word_list = list(set([word for word in X if word not in self.stop_words]))
         random.shuffle(random_word_list)
         num_replaced = 0
@@ -45,5 +52,8 @@ class Synonym_replacement(Transformer):
         # this is stupid but we need it, trust me
         sentence = ' '.join(X)
         result = sentence.split(' ')
+
+        if tokenized is not True:
+            result=' '.join(result)
 
         return result
