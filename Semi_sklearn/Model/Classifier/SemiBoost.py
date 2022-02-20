@@ -4,19 +4,28 @@ from sklearn.svm import SVC
 from scipy import sparse
 from scipy.spatial.distance import pdist,squareform
 from sklearn.metrics.pairwise import rbf_kernel
+from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
+from sklearn.base import ClassifierMixin
 
-class SemiBoostClassifier():
+class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
 
-    def __init__(self, base_model =SVC()):
+    def __init__(self, base_model =SVC(),
+                        n_neighbors=4, n_jobs = 1,
+                        max_models = 15,
+                        sample_percent = 0.5,
+                        sigma_percentile = 90,
+                        similarity_kernel = 'rbf'):
 
         self.BaseModel = base_model
+        self.n_neighbors=n_neighbors
+        self.n_jobs=n_jobs
+        self.max_models=max_models
+        self.sample_percent=sample_percent
+        self.sigma_percentile=sigma_percentile
+        self.similarity_kernel=similarity_kernel
+        self._estimator_type = ClassifierMixin._estimator_type
 
-    def fit(self, X, y,unlabeled_X,
-            n_neighbors=4, n_jobs = 1,
-            max_models = 15,
-            sample_percent = 0.5,
-            sigma_percentile = 90,
-            similarity_kernel = 'rbf'):
+    def fit(self, X, y,unlabeled_X):
 
         ''' Fit model'''
         # Localize labeled data
@@ -33,21 +42,21 @@ class SemiBoostClassifier():
         X_all=np.concatenate((X,unlabeled_X))
         y_all=np.concatenate((y,np.zeros(num_unlabeled,dtype=int)))
         # First we need to create the similarity matrix
-        if similarity_kernel == 'knn':
+        if self.similarity_kernel == 'knn':
 
             self.S = neighbors.kneighbors_graph(X_all,
-                                                n_neighbors=n_neighbors,
+                                                n_neighbors=self.n_neighbors,
                                                 mode='distance',
                                                 include_self=True,
-                                                n_jobs=n_jobs)
+                                                n_jobs=self.n_jobs)
 
             self.S = sparse.csr_matrix(self.S)
 
-        elif similarity_kernel == 'rbf':
+        elif self.similarity_kernel == 'rbf':
             # First aprox
             self.S = np.sqrt(rbf_kernel(X_all, gamma = 1))
             # set gamma parameter as the 15th percentile
-            sigma = np.percentile(np.log(self.S), sigma_percentile)
+            sigma = np.percentile(np.log(self.S), self.sigma_percentile)
             sigma_2 = (1/sigma**2)*np.ones((self.S.shape[0],self.S.shape[0]))
             self.S = np.power(self.S, sigma_2)
             # Matrix to sparse
@@ -65,7 +74,7 @@ class SemiBoostClassifier():
         H = np.zeros(num_unlabeled)
 
         # Loop for adding sequential models
-        for t in range(max_models):
+        for t in range(self.max_models):
             #=============================================================
             # Calculate p_i and q_i for every sample
             #=============================================================
@@ -93,7 +102,7 @@ class SemiBoostClassifier():
             if np.any(z_conf != 0):
                 sample_weights = z_conf / np.sum(z_conf)
                 idx_aux = np.random.choice(np.arange(len(z)),
-                                              size = int(sample_percent*len(idx_not_label)),
+                                              size = int(self.sample_percent*len(idx_not_label)),
                                               p = sample_weights,
                                               replace = False)
                 idx_sample = idx_not_label[idx_aux]

@@ -98,7 +98,7 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 
 
-####  SSM Boost ()
+####  Assemble AdaBoost (√)
 
 
 

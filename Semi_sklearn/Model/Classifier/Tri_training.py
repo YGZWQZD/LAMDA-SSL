@@ -16,6 +16,7 @@ class TriTraining(InductiveEstimator,ClassifierMixin):
             self.estimators[1]=copy.deepcopy(self.estimators[0])
         if self.estimators[2] is None:
             self.estimators[2] = copy.deepcopy(self.estimators[0])
+        self._estimator_type = ClassifierMixin._estimator_type
 
     def fit(self, X, y, unlabeled_X):
         for i in range(3):

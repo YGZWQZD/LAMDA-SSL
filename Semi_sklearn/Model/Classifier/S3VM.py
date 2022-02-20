@@ -95,7 +95,7 @@ class S3VM(InductiveEstimator,ClassifierMixin):
 
 
         while self.Cu < self.Cl:
-            print(self.Cu)
+            # print(self.Cu)
             self.clf.fit(_X, _y, sample_weight=sample_weight)
             while True:
                 unlabeled_y_d = self.clf.decision_function(unlabeled_X)    # linear: w^Tx + b

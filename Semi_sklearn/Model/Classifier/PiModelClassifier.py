@@ -26,7 +26,7 @@ class PiModelClassifier(PiModel,ClassifierMixin):
                  epoch=1,
                  num_it_epoch=None,
                  num_it_total=None,
-                 warmup=None,
+                 warmup=0.4,
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
@@ -73,7 +73,7 @@ class PiModelClassifier(PiModel,ClassifierMixin):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
         sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb_1.detach(),logits_x_ulb_2.detach())
+        unsup_loss = consistency_loss(logits_x_ulb_1,logits_x_ulb_2.detach())
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 

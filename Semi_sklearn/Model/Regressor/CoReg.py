@@ -18,6 +18,7 @@ class CoReg(InductiveEstimator,RegressorMixin):
         self.h2 = KNeighborsRegressor(n_neighbors=self.k2, p=self.p2)
         self.h1_temp = KNeighborsRegressor(n_neighbors=self.k1, p=self.p1)
         self.h2_temp = KNeighborsRegressor(n_neighbors=self.k2, p=self.p2)
+        self._estimator_type = RegressorMixin._estimator_type
 
 
 
