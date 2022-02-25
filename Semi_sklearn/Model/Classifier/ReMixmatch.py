@@ -54,7 +54,8 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  alpha=None,
                  p_target=None,
                  lambda_s=None,
-                 lambda_rot=None
+                 lambda_rot=None,
+                 rotate_v_list=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -92,7 +93,7 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.T=T
         self.alpha=alpha
         self.num_classes=num_classes
-        self.rotate_v_list=rotate_v_list = [0, 90, 180, 270]
+        self.rotate_v_list=rotate_v_list if rotate_v_list is not None else [0, 90, 180, 270]
         self.p_model = None
         self.p_target=p_target
         self.bn_controller = Bn_Controller()
@@ -149,7 +150,7 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             sharpen_prob_x_ulb = (sharpen_prob_x_ulb / sharpen_prob_x_ulb.sum(dim=-1, keepdim=True)).detach()
             mixed_inputs = torch.cat((lb_x_w, ulb_x_s_1, ulb_x_s_2, ulb_x_w))
             input_labels = torch.cat(
-                [one_hot(lb_y, self.num_classes).to(self.device), sharpen_prob_x_ulb, sharpen_prob_x_ulb,
+                [one_hot(lb_y, self.num_classes,self.device).to(self.device), sharpen_prob_x_ulb, sharpen_prob_x_ulb,
                  sharpen_prob_x_ulb], dim=0)
             index = torch.randperm(mixed_inputs.size(0)).to(self.device)
 

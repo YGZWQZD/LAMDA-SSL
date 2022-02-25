@@ -9,7 +9,7 @@ from sklearn.base import ClassifierMixin
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 class Assemble(InductiveEstimator,ClassifierMixin):
-    def __init__(self, base_model=SVC(),T=100,alpha=1,beta=0.9):
+    def __init__(self, base_model=SVC(probability=True),T=100,alpha=1,beta=0.9):
         self._estimator_type = ClassifierMixin._estimator_type
         self.base_model=base_model
         self.T=T
@@ -38,6 +38,8 @@ class Assemble(InductiveEstimator,ClassifierMixin):
         return result
 
     def fit(self,X,y,unlabeled_X):
+        # 二分类
+
         # classes, y_indices = np.unique(y, return_inverse=True)
         # if len(classes)!=2:
         #     raise ValueError('TSVM can only be used in binary classification.')
@@ -61,8 +63,8 @@ class Assemble(InductiveEstimator,ClassifierMixin):
             sample_weight[i+l]=(1-self.beta)/u
         unlabeled_y=self.KNN.fit(X,y).predict(unlabeled_X)
         classfier=copy.deepcopy(self.base_model)
-        X_all=np.concatenate(X,unlabeled_X)
-        y_all=np.concatenate(y,unlabeled_y)
+        X_all=np.concatenate((X,unlabeled_X))
+        y_all=np.concatenate((y,unlabeled_y))
         classfier.fit(X_all,y_all,sample_weight=sample_weight)
 
         for i in range(self.T):
@@ -77,7 +79,7 @@ class Assemble(InductiveEstimator,ClassifierMixin):
             w=np.log((1-epsilon)/epsilon)*0.5
             self.w.append(w)
 
-            probas=self.predict_proba(unlabeled_X)
+            probas=self.predict_proba(X_all)
             logits = np.max(probas, axis=1)
             unlabeled_y=self.predict(unlabeled_X)
 
@@ -87,7 +89,7 @@ class Assemble(InductiveEstimator,ClassifierMixin):
                 alpha=np.ones(l+u)*self.alpha
             else:
                 alpha=self.alpha
-
+            # print(logits.shape)
             sample_weight=alpha*np.exp(-logits)
             sample_weight=sample_weight/sample_weight.sum()
             idx_sample=np.random.choice(l+u,l,False,p=sample_weight.tolist())

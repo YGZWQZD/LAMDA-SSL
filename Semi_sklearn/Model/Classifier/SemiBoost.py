@@ -1,8 +1,9 @@
 import numpy as np
 from sklearn import neighbors
 from sklearn.svm import SVC
+import copy
 from scipy import sparse
-from scipy.spatial.distance import pdist,squareform
+# from scipy.spatial.distance import pdist,squareform
 from sklearn.metrics.pairwise import rbf_kernel
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
@@ -11,8 +12,8 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
 
     def __init__(self, base_model =SVC(),
                         n_neighbors=4, n_jobs = 1,
-                        max_models = 15,
-                        sample_percent = 0.5,
+                        max_models = 300,
+                        sample_percent = 0.01,
                         sigma_percentile = 90,
                         similarity_kernel = 'rbf'):
 
@@ -26,6 +27,16 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
         self._estimator_type = ClassifierMixin._estimator_type
 
     def fit(self, X, y,unlabeled_X):
+        classes, y_indices = np.unique(y, return_inverse=True)
+        # if len(classes)!=2:
+        #     raise ValueError('TSVM can only be used in binary classification.')
+        # # print(classes)
+
+        self.class_dict={classes[0]:-1,classes[1]:1}
+        self.rev_class_dict = {-1:classes[0] ,  1:classes[1]}
+        y=copy.copy(y)
+        for _ in range(X.shape[0]):
+            y[_]=self.class_dict[y[_]]
 
         ''' Fit model'''
         # Localize labeled data
@@ -35,11 +46,14 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
         # The parameter C is defined in the paper as
         # C = num_labeled/num_labeled
 
-        idx=np.range(num_labeled+num_unlabeled)
+        idx=np.arange(num_labeled+num_unlabeled)
         idx_label=idx[:num_labeled]
-        idx_not_label=idx[num_unlabeled:]
+        idx_not_label=idx[num_labeled:]
+        # print(idx_label.shape)
+        # print(idx_not_label.shape)
 
         X_all=np.concatenate((X,unlabeled_X))
+        # print(X_all.shape)
         y_all=np.concatenate((y,np.zeros(num_unlabeled,dtype=int)))
         # First we need to create the similarity matrix
         if self.similarity_kernel == 'knn':
@@ -51,16 +65,22 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
                                                 n_jobs=self.n_jobs)
 
             self.S = sparse.csr_matrix(self.S)
+            # print(X_all.shape)
 
         elif self.similarity_kernel == 'rbf':
             # First aprox
-            self.S = np.sqrt(rbf_kernel(X_all, gamma = 1))
+            # print(X_all)
+            # print(rbf_kernel(X_all, gamma = 1))
+            self.S = np.sqrt(rbf_kernel(X_all, gamma = 0.05))
             # set gamma parameter as the 15th percentile
             sigma = np.percentile(np.log(self.S), self.sigma_percentile)
             sigma_2 = (1/sigma**2)*np.ones((self.S.shape[0],self.S.shape[0]))
+            # print(sigma_2)
             self.S = np.power(self.S, sigma_2)
             # Matrix to sparse
+
             self.S = sparse.csr_matrix(self.S)
+
 
         else:
             raise ValueError('No such kernel!')
@@ -78,20 +98,27 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
             #=============================================================
             # Calculate p_i and q_i for every sample
             #=============================================================
-            p_1 = np.einsum('ij,j', self.S[:,idx_label].todense(), (y[idx_label]==1))[idx_not_label]*np.exp(-2*H)
+
+            p_1 = np.einsum('ij,j', self.S[:,idx_label].todense(), (y_all[idx_label]==1))[idx_not_label]*np.exp(-2*H)
             p_2 = np.einsum('ij,j', self.S[:,idx_not_label].todense(), np.exp(H))[idx_not_label]*np.exp(-H)
             p = np.add(p_1, p_2)
-            p = np.squeeze(np.asarray(p))
+            # print('p')
+            # print(p.shape)
+            p = np.asarray(p)
 
-            q_1 = np.einsum('ij,j', self.S[:,idx_label].todense(), (y[idx_label]==-1))[idx_not_label]*np.exp(2*H)
+            q_1 = np.einsum('ij,j', self.S[:,idx_label].todense(), (y_all[idx_label]==-1))[idx_not_label]*np.exp(2*H)
             q_2 = np.einsum('ij,j', self.S[:,idx_not_label].todense(), np.exp(-H))[idx_not_label]*np.exp(H)
             q = np.add(q_1, q_2)
-            q = np.squeeze(np.asarray(q))
+            # print('q')
+
+            q = np.asarray(q)
 
             #=============================================================
             # Compute predicted label z_i
             #=============================================================
             z = np.sign(p-q)
+
+            # print(z.shape)
             z_conf = np.abs(p-q)
             #=============================================================
             # Sample sample_percent most confident predictions
@@ -99,8 +126,10 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
             # Sampling weights
 
             # If there are non-zero weights
-            if np.any(z_conf != 0):
-                sample_weights = z_conf / np.sum(z_conf)
+            sample_weights = z_conf / np.sum(z_conf)
+            if np.any(sample_weights != 0):
+
+
                 idx_aux = np.random.choice(np.arange(len(z)),
                                               size = int(self.sample_percent*len(idx_not_label)),
                                               p = sample_weights,
@@ -178,10 +207,13 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
     def predict(self, X):
         estimate = np.zeros(X.shape[0])
         # Predict weighting each model
-        w = np.sum(self.weights)
+        # w = np.sum(self.weights)
         for i in range(len(self.models)):
             # estimate = np.add(estimate,  self.weights[i]*self.models[i].predict_proba(X)[:,1]/w)
             estimate = np.add(estimate, self.weights[i]*self.models[i].predict(X))
         estimate = np.array(list(map(lambda x: 1 if x>0 else -1, estimate)))
         estimate = estimate.astype(int)
+        for _ in range(X.shape[0]):
+            estimate[_]=self.rev_class_dict[estimate[_]]
+
         return estimate

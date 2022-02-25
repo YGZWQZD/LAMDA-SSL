@@ -54,12 +54,16 @@ class CoReg(InductiveEstimator,RegressorMixin):
                 for idx_u, x_u in enumerate(U_X_pool):
                     # Make prediction
                     x_u = x_u.reshape(1, -1)
-                    y_u_hat = h.predict(x_u).reshape(1, -1)
+                    y_u_hat = h.predict(x_u)
                     # Compute neighbors
                     omega = h.kneighbors(x_u, return_distance=False)[0]
                     # Retrain regressor after adding unlabeled point
-                    X_temp = np.vstack((L_X, x_u))
-                    y_temp = np.vstack((L_y, y_u_hat))  # use predicted y_u_hat
+                    print(L_X.shape)
+                    print(x_u.shape)
+                    X_temp = np.concatenate((L_X, x_u))
+                    print(L_y.shape)
+                    print(y_u_hat.shape)
+                    y_temp = np.concatenate((L_y, y_u_hat))  # use predicted y_u_hat
                     h_temp.fit(X_temp, y_temp)
 
                     delta = 0
@@ -79,15 +83,15 @@ class CoReg(InductiveEstimator,RegressorMixin):
                     stop_training = False
                     added_idxs.append(max_idx)
                     x_u = U_X_pool[max_idx].reshape(1, -1)
-                    y_u_hat = h.predict(x_u).reshape(1, -1)
+                    y_u_hat = h.predict(x_u)
                     idx_u=U_idx_pool[max_idx]
                     to_remove.append(idx_u)
                     if idx_h == 1:
-                        X1 = np.vstack((X1, x_u))
-                        y1 = np.vstack((y1, y_u_hat))
+                        X1 = np.concatenate((X1, x_u))
+                        y1 = np.concatenate((y1, y_u_hat))
                     else:
-                        X2 = np.vstack((X2, x_u))
-                        y2 = np.vstack((y2, y_u_hat))
+                        X2 = np.concatenate((X2, x_u))
+                        y2 = np.concatenate((y2, y_u_hat))
             if stop_training:
                 break
             else:

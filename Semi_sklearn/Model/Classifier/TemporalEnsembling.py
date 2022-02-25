@@ -146,7 +146,7 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         logits_x_lb, lb_y, logits_x_ulb,iter_unlab_pslab  = train_result
         sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb.detach(),iter_unlab_pslab.detach())
+        unsup_loss = consistency_loss(logits_x_ulb,iter_unlab_pslab.detach())
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 

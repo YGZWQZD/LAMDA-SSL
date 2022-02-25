@@ -12,8 +12,11 @@ class Rotate(Transformer):
         self.min_v=min_v
         self.num_bins=num_bins
         self.magnitude=magnitude
-        self.magnitudes=torch.linspace(min_v, max_v, num_bins)
-        self.v=float(self.magnitudes[self.magnitude].item())if v is None else v
+        if v is None:
+            self.magnitudes=torch.linspace(min_v, max_v, num_bins)
+            self.v = float(self.magnitudes[self.magnitude].item())
+        else:
+            self.v=v
 
     def transform(self,X,rand=False):
         if isinstance(X,np.ndarray):

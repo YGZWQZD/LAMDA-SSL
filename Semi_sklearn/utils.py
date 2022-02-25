@@ -415,8 +415,8 @@ def kl_div_with_logit(q_logit, p_logit):
     qlogp = ( q *logp).sum(dim=1).mean(dim=0)
     return qlogq - qlogp
 
-def one_hot(targets, nClass):
-    logits = torch.zeros(targets.size(0), nClass)
+def one_hot(targets, nClass,device):
+    logits = torch.zeros(targets.size(0), nClass).to(device)
     return logits.scatter_(1, targets.unsqueeze(1), 1)
 
 class Bn_Controller:
