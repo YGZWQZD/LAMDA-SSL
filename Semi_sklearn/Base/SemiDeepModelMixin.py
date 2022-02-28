@@ -10,12 +10,17 @@ from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from Semi_sklearn.utils import EMA
 from Semi_sklearn.utils import to_device
 from torch.nn import Softmax
+from Semi_sklearn.Data_loader.LabeledDataloader import LabeledDataLoader
+from Semi_sklearn.Data_loader.UnlabeledDataloader import UnlabeledDataLoader
+from Semi_sklearn.Data_loader.TrainDataloader import TrainDataLoader
 
 class SemiDeepModelMixin(SemiEstimator):
     def __init__(self, train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
                  valid_dataloader=None,
                  test_dataloader=None,
                  augmentation=None,
@@ -33,7 +38,11 @@ class SemiDeepModelMixin(SemiEstimator):
                  device=None,
                  evaluation=None,
                  train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
                  train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
                  valid_sampler=None,
                  valid_batch_sampler=None,
                  test_sampler=None,
@@ -44,6 +53,8 @@ class SemiDeepModelMixin(SemiEstimator):
         self.valid_dataset = valid_dataset if valid_dataset is not None else test_dataset
         self.test_dataset=test_dataset
         self.train_dataloader=train_dataloader
+        self.labeled_dataloader=labeled_dataloader
+        self.unlabeled_dataloader=unlabeled_dataloader
         self.valid_dataloader=valid_dataloader if valid_dataloader is not None else test_dataloader
         self.test_dataloader=test_dataloader
         self.augmentation=augmentation
@@ -68,6 +79,11 @@ class SemiDeepModelMixin(SemiEstimator):
         self.train_sampler=train_sampler
         self.train_batch_sampler=train_batch_sampler
 
+        self.labeled_sampler=labeled_sampler
+        self.unlabeled_sampler=unlabeled_sampler
+        self.labeled_batch_sampler=labeled_batch_sampler
+        self.unlabeled_batch_sampler = unlabeled_batch_sampler
+
         self.valid_sampler=valid_sampler if valid_sampler is not None else test_sampler
         self.valid_batch_sampler=valid_batch_sampler if valid_batch_sampler is not None else test_batch_sampler
 
@@ -80,10 +96,14 @@ class SemiDeepModelMixin(SemiEstimator):
         self._scheduler=copy.deepcopy(self.scheduler)
 
         self._train_sampler=copy.deepcopy(self.train_sampler)
+        self._labeled_sampler = copy.deepcopy(self.labeled_sampler)
+        self._unlabeled_sampler = copy.deepcopy(self.unlabeled_sampler)
         self._valid_sampler = copy.deepcopy(self.valid_sampler)
         self._test_sampler=copy.deepcopy(self.test_sampler)
 
         self._train_batch_sampler=copy.deepcopy(self.train_batch_sampler)
+        self._labeled_batch_sampler = copy.deepcopy(self.labeled_batch_sampler)
+        self._unlabeled_batch_sampler = copy.deepcopy(self.unlabeled_batch_sampler)
         self._valid_batch_sampler=copy.deepcopy(self.valid_batch_sampler)
         self._test_batch_sampler=copy.deepcopy(self.test_batch_sampler)
 
@@ -92,6 +112,8 @@ class SemiDeepModelMixin(SemiEstimator):
         self._test_dataset=copy.deepcopy(self.test_dataset)
 
         self._train_dataloader=copy.deepcopy(self.train_dataloader)
+        self._labeled_dataloader = copy.deepcopy(self.labeled_dataloader)
+        self._unlabeled_dataloader = copy.deepcopy(self.unlabeled_dataloader)
         self._valid_dataloader=copy.deepcopy(self.valid_dataloader)
         self._test_dataloader = copy.deepcopy(self.test_dataloader)
 
@@ -111,9 +133,6 @@ class SemiDeepModelMixin(SemiEstimator):
         self.init_epoch()
         self.init_ema()
         self.init_augmentation()
-        self.init_transform()
-        self.init_optimizer()
-        self.init_scheduler()
 
     def init_model(self):
         if self.device is not None and self.device is not 'cpu':
@@ -123,24 +142,26 @@ class SemiDeepModelMixin(SemiEstimator):
             self._parallel=self._parallel.init_parallel(self._network)
 
     def init_augmentation(self):
-        if isinstance(self._augmentation, dict):
-            self.weakly_augmentation = self._augmentation['augmentation'] \
-                if 'augmentation' in self._augmentation.keys() \
-                else self._augmentation['weakly_augmentation']
-            if 'strongly_augmentation' in self._augmentation.keys():
-                self.strongly_augmentation = self._augmentation['strongly_augmentation']
-        elif isinstance(self._augmentation, (list, tuple)):
-            self.weakly_augmentation = self._augmentation[0]
-            if len(self._augmentation) > 1:
-                self.strongly_augmentation = self._augmentation[1]
-        else:
-            self.weakly_augmentation = copy.deepcopy(self._augmentation)
-        if self.strongly_augmentation is None:
-            self.strongly_augmentation = copy.deepcopy(self.weakly_augmentation)
+        if self._augmentation is not None:
+            if isinstance(self._augmentation, dict):
+                self.weakly_augmentation = self._augmentation['augmentation'] \
+                    if 'augmentation' in self._augmentation.keys() \
+                    else self._augmentation['weakly_augmentation']
+                if 'strongly_augmentation' in self._augmentation.keys():
+                    self.strongly_augmentation = self._augmentation['strongly_augmentation']
+            elif isinstance(self._augmentation, (list, tuple)):
+                self.weakly_augmentation = self._augmentation[0]
+                if len(self._augmentation) > 1:
+                    self.strongly_augmentation = self._augmentation[1]
+            else:
+                self.weakly_augmentation = copy.deepcopy(self._augmentation)
+            if self.strongly_augmentation is None:
+                self.strongly_augmentation = copy.deepcopy(self.weakly_augmentation)
 
     def init_transform(self):
-        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
+        if self.weakly_augmentation is not None:
+            self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+            self._train_dataset.add_unlabeled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
 
     def init_ema(self):
         if self.ema_decay is not None:
@@ -181,10 +202,21 @@ class SemiDeepModelMixin(SemiEstimator):
             self._train_dataset.init_dataset(labeled_X=X, labeled_y=y,unlabeled_X=unlabeled_X)
 
     def init_train_dataloader(self):
-        self.labeled_dataloader,self.unlabeled_dataloader=self._train_dataloader.init_dataloader(dataset=self._train_dataset,
-                                                                                   sampler=self._train_sampler,
-                                                                                   batch_sampler=self._train_batch_sampler,
-                                                                                   mu=self.mu)
+        # if self.
+        if self._train_dataloader is not None:
+            self._labeled_dataloader,self._unlabeled_dataloader=self._train_dataloader.init_dataloader(dataset=self._train_dataset,
+                                                                                       sampler=self._train_sampler,
+                                                                                       batch_sampler=self._train_batch_sampler,
+                                                                                       mu=self.mu)
+        else:
+            self._train_dataloader=TrainDataLoader(labeled_dataloader=self._labeled_dataloader,unlabeled_dataloader=self._unlabeled_dataloader)
+            self._train_sampler={'labeled':self._labeled_sampler,'unlabeled':self._unlabeled_sampler}
+            self._train_batch_sampler={'labeled':self._labeled_batch_sampler,'unlabeled':self._unlabeled_batch_sampler}
+            self._labeled_dataloader, self._unlabeled_dataloader = self._train_dataloader.init_dataloader(
+                dataset=self._train_dataset,
+                sampler=self._train_sampler,
+                batch_sampler=self._train_batch_sampler,
+                mu=self.mu)
 
     def init_pred_dataset(self, X=None,valid=False):
         if valid:
@@ -237,7 +269,7 @@ class SemiDeepModelMixin(SemiEstimator):
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
 
     def train_batch_loop(self,valid_X=None,valid_y=None):
-        for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self.labeled_dataloader, self.unlabeled_dataloader):
+        for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self._labeled_dataloader, self._unlabeled_dataloader):
             if self.it_epoch >= self.num_it_epoch or self.it_total >= self.num_it_total:
                 break
 

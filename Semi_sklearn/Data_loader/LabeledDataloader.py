@@ -1,7 +1,7 @@
 from torch.utils.data.dataloader import DataLoader
 from Semi_sklearn.Sampler.SemiSampler import SemiSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
-class SemiTestDataLoader:
+class LabeledDataLoader:
     def __init__(self,
                  batch_size= 1,
                  shuffle: bool = False, sampler = None,

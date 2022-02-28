@@ -6,8 +6,8 @@ from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 from Semi_sklearn.Opitimizer.SGD import SGD
 from Semi_sklearn.Scheduler.Cosine_scheduler import Cosine_schedeler
 from Semi_sklearn.Network.WideResNet import WideResNet
-from Semi_sklearn.Data_loader.SemiTrainDataloader import SemiTrainDataLoader
-from Semi_sklearn.Data_loader.SemiTestDataloader import SemiTestDataLoader
+from Semi_sklearn.Data_loader.TrainDataloader import SemiTrainDataLoader
+from Semi_sklearn.Data_loader.LabeledDataloader import SemiTestDataLoader
 from torch.utils.data.sampler import RandomSampler,SequentialSampler
 from sklearn.pipeline import Pipeline
 

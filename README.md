@@ -130,7 +130,7 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 
 
-####  Ladder Network ()
+####  Ladder Network (√)
 
 
 
@@ -142,11 +142,11 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 
 
-####  S4L ()
+####  S4L (√)
 
 
 
-####  Tri Net ()
+####  Deep Co Training ()
 
 
 
