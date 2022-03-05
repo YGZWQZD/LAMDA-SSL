@@ -7,7 +7,15 @@ class Encoder(torch.nn.Module):
     def __init__(self, d_in, d_out, activation_type,
                  train_bn_scaling, noise_level,device='cpu'):
         super(Encoder, self).__init__()
-        self.d_in = d_in
+        if len(d_in)==2:
+            H, W = d_in
+            d_in = H * W
+        elif len(d_in)==3:
+            C, H, W = d_in
+            d_in = C * H * W
+        else:
+            d_in=d_in
+        self.d_in=d_in
         self.d_out = d_out
         self.activation_type = activation_type
         self.train_bn_scaling = train_bn_scaling
@@ -60,7 +68,7 @@ class Encoder(torch.nn.Module):
         #     ones = Parameter(torch.ones(x.size()[0], 1).cuda())
         # else:
         #     ones = Parameter(torch.ones(x.size()[0], 1))
-        ones = Parameter(torch.ones(x.size()[0], 1).to_dense(self.device))
+        ones = Parameter(torch.ones(x.size()[0], 1).to(self.device))
         t = x + ones.mm(self.bn_beta)
         if self.train_bn_scaling:
             t = torch.mul(t, ones.mm(self.bn_gamma))
@@ -250,7 +258,9 @@ class Decoder(torch.nn.Module):
 class StackedDecoders(torch.nn.Module):
     def __init__(self, d_in, n_class,d_decoders, device='cpu'):
         super(StackedDecoders, self).__init__()
-        self.bn_u_top = torch.nn.BatchNorm1d(d_in, affine=False)
+        # print(d_in)
+        # print(n_class)
+        self.bn_u_top = torch.nn.BatchNorm1d(n_class, affine=False)
         self.decoders_ref = []
         self.decoders = torch.nn.Sequential()
         n_decoders = len(d_decoders)+1
@@ -290,12 +300,19 @@ class StackedDecoders(torch.nn.Module):
         # TODO: Calculate batchnorm using GPU Tensors.
         assert len(hat_z_layers) == len(z_pre_layers)
         hat_z_layers_normalized = []
+        # print(hat_z_layers.shape)
+        # print(z_pre_layers.shape)
         for i, (hat_z, z_pre) in enumerate(zip(hat_z_layers, z_pre_layers)):
             # if self.use_cuda:
             #     ones = Variable(torch.ones(z_pre.size()[0], 1).cuda())
             # else:
-            ones = Variable(torch.ones(z_pre.size()[0], 1).to(self.device))
-            mean = torch.mean(z_pre, 0)
+            # print(hat_z.shape)# 100*10
+            # print(z_pre.shape)# 100*10
+            ones = Variable(torch.ones(z_pre.size()[0], 1).to(self.device)) # 10*1
+            # print(z_pre.shape)
+            mean = torch.mean(z_pre, 0).unsqueeze(0)# 1*10
+            # print(mean.shape)
+
             noise_var = Variable(torch.FloatTensor(np.random.normal(loc=0.0, scale=1 - 1e-10, size=z_pre.size())).to(self.device))
             # if self.use_cuda:
             #     var = np.var(z_pre.data.cpu().numpy() + noise_var, axis=0).reshape(1, z_pre.size()[1])
@@ -307,6 +324,10 @@ class StackedDecoders(torch.nn.Module):
             #     hat_z = hat_z.cpu()
             #     ones = ones.cpu()
             #     mean = mean.cpu()
+            # print(mean.shape)
+            # # print(type(mean))
+            # # print(ones.mm(torch.sqrt(var + 1e-10)))
+            # print(ones.shape)
             hat_z_normalized = torch.div(hat_z - ones.mm(mean), ones.mm(torch.sqrt(var + 1e-10)))
             # if self.use_cuda:
             #     hat_z_normalized = hat_z_normalized.cuda()
@@ -318,7 +339,9 @@ class Ladder(torch.nn.Module):
                  encoder_train_bn_scaling=[False, False, False, False, False, True], noise_std=0.2,dim_in=32*32,n_class=10,device='cpu'):
         super(Ladder, self).__init__()
 
-        decoder_sizes = encoder_sizes.reverse()
+        decoder_sizes = list(reversed(encoder_sizes))
+        # print(encoder_sizes)
+        # print(decoder_sizes)
         decoder_in = n_class
         encoder_in = dim_in
         self.device=device
@@ -350,3 +373,6 @@ class Ladder(torch.nn.Module):
 
     def decoder_bn_hat_z_layers(self, hat_z_layers, z_pre_layers):
         return self.de.bn_hat_z_layers(hat_z_layers, z_pre_layers)
+
+    def forward(self, data):
+        return self.forward_encoders_clean(data)

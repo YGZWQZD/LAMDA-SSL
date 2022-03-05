@@ -1,21 +1,25 @@
 import copy
 
+import numpy as np
+import torch.nn.functional as F
+from Semi_sklearn.Base.GeneratorMixin import GeneratorMixin
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
-from Semi_sklearn.Network.Ladder import Ladder
-from torch.autograd import Variable
+import Semi_sklearn.Network.SSVAE as VAE
+import random
 from sklearn.base import ClassifierMixin
 import torch
+from Semi_sklearn.utils import one_hot
+from torch.autograd import Variable
 
-class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin):
     def __init__(self,
                  dim_in,
                  num_class,
-                 noise_std=0.2,
-                 lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
-                 encoder_sizes=[250, 250, 250, 500, 1000],
-                 encoder_train_bn_scaling=[False, False, False, False, False, True],
-                 encoder_activations=["relu", "relu", "relu", "relu", "relu", "softmax"],
+                 dim_z,
+                 dim_hidden,
+                 alpha,
+                 num_labeled=None,
                  train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -49,8 +53,7 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  test_sampler=None,
                  test_batch_sampler=None,
                  parallel=None):
-        network=Ladder( encoder_sizes=encoder_sizes, encoder_activations=encoder_activations,
-                 encoder_train_bn_scaling=encoder_train_bn_scaling, noise_std=noise_std,dim_in=dim_in,n_class=num_class,device=device) if network is None else network
+        network=VAE.SSVAE( dim_in=dim_in,num_class=num_class,dim_z=dim_z,dim_hidden=dim_hidden,device=device) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -85,14 +88,13 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     evaluation=evaluation,
                                     parallel=parallel
                                     )
+        self.dim_hidden=dim_hidden
+        self.dim_z=dim_z
         self.dim_in=dim_in
         self.num_class=num_class
-        self.noise_std = noise_std
-        self.lambda_u = lambda_u
-        self.encoder_sizes = encoder_sizes
-        self.encoder_train_bn_scaling = encoder_train_bn_scaling
-        self.encoder_activations = encoder_activations
-        self._estimator_type = ClassifierMixin._estimator_type
+        self.alpha=alpha
+        self.num_labeled=num_labeled
+        self._estimator_type = [GeneratorMixin._estimator_type,ClassifierMixin._estimator_type]
 
     def init_augmentation(self):
         if self._augmentation is not None:
@@ -111,62 +113,90 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._test_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
         self._valid_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
 
+    def loss_components_fn(self,x, y, z, p_y, p_z, p_x_yz, q_z_xy):
+        # SSL paper eq 6 for an given y (observed or enumerated from q_y)
+
+        return - p_x_yz.log_prob(x).sum(1) \
+               - p_y.log_prob(y) \
+               - p_z.log_prob(z).sum(1) \
+               + q_z_xy.log_prob(z).sum(1)
+
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+        # print(lb_X)
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(list,tuple)) else lb_y
         ulb_X=ulb_X[0]if isinstance(ulb_X,(list,tuple)) else ulb_X
+
         lb_X=lb_X.view(lb_X.shape[0],-1)
         ulb_X = ulb_X.view(ulb_X.shape[0], -1)
-        lb_X= Variable(lb_X, requires_grad=False)
-        lb_y = Variable(lb_y, requires_grad=False)
-        ulb_X = Variable(ulb_X)
 
-        # do a noisy pass for labelled data
-        output_noise_labeled = self._network.forward_encoders_noise(lb_X)
+        lb_q_y = self._network.encode_y(lb_X)
+        ulb_q_y = self._network.encode_y(ulb_X)
 
-        # do a noisy pass for unlabelled_data
-        output_noise_unlabeled = self._network.forward_encoders_noise(ulb_X)
-        tilde_z_layers_unlabeled = self._network.get_encoders_tilde_z(reverse=True)
+        lb_y = one_hot(lb_y, self.num_class,self.device).to(self.device)
 
-        # do a clean pass for unlabelled data
-        output_clean_unlabeled = self._network.forward_encoders_clean(ulb_X)
-        z_pre_layers_unlabeled = self._network.get_encoders_z_pre(reverse=True)
-        z_layers_unlabeled = self._network.get_encoders_z(reverse=True)
+        lb_q_z_xy = self._network.encode_z(lb_X, lb_y)
 
-        tilde_z_bottom_unlabeled = self._network.get_encoder_tilde_z_bottom()
+        lb_z = lb_q_z_xy.rsample()
+        lb_p_x_yz = self._network.decode(lb_y, lb_z)
+        # print(lb_p_x_yz)
 
-        # pass through decoders
-        hat_z_layers_unlabeled = self._network.forward_decoders(tilde_z_layers_unlabeled,
-                                                          output_noise_unlabeled,
-                                                          tilde_z_bottom_unlabeled)
+        lb_p_y=self._network.p_y
+        lb_p_z = self._network.p_z
 
-        z_pre_layers_unlabeled.append(ulb_X)
-        z_layers_unlabeled.append(ulb_X)
 
-        # batch normalize using mean, var of z_pre
-        bn_hat_z_layers_unlabeled = self._network.decoder_bn_hat_z_layers(hat_z_layers_unlabeled, z_pre_layers_unlabeled)
-        return output_noise_labeled, lb_y, z_layers_unlabeled, bn_hat_z_layers_unlabeled
+
+
+        ulb_q_z_xy_list = []
+        ulb_p_x_yz_list = []
+        ulb_z_list=[]
+        ulb_p_y=self._network.p_y
+        ulb_p_z=self._network.p_z
+
+        for ulb_y in ulb_q_y.enumerate_support():
+            ulb_q_z_xy = self._network.encode_z(ulb_X, ulb_y)
+            ulb_z = ulb_q_z_xy.rsample()
+            ulb_p_x_yz = self._network.decode(ulb_y, ulb_z)
+            ulb_z_list.append(ulb_z)
+            ulb_q_z_xy_list.append(ulb_q_z_xy)
+            ulb_p_x_yz_list.append(ulb_p_x_yz)
+
+
+
+
+        return lb_X, lb_y, lb_z, lb_p_y, lb_p_z, lb_q_y, lb_p_x_yz, lb_q_z_xy, ulb_X,ulb_z_list,ulb_p_y,ulb_p_z, ulb_q_y,ulb_p_x_yz_list,ulb_q_z_xy_list
+
 
     def get_loss(self,train_result,*args,**kwargs):
-        output_noise_labeled, lb_y, z_layers_unlabeled, bn_hat_z_layers_unlabeled=train_result
-        loss_supervised = torch.nn.CrossEntropyLoss()
-        loss_unsupervised = torch.nn.MSELoss()
-        cost_supervised = loss_supervised(output_noise_labeled, lb_y)
-        cost_unsupervised = 0.
-        for cost_lambda, z, bn_hat_z in zip(self.lambda_u, z_layers_unlabeled, bn_hat_z_layers_unlabeled):
-            c = cost_lambda * loss_unsupervised.forward(bn_hat_z, z)
-            cost_unsupervised += c
-        result = cost_supervised + cost_unsupervised
+        lb_X, lb_y, lb_z, lb_p_y, lb_p_z, lb_q_y, lb_p_x_yz, lb_q_z_xy, ulb_X,ulb_z_list,ulb_p_y,ulb_p_z, ulb_q_y,ulb_p_x_yz_list,ulb_q_z_xy_list=train_result
+        sup_loss = self.loss_components_fn(lb_X, lb_y, lb_z, lb_p_y, lb_p_z, lb_p_x_yz, lb_q_z_xy)
+        # print(sup_loss)
+        # print(lb_q_y.log_prob(lb_y))
+        # num_labeled=self.num_labeled if self.num_labeled is None else self._train_dataset.labeled_dataset.__len__()
+        sup_loss=sup_loss.mean(0)
+        probs=F.softmax(lb_q_y.probs,dim=-1)
+        cls_loss=- self.alpha  * lb_q_y.log_prob(lb_y)
+        cls_loss=cls_loss.mean(0)
+
+
+        unsup_loss = - ulb_q_y.entropy()
+        idx=0
+        for ulb_y in ulb_q_y.enumerate_support():
+            # print(ulb_z_list)
+            L_xy = self.loss_components_fn(ulb_X, ulb_y, ulb_z_list[idx], ulb_p_y, ulb_p_z, ulb_p_x_yz_list[idx], ulb_q_z_xy_list[idx])
+            unsup_loss += ulb_q_y.log_prob(ulb_y).exp() * L_xy
+            idx+=1
+        unsup_loss=unsup_loss.mean(0)
+        # print(unsup_loss)
+        result=sup_loss+unsup_loss+cls_loss
         return result
+
+
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()
-        self._optimizer.step()
         loss.backward()
-
-
-    def end_epoch(self):
-        self._scheduler.step()
+        self._optimizer.step()
 
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
@@ -176,3 +206,15 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+
+    def generate(self,num,z=None,x=None,y=None):
+        if y is not None:
+            y = one_hot(y,self.num_class,self.device).to(self.device)
+        if x is not None and y is None:
+            y=self._network.encode_y(x)
+        if x is not None and y is not None and z is None:
+            z = self._network.encode_z(x,y)
+        z = Variable(torch.randn(num, self.dim_z).to(self.device)) if z is None else z
+        y = one_hot(Variable(torch.LongTensor([random.randrange(self.num_class) for _ in range(num)]).to(self.device)),nClass=self.num_class,device=self.device)
+
+        return self._network.decode(z,y)

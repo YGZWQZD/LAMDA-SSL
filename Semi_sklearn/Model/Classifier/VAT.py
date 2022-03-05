@@ -1,8 +1,7 @@
 import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
-from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
+
 from sklearn.base import ClassifierMixin
 import numpy as np
 from Semi_sklearn.utils import EMA

@@ -34,6 +34,10 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 
 
+#### LapSVM(√)
+
+
+
 ###  Graphed Based Method
 
 
@@ -146,19 +150,15 @@ Semi-sklearn is an efficient tool for semi-supervised learning which is easy to 
 
 
 
-####  Deep Co Training ()
-
-
-
 ###  Generative Method
 
 
 
-####  CatGan ()
+####  ImprovedGan (√)
 
 
 
-####  SSVAE ()
+####  SSVAE (√)
 
 
 

@@ -13,7 +13,14 @@ class Normalization(Transformer):
 
     def transform(self,X):
         if X is not None:
+            # print(X.shape)
+            # print(1)
+            # print(X)
+            # print(2)
+            # print(self.std)
+            # print(self.mean)
             X=self.normalize(X.float())
+            # print(X)
             #print(X.shape)
             return X
         else:

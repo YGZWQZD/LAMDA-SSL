@@ -33,7 +33,9 @@ class LabeledDataset(Dataset):
         X, y = copy.deepcopy(X), copy.deepcopy(y)
         if isinstance(transforms,(list,tuple)):
             for item in transforms:
+
                 X,y=self._transforms(self.X,y,item)
+
         elif callable(transforms):
             X,y=transforms(X,y)
         elif hasattr(transforms,'fit_transform'):
@@ -103,11 +105,15 @@ class LabeledDataset(Dataset):
         return X
 
     def apply_transform(self,X,y):
+        # print(self.transform)
+
         if self.transforms is not None:
             if isinstance(self.transforms,(tuple,list)):
                 list_X=[],list_y=[]
                 for item in self.transforms:
+
                     _X,_y=self._transforms(X,y,item)
+
                     list_X.append(_X)
                     list_y.append(_y)
                 X=list_X

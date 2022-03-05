@@ -3,6 +3,7 @@ from sklearn import neighbors
 from sklearn.svm import SVC
 import copy
 from scipy import sparse
+from scipy.spatial.distance import cdist
 # from scipy.spatial.distance import pdist,squareform
 from sklearn.metrics.pairwise import rbf_kernel
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
@@ -78,7 +79,7 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
             # print(sigma_2)
             self.S = np.power(self.S, sigma_2)
             # Matrix to sparse
-
+            # 压缩
             self.S = sparse.csr_matrix(self.S)
 
 

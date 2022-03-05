@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from torch.nn import ModuleList
 # momentum = 0.001
 
 
@@ -91,7 +91,7 @@ class WideResNet(nn.Module):
         self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=False)
         self.num_classes=num_classes
         if isinstance(self.num_classes,(list,tuple)):
-            self.fc=[]
+            self.fc=ModuleList([])
             for num in self.num_classes:
                 self.fc.append(nn.Linear(channels[3], num))
         else:
@@ -116,9 +116,11 @@ class WideResNet(nn.Module):
         out = self.relu(self.bn1(out))
         out = F.adaptive_avg_pool2d(out, 1)
         out = out.view(-1, self.channels)
-        if isinstance(self.fc, list):
+        if isinstance(self.fc, ModuleList):
             output = []
             for c in self.fc:
+                # print(out.device)
+                # print(c.device)
                 output.append(c(out))
         else:
             output = self.fc(out)

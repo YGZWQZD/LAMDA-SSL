@@ -12,7 +12,10 @@ class TrainDataset(Dataset):
                  labeled_size=None,
                  stratified=False,
                  shuffle=True,
-                 random_state=None):
+                 random_state=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None
+                 ):
 
         self.transforms=transforms
         self.transform = transform
@@ -31,8 +34,8 @@ class TrainDataset(Dataset):
         self.len_labeled=None
         self.len_unlabeled=None
         self.labeled_dataset=LabeledDataset(transforms=self.transforms,transform=self.unlabeled_transform,
-                                          target_transform=self.target_transform)
-        self.unlabeled_dataset=UnlabeledDataset(transform=self.unlabeled_transform)
+                                          target_transform=self.target_transform) if labeled_dataset is None else labeled_dataset
+        self.unlabeled_dataset=UnlabeledDataset(transform=self.unlabeled_transform)if unlabeled_dataset is None else unlabeled_dataset
         self.data_initialized=False
 
 

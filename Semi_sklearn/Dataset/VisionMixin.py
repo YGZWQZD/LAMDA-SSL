@@ -1,5 +1,5 @@
 from Semi_sklearn.Transform.Normalization import Normalization
-from Semi_sklearn.Transform.ToTensor import ToTensor
+from Semi_sklearn.Transform.ImageToTensor import ToTensor
 from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
 class VisionMixin:

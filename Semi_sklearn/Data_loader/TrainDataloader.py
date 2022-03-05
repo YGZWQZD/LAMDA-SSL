@@ -181,7 +181,7 @@ class TrainDataLoader:
             if self.mu is not None:
                 if self.labeled_sampler is not None and self.unlabeled_sampler is not None and\
                         hasattr(self.labeled_sampler, 'num_samples') and hasattr(self.unlabeled_sampler, 'num_samples')  \
-                        and self.labeled_sampler.num_samples is not None:
+                        and self.labeled_sampler.num_samples is not None and self.unlabeled_sampler.replacement is True:
                     self.unlabeled_sampler.num_samples = self.labeled_sampler.num_samples *self.mu
 
         if batch_sampler is not None:
