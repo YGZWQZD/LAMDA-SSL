@@ -121,7 +121,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
                - p_z.log_prob(z).sum(1) \
                + q_z_xy.log_prob(z).sum(1)
 
-    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+    def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
         # print(lb_X)
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(list,tuple)) else lb_y

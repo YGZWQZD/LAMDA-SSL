@@ -265,7 +265,7 @@ class SemiDeepModelMixin(SemiEstimator):
 
     def epoch_loop(self,valid_X=None,valid_y=None):
         self.it_total = 0
-        for self._epoch in range(self.epoch):
+        for self._epoch in range(1,self.epoch+1):
             self.it_epoch=0
             if self.it_total>=self.num_it_total:
                 break
@@ -420,7 +420,7 @@ class SemiDeepModelMixin(SemiEstimator):
             return y_est
 
     # @abstractmethod
-    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+    def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
         raise NotImplementedError
 
     # @abstractmethod

@@ -8,10 +8,13 @@ class LabeledDataset(Dataset):
     def __init__(self,
                  transforms=None,
                  transform=None,
-                 target_transform=None
+                 target_transform=None,
+                 pre_transform=None
                  ):
         self.transforms=transforms
         self.transform=transform
+        self.pre_transform=None
+        # TODO add pre_transform for VisionMixin and TextMixin
         self.target_transform=target_transform
         self.X=None
         self.y=None

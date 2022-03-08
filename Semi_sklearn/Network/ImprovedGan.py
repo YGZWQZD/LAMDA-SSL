@@ -84,4 +84,4 @@ class ImprovedGAN(nn.Module):
         self.D = D if D is not None else Discriminator(input_dim,output_dim,device=device)
 
     def forward(self, x):
-        return self.d(x)
+        return self.D(x)

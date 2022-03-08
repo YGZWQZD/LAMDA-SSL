@@ -111,7 +111,7 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._test_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
         self._valid_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
 
-    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+    def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(list,tuple)) else lb_y
         ulb_X=ulb_X[0]if isinstance(ulb_X,(list,tuple)) else ulb_X
