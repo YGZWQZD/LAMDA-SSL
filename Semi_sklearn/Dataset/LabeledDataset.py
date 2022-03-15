@@ -67,7 +67,9 @@ class LabeledDataset(Dataset):
         return l
 
     def add_transform(self,transform,dim=1,x=0,y=0):
-        if dim==0:
+        if self.transform is None:
+            self.transform=transform
+        elif dim==0:
             self.transform=self.insert(self.transform,x,transform)
         else:
             if not isinstance(self.transform, (dict, tuple, list)):
@@ -75,7 +77,9 @@ class LabeledDataset(Dataset):
             self.transform[x]=self.insert(self.transform[x],y,transform)
 
     def add_transforms(self,transforms,dim=1,x=0,y=0):
-        if dim==0:
+        if self.transforms is None:
+            self.transforms=transforms
+        elif dim==0:
             self.transforms=self.insert(self.transforms,x,transforms)
         else:
             if not isinstance(self.transforms, (dict, tuple, list)):
@@ -83,7 +87,9 @@ class LabeledDataset(Dataset):
             self.transforms[x]=self.insert(self.transforms[x],y,transforms)
 
     def add_target_transform(self,target_transform,dim=1,x=0,y=0):
-        if dim==0:
+        if self.target_transform is None:
+            self.target_transform=target_transform
+        elif dim==0:
             self.target_transform=self.insert(self.target_transform,x,target_transform)
         else:
             if not isinstance(self.target_transform, (dict, tuple, list)):

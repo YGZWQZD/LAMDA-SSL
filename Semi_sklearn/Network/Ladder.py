@@ -1,3 +1,5 @@
+import numbers
+
 import torch
 import numpy as np
 from torch.nn.parameter import Parameter
@@ -7,14 +9,18 @@ class Encoder(torch.nn.Module):
     def __init__(self, d_in, d_out, activation_type,
                  train_bn_scaling, noise_level,device='cpu'):
         super(Encoder, self).__init__()
-        if len(d_in)==2:
+
+        if isinstance(d_in,numbers.Number):
+            d_in = d_in
+        elif len(d_in)==2:
             H, W = d_in
             d_in = H * W
         elif len(d_in)==3:
             C, H, W = d_in
             d_in = C * H * W
         else:
-            d_in=d_in
+            d_in = d_in
+
         self.d_in=d_in
         self.d_out = d_out
         self.activation_type = activation_type

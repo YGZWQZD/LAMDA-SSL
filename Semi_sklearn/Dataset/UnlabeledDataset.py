@@ -48,7 +48,9 @@ class UnlabeledDataset(Dataset):
         return l
 
     def add_transform(self,transform,dim=1,x=0,y=0):
-        if dim==0:
+        if self.transform is None:
+            self.transform=transform
+        elif dim==0:
             self.transform=self.insert(self.transform,x,transform)
         else:
             if not isinstance(self.transform, (dict, tuple, list)):
