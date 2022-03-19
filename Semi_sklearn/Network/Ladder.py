@@ -4,26 +4,27 @@ import torch
 import numpy as np
 from torch.nn.parameter import Parameter
 from torch.autograd import Variable
+import torch.nn as nn
 
 class Encoder(torch.nn.Module):
-    def __init__(self, d_in, d_out, activation_type,
+    def __init__(self, d_in, d_out, activation,
                  train_bn_scaling, noise_level,device='cpu'):
         super(Encoder, self).__init__()
 
-        if isinstance(d_in,numbers.Number):
-            d_in = d_in
-        elif len(d_in)==2:
-            H, W = d_in
-            d_in = H * W
-        elif len(d_in)==3:
-            C, H, W = d_in
-            d_in = C * H * W
-        else:
-            d_in = d_in
+        # if isinstance(d_in,numbers.Number):
+        #     d_in = d_in
+        # elif len(d_in)==2:
+        #     H, W = d_in
+        #     d_in = H * W
+        # elif len(d_in)==3:
+        #     C, H, W = d_in
+        #     d_in = C * H * W
+        # else:
+        #     d_in = d_in
 
         self.d_in=d_in
         self.d_out = d_out
-        self.activation_type = activation_type
+        self.activation = activation
         self.train_bn_scaling = train_bn_scaling
         self.noise_level = noise_level
         self.device=device
@@ -56,12 +57,6 @@ class Encoder(torch.nn.Module):
             self.bn_gamma.data = torch.ones(self.bn_gamma.size()).to(self.device)
 
         # Activation
-        if activation_type == 'relu':
-            self.activation = torch.nn.ReLU()
-        elif activation_type == 'softmax':
-            self.activation = torch.nn.Softmax()
-        else:
-            raise ValueError("invalid Acitvation type")
 
         # buffer for z_pre, z which will be used in decoder cost
         self.buffer_z_pre = None
@@ -87,7 +82,10 @@ class Encoder(torch.nn.Module):
         z = self.bn_normalize_clean(z_pre)
         self.buffer_z = z.detach().clone()
         z_gb = self.bn_gamma_beta(z)
-        h = self.activation(z_gb)
+        if self.activation is None:
+            h=z_gb
+        else:
+            h = self.activation(z_gb)
         return h
 
     def forward_noise(self, tilde_h):
@@ -105,13 +103,16 @@ class Encoder(torch.nn.Module):
         # store tilde_z in buffer
         self.buffer_tilde_z = tilde_z
         z = self.bn_gamma_beta(tilde_z)
-        h = self.activation(z)
+        if self.activation is None:
+            h=z
+        else:
+            h = self.activation(z)
         return h
 
 
 class StackedEncoders(torch.nn.Module):
     def __init__(self, d_in, n_class,d_encoders, activation_types,
-                 train_batch_norms, noise_std,device='cpu'):
+                 noise_std,device='cpu'):
         super(StackedEncoders, self).__init__()
         self.buffer_tilde_z_bottom = None
         self.encoders_ref = []
@@ -126,10 +127,13 @@ class StackedEncoders(torch.nn.Module):
                 d_input = d_encoders[i - 1]
             if i==n_encoders-1:
                 d_output=n_class
+                activation = None
+                train_batch_norm=True
             else:
                 d_output = d_encoders[i]
-            activation = activation_types[i]
-            train_batch_norm = train_batch_norms[i]
+                activation = activation_types[i]
+                train_batch_norm=False
+
             encoder_ref = "encoder_" + str(i)
             encoder = Encoder(d_input, d_output, activation, train_batch_norm, noise_std,device)
             self.encoders_ref.append(encoder_ref)
@@ -303,7 +307,6 @@ class StackedDecoders(torch.nn.Module):
         return hat_z
 
     def bn_hat_z_layers(self, hat_z_layers, z_pre_layers):
-        # TODO: Calculate batchnorm using GPU Tensors.
         assert len(hat_z_layers) == len(z_pre_layers)
         hat_z_layers_normalized = []
         # print(hat_z_layers.shape)
@@ -341,18 +344,24 @@ class StackedDecoders(torch.nn.Module):
         return hat_z_layers_normalized
 
 class Ladder(torch.nn.Module):
-    def __init__(self, encoder_sizes=[1000, 500, 250, 250, 250], encoder_activations=["relu", "relu", "relu", "relu", "relu", "softmax"],
-                 encoder_train_bn_scaling=[False, False, False, False, False, True], noise_std=0.2,dim_in=32*32,n_class=10,device='cpu'):
+    def __init__(self, encoder_sizes=[1000, 500, 250, 250, 250],
+                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 noise_std=0.2,dim_in=28*28,n_class=10,device='cpu'):
         super(Ladder, self).__init__()
-
+        if isinstance(dim_in,numbers.Number):
+            input_dim = dim_in
+        else:
+            input_dim=1
+            for item in dim_in:
+                input_dim=input_dim*item
         decoder_sizes = list(reversed(encoder_sizes))
         # print(encoder_sizes)
         # print(decoder_sizes)
         decoder_in = n_class
-        encoder_in = dim_in
-        self.device=device
+        encoder_in = input_dim
+        self.device = device
         self.se = StackedEncoders(encoder_in,decoder_in, encoder_sizes, encoder_activations,
-                                  encoder_train_bn_scaling, noise_std,device)
+                                noise_std,device)
         self.de = StackedDecoders(encoder_in,decoder_in, decoder_sizes,device)
         self.bn_image = torch.nn.BatchNorm1d(encoder_in, affine=False)
 

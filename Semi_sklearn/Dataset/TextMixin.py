@@ -50,7 +50,7 @@ class TextMixin:
             #                   ('ToTensor',ToTensor())
             #                   ])
         self.transform = Pipeline([('Tokenizer', Tokenizer('basic_english')),
-                                   ('Adjust_length', Adjust_length(length=300)),
+                                   ('Adjust_length', Adjust_length(length=self.length)),
                                    ('Vocab', self.vocab),
                                    ('ToTensor', ToTensor())
                                    ])

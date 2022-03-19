@@ -56,7 +56,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                  test_sampler=None,
                  test_batch_sampler=None,
                  parallel=None):
-        network=ImGan.ImprovedGAN( input_dim = dim_in, output_dim = num_class,z_dim=dim_z) if network is None else network
+        network=ImGan.ImprovedGAN( dim_in = dim_in, output_dim = num_class,z_dim=dim_z) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -116,7 +116,10 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
             lb_X = lb_X[0] if isinstance(lb_X, (list, tuple)) else lb_X
             lb_y = lb_y[0] if isinstance(lb_y, (list, tuple)) else lb_y
             ulb_X = ulb_X[0] if isinstance(ulb_X, (list, tuple)) else ulb_X
+            # print(lb_X.max())
             num_unlabeled = ulb_X.shape[0]
+            lb_X=lb_X*1/255.
+            ulb_X = ulb_X * 1 / 255.
             ulb_X_1, ulb_X_2 = ulb_X[:num_unlabeled // 2], ulb_X[num_unlabeled // 2:]
 
             train_D_result = self.train_D(lb_X, lb_y, ulb_X_1)
@@ -279,6 +282,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
         X=X.view(X.shape[0],-1)
+        X=X*1/255.
         outputs = self._network(X)
         return outputs
 

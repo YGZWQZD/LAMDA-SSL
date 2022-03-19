@@ -22,8 +22,8 @@ class TextRCNN(nn.Module):
 
 
     def forward(self, x):
-        # print(x.shape)
         # print(x.dtype)
+        x=x.long()
         embed = self.embedding(x)  # [batch_size, seq_len, embeding]=[64, 32, 64]
         # print(embed.shape)# [300,300]
         out, _ = self.lstm(embed)

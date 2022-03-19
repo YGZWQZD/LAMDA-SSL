@@ -5,8 +5,9 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.LabeledDataset import LabeledDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 import torch
+from Semi_sklearn.Dataset.GraphMixin import GraphMixin
 from torch_geometric.datasets.planetoid import Planetoid
-class Cora(SemiDataset):
+class Cora(SemiDataset,GraphMixin):
     # name='Cora'
     # url = 'https://github.com/kimiyoung/planetoid/raw/master/data'
     # names = ['x', 'tx', 'allx', 'y', 'ty', 'ally', 'graph', 'test.index']

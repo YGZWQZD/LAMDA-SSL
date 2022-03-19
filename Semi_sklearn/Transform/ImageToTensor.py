@@ -14,9 +14,14 @@ class ToTensor(Transformer):
         if isinstance(X,PIL.Image.Image):
             # print(X.size)
             X=transforms.ToTensor()(X)
+            X = X.detach().float()
             # print(X)
             return X
 
+        elif isinstance(X,torch.Tensor):
+            X=X.numpy()
+            X = torch.FloatTensor(X)
+            return X
         else:
-            X=torch.Tensor(X)
+            X=torch.FloatTensor(X)
             return X

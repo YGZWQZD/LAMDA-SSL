@@ -1,3 +1,5 @@
+import numbers
+
 import torch
 from torch.nn.parameter import Parameter
 from torch import nn
@@ -24,64 +26,99 @@ class LinearWeightNorm(torch.nn.Module):
         return F.linear(x, W, self.bias)
 
 class Discriminator(nn.Module):
-    def __init__(self, input_dim = 28 ** 2, output_dim = 10,device='cpu'):
+    def __init__(self, input_dim = 28 ** 2,hidden_dim=[1000,500,250,250,250],
+                 noise_level=[0.3,0.5,0.5,0.5,0.5,0.5],activations=[nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
+                 output_dim = 10,device='cpu'):
         super(Discriminator, self).__init__()
         self.input_dim = input_dim
-        self.layers = torch.nn.ModuleList([
-            LinearWeightNorm(input_dim, 1000),
-            LinearWeightNorm(1000, 500),
-            LinearWeightNorm(500, 250),
-            LinearWeightNorm(250, 250),
-            LinearWeightNorm(250, 250)]
-        )
-        self.final = LinearWeightNorm(250, output_dim, weight_scale=1)
+        self.num_hidden=len(hidden_dim)
+        self.layers = torch.nn.ModuleList()
+        self.noise_level=noise_level
+        for _ in range(self.num_hidden):
+            if _==0:
+                in_dim=input_dim
+            else:
+                in_dim=hidden_dim[_-1]
+            out_dim=hidden_dim[_]
+            self.layers.append(LinearWeightNorm(in_dim, out_dim))
+        self.final = LinearWeightNorm(hidden_dim[self.num_hidden-1], output_dim, weight_scale=1)
+        self.activations=activations
         self.device=device
 
 
     def forward(self, x):
         x = x.view(-1, self.input_dim)
-        noise = torch.randn(x.size()) * 0.3 if self.training else torch.Tensor([0]).to(self.device)
+        noise = torch.randn(x.size()) * self.noise_level[0] if self.training else torch.Tensor([0]).to(self.device)
 
         x = x + Variable(noise, requires_grad = False)
         x_f=x
         for i in range(len(self.layers)):
             m = self.layers[i]
-            x_f = F.relu(m(x))
-            noise = torch.randn(x_f.size()) * 0.5 if self.training else torch.Tensor([0]).to(self.device)
+            x_f = self.activations[i](m(x))
+            noise = torch.randn(x_f.size()) * self.noise_level[i+1] if self.training else torch.Tensor([0]).to(self.device)
             x = (x_f + Variable(noise, requires_grad = False))
 
         self.feature=x_f
-
-        return self.final(x)
+        if len(self.activations)==self.num_hidden+1:
+            x = self.activations[self.num_hidden](self.final(x))
+        else:
+            x=self.final(x)
+        return x
 
 
 class Generator(nn.Module):
-    def __init__(self, input_dim = 28 ** 2,hidden_dim=500,z_dim=100,device='cpu'):
+    def __init__(self, input_dim = 28 ** 2,hidden_dim=[500,500],activations=[nn.Softplus(),nn.Softplus(),nn.Softplus()],z_dim=100,device='cpu'):
         super(Generator, self).__init__()
         self.z_dim = z_dim
         self.device=device
-        self.fc1 = nn.Linear(z_dim, hidden_dim, bias = False)
-        self.bn1 = nn.BatchNorm1d(hidden_dim, affine = False, eps=1e-6, momentum = 0.5)
-        self.fc2 = nn.Linear(hidden_dim, hidden_dim, bias = False)
-        self.bn2 = nn.BatchNorm1d(hidden_dim, affine = False, eps=1e-6, momentum = 0.5)
-        self.fc3 = LinearWeightNorm(hidden_dim, input_dim, weight_scale = 1)
-        self.bn1_b = Parameter(torch.zeros(hidden_dim))
-        self.bn2_b = Parameter(torch.zeros(hidden_dim))
-        nn.init.xavier_uniform(self.fc1.weight)
-        nn.init.xavier_uniform(self.fc2.weight)
+        self.hidden_dim=hidden_dim
+        self.layers = torch.nn.ModuleList()
+        self.bn_layers=torch.nn.ModuleList()
+        self.bn_b = torch.nn.ParameterList()
+        self.num_hidden=len(hidden_dim)
+        self.activations=activations
+        for _ in range(self.num_hidden):
+            if _==0:
+                in_dim=z_dim
+            else:
+                in_dim=hidden_dim[_-1]
+            out_dim=hidden_dim[_]
+            fc=nn.Linear(in_dim, out_dim, bias=False)
+            nn.init.xavier_uniform(fc.weight)
+            self.layers.append(fc)
+            self.bn_layers.append(nn.BatchNorm1d(out_dim, affine = False, eps=1e-6, momentum = 0.5))
+            self.bn_b.append(Parameter(torch.zeros(out_dim)))
+        self.fc = LinearWeightNorm(hidden_dim[self.num_hidden-1], input_dim, weight_scale = 1)
 
-    def forward(self, batch_size,z=None):
+
+    def forward(self, batch_size=10,z=None):
         z = Variable(torch.rand(batch_size, self.z_dim), requires_grad = False).to(self.device) if z is None else z
-        x = F.softplus(self.bn1(self.fc1(z)) + self.bn1_b)
-        x = F.softplus(self.bn2(self.fc2(x)) + self.bn2_b)
-        x = F.softplus(self.fc3(x))
-        return x
+        for _ in range(self.num_hidden):
+            z = self.activations[_](self.bn_layers[_](self.layers[_](z)) + self.bn_b[_])
+        if len(self.activations)==self.num_hidden+1:
+            z = self.activations[self.num_hidden](self.fc(z))
+        return z
 
 class ImprovedGAN(nn.Module):
-    def __init__(self, G=None, D=None,input_dim = 28 ** 2, output_dim = 10,z_dim=100,device='cpu'):
+    def __init__(self, G=None, D=None,dim_in = 28 ** 2,
+                 hidden_G=[500,500],hidden_D=[500,500],
+                 noise_level=[0.3,0.5,0.5,0.5,0.5,0.5],
+                 activations_G=[nn.Softplus(),nn.Softplus(),nn.Softplus()],
+                 activations_D=[nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
+                 output_dim = 10,z_dim=100,device='cpu'):
         super(ImprovedGAN, self).__init__()
-        self.G = G if G is not None else Generator(input_dim = input_dim,z_dim=z_dim,device=device)
-        self.D = D if D is not None else Discriminator(input_dim,output_dim,device=device)
+        if isinstance(dim_in,numbers.Number):
+            input_dim = dim_in
+        else:
+            input_dim=1
+            for item in dim_in:
+                input_dim=input_dim*item
+        self.G = G if G is not None else Generator(input_dim = input_dim,z_dim=z_dim,
+                                                   hidden_dim=hidden_G,activations=activations_G,
+                                                   device=device)
+        self.D = D if D is not None else Discriminator(input_dim=input_dim,noise_level=noise_level,
+                                                       activations=activations_D,output_dim=output_dim,
+                                                       hidden_dim=hidden_D,device=device)
 
     def forward(self, x):
         return self.D(x)

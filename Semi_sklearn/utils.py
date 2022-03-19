@@ -119,7 +119,6 @@ def flatten(arr):
             yield item
 
 def apply_to_data(data, func, unpack_dict=False):
-
     apply_ = partial(apply_to_data, func=func, unpack_dict=unpack_dict)
     if isinstance(data, dict):
         if unpack_dict:

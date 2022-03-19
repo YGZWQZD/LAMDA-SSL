@@ -8,6 +8,11 @@ from Semi_sklearn.Split.SemiSplit import SemiSplit
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.LabeledDataset import LabeledDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
+
+from Semi_sklearn.Transform.Normalization import Normalization
+from Semi_sklearn.Transform.ImageToTensor import ToTensor
+from sklearn.pipeline import Pipeline
+
 class CIFAR10(SemiDataset,VisionMixin):
     base_folder = "cifar-10-batches-py"
     url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
@@ -85,7 +90,7 @@ class CIFAR10(SemiDataset,VisionMixin):
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
-        VisionMixin.__init__(self,mean=self.mean,std=self.std)
+        VisionMixin.__init__(self)
 
 
         if isinstance(root, (str, bytes)):
@@ -187,6 +192,21 @@ class CIFAR10(SemiDataset,VisionMixin):
         unlabeled_dataset.init_dataset(unlabeled_X, unlabeled_y)
         self.train_dataset.init_dataset(labeled_dataset=labeled_dataset,unlabeled_dataset=unlabeled_dataset)
 
-
+    def init_transforms(self):
+        self.transforms = None
+        self.target_transform = None
+        self.transform = Pipeline([('ToTensor', ToTensor()),
+                                   ('Normalization', Normalization(mean=self.mean, std=self.std))
+                                   ])
+        self.unlabeled_transform = Pipeline([('ToTensor', ToTensor()),
+                                             ('Normalization', Normalization(mean=self.mean, std=self.std))
+                                             ])
+        self.test_transform = Pipeline([('ToTensor', ToTensor()),
+                                        ('Normalization', Normalization(mean=self.mean, std=self.std))
+                                        ])
+        self.valid_transform = Pipeline([('ToTensor', ToTensor()),
+                                         ('Normalization', Normalization(mean=self.mean, std=self.std))
+                                         ])
+        return self
 
 

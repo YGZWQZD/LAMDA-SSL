@@ -18,6 +18,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
                  num_class,
                  dim_z,
                  dim_hidden,
+                 activations,
                  alpha,
                  num_labeled=None,
                  train_dataset=None,
@@ -53,7 +54,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
                  test_sampler=None,
                  test_batch_sampler=None,
                  parallel=None):
-        network=VAE.SSVAE( dim_in=dim_in,num_class=num_class,dim_z=dim_z,dim_hidden=dim_hidden,device=device) if network is None else network
+        network=VAE.SSVAE( dim_in=dim_in,num_class=num_class,dim_z=dim_z,dim_hidden=dim_hidden,activations=activations,device=device) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -129,7 +130,8 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
 
         lb_X=lb_X.view(lb_X.shape[0],-1)
         ulb_X = ulb_X.view(ulb_X.shape[0], -1)
-
+        lb_X=lb_X*1/255.
+        ulb_X = ulb_X * 1 / 255.
         lb_q_y = self._network.encode_y(lb_X)
         ulb_q_y = self._network.encode_y(ulb_X)
 
@@ -201,6 +203,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
         X=X.view(X.shape[0],-1)
+        X=X*1/255.
         outputs = self._network(X)
         return outputs
 

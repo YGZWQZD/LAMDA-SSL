@@ -6,16 +6,16 @@ from Semi_sklearn.Network.Ladder import Ladder
 from torch.autograd import Variable
 from sklearn.base import ClassifierMixin
 import torch
-
+import torch.nn as nn
+from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,
                  dim_in,
                  num_class,
                  noise_std=0.2,
                  lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
-                 encoder_sizes=[250, 250, 250, 500, 1000],
-                 encoder_train_bn_scaling=[False, False, False, False, False, True],
-                 encoder_activations=["relu", "relu", "relu", "relu", "relu", "softmax"],
+                 encoder_sizes=[1000, 500, 250, 250, 250],
+                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -49,8 +49,8 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  test_sampler=None,
                  test_batch_sampler=None,
                  parallel=None):
-        network=Ladder( encoder_sizes=encoder_sizes, encoder_activations=encoder_activations,
-                 encoder_train_bn_scaling=encoder_train_bn_scaling, noise_std=noise_std,dim_in=dim_in,n_class=num_class,device=device) if network is None else network
+        network=Ladder(encoder_sizes=encoder_sizes, encoder_activations=encoder_activations,
+                  noise_std=noise_std,dim_in=dim_in,n_class=num_class,device=device) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -90,7 +90,6 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.noise_std = noise_std
         self.lambda_u = lambda_u
         self.encoder_sizes = encoder_sizes
-        self.encoder_train_bn_scaling = encoder_train_bn_scaling
         self.encoder_activations = encoder_activations
         self._estimator_type = ClassifierMixin._estimator_type
 
@@ -104,7 +103,9 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                 self.to_image = self._augmentation[0]
             else:
                 self.to_image = copy.deepcopy(self._augmentation)
-
+    def init_optimizer(self):
+        if isinstance(self._optimizer,SemiOptimizer):
+            self._optimizer=self._optimizer.init_optimizer(params=self._network.parameters())
     def init_transform(self):
         self._train_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
         self._train_dataset.add_unlabeled_transform(self.to_image, dim=1, x=0, y=0)
@@ -115,6 +116,8 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(list,tuple)) else lb_y
         ulb_X=ulb_X[0]if isinstance(ulb_X,(list,tuple)) else ulb_X
+        lb_X=lb_X*1/255.
+        ulb_X = ulb_X * 1 / 255.
         lb_X=lb_X.view(lb_X.shape[0],-1)
         ulb_X = ulb_X.view(ulb_X.shape[0], -1)
         lb_X= Variable(lb_X, requires_grad=False)
@@ -122,14 +125,14 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         ulb_X = Variable(ulb_X)
 
         # do a noisy pass for labelled data
-        output_noise_labeled = self._network.forward_encoders_noise(lb_X)
+        output_noise_labeled = nn.Softmax(dim=-1)(self._network.forward_encoders_noise(lb_X))
 
         # do a noisy pass for unlabelled_data
-        output_noise_unlabeled = self._network.forward_encoders_noise(ulb_X)
+        output_noise_unlabeled = nn.Softmax(dim=-1)(self._network.forward_encoders_noise(ulb_X))
         tilde_z_layers_unlabeled = self._network.get_encoders_tilde_z(reverse=True)
 
         # do a clean pass for unlabelled data
-        output_clean_unlabeled = self._network.forward_encoders_clean(ulb_X)
+        output_clean_unlabeled = nn.Softmax(dim=-1)(self._network.forward_encoders_clean(ulb_X))
         z_pre_layers_unlabeled = self._network.get_encoders_z_pre(reverse=True)
         z_layers_unlabeled = self._network.get_encoders_z(reverse=True)
 
@@ -157,12 +160,14 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             c = cost_lambda * loss_unsupervised.forward(bn_hat_z, z)
             cost_unsupervised += c
         result = cost_supervised + cost_unsupervised
+        # result=cost_unsupervised
         return result
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()
-        self._optimizer.step()
         loss.backward()
+        self._optimizer.step()
+
 
 
     def end_epoch(self):
@@ -170,8 +175,9 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
-        X=X.view(X.shape[0],-1)
-        outputs = self._network(X)
+        X=X*1/255.
+        _X=X.view(X.shape[0],-1)
+        outputs = self._network(_X)
         return outputs
 
     def predict(self,X=None,valid=None):
