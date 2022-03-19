@@ -49,11 +49,12 @@ class TextMixin:
             #                                        )),
             #                   ('ToTensor',ToTensor())
             #                   ])
-        self.transform = Pipeline([('Tokenizer', Tokenizer('basic_english')),
+        self.transform = Pipeline([
                                    ('Adjust_length', Adjust_length(length=self.length)),
                                    ('Vocab', self.vocab),
                                    ('ToTensor', ToTensor())
                                    ])
+        self.pre_transform=Tokenizer('basic_english')
         self.valid_transform=copy.deepcopy(self.transform)
         self.test_transform=copy.deepcopy(self.transform)
         self.unlabeled_transform=copy.deepcopy(self.transform)

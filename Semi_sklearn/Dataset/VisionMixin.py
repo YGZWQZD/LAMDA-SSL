@@ -2,6 +2,7 @@ from Semi_sklearn.Transform.Normalization import Normalization
 from Semi_sklearn.Transform.ImageToTensor import ToTensor
 from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
+from Semi_sklearn.Transform.ToImage import ToImage
 class VisionMixin:
     def __init__(self):
         pass
@@ -9,6 +10,7 @@ class VisionMixin:
     def init_transforms(self):
         self.transforms=None
         self.target_transform=None
+        self.pre_transform=ToImage()
         self.transform=Pipeline([('ToTensor',ToTensor()),
                               # ('Normalization',Normalization(mean=self.mean,std=self.std))
                               ])

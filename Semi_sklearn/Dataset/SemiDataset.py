@@ -11,6 +11,7 @@ class SemiDataset(Dataset):
     def __init__(self,
                  transforms=None,
                  transform=None,
+                 pre_transform=None,
                  target_transform=None,
                  unlabeled_transform=None,
                  valid_transform=None,
@@ -23,6 +24,7 @@ class SemiDataset(Dataset):
                  random_state=None):
         self.transforms=transforms
         self.transform = transform
+        self.pre_transfprm=pre_transform
         self.target_transform=target_transform
         self.unlabeled_transform = unlabeled_transform
         self.valid_transform = valid_transform
@@ -182,6 +184,11 @@ class SemiDataset(Dataset):
 
     def add_test_transform(self,test_transform,dim,x,y=0):
         self.test_dataset_dataset.add_transform(test_transform,dim,x,y)
+
+    def add_pre_transform(self,transform,dim,x,y=0):
+        self.train_dataset.add_pre_transform(transform, dim, x, y)
+        self.valid_dataset.add_pre_transform(transform, dim, x, y)
+        self.test_dataset.add_pre_transform(transform, dim, x, y)
 
     def get_dataset(self,train=True,test=False,valid=False,labeled=True):
         if train:

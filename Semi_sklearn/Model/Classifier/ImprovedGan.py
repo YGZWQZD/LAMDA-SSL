@@ -171,22 +171,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
             ]
             self._optimizerD=self._optimizerD.init_optimizer(params=grouped_parameters)
 
-    def init_augmentation(self):
-        if self._augmentation is not None:
-            if isinstance(self._augmentation, dict):
-                self.to_image = self._augmentation['augmentation'] \
-                    if 'augmentation' in self._augmentation.keys() \
-                    else self._augmentation['To_image']
-            elif isinstance(self._augmentation, (list, tuple)):
-                self.to_image = self._augmentation[0]
-            else:
-                self.to_image = copy.deepcopy(self._augmentation)
 
-    def init_transform(self):
-        self._train_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
-        self._train_dataset.add_unlabeled_transform(self.to_image, dim=1, x=0, y=0)
-        self._test_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
-        self._valid_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
 
     def get_loss_D(self,train_result_D):
         output_label, lb_y,output_unlabel, output_fake=train_result_D
@@ -266,14 +251,6 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
         # loss.backward()
         # self.Goptim.step()
         return mom_fake,mom_unlabel
-
-
-
-
-
-
-
-
 
     def optimize(self,*args,**kwargs):
         self._optimizer.step()

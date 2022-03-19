@@ -13,7 +13,7 @@ class LabeledDataset(Dataset):
                  ):
         self.transforms=transforms
         self.transform=transform
-        self.pre_transform=None
+        self.pre_transform=pre_transform
         # TODO add pre_transform for VisionMixin and TextMixin
         self.target_transform=target_transform
         self.X=None
@@ -76,6 +76,16 @@ class LabeledDataset(Dataset):
                 self.transform=[self.transform]
             self.transform[x]=self.insert(self.transform[x],y,transform)
 
+    def add_pre_transform(self,transform,dim=1,x=0,y=0):
+        if self.pre_transform is None:
+            self.pre_transform=transform
+        elif dim==0:
+            self.pre_transform=self.insert(self.pre_transform,x,transform)
+        else:
+            if not isinstance(self.pre_transform, (dict, tuple, list)):
+                self.pre_transform=[self.pre_transform]
+            self.pre_transform[x]=self.insert(self.pre_transform[x],y,transform)
+
     def add_transforms(self,transforms,dim=1,x=0,y=0):
         if self.transforms is None:
             self.transforms=transforms
@@ -114,8 +124,23 @@ class LabeledDataset(Dataset):
         return X
 
     def apply_transform(self,X,y):
-        # print(self.transform)
+        if self.pre_transform is not None:
+            if isinstance(self.pre_transform,(tuple,list)):
+                list_X=[]
+                for item in self.pre_transform:
+                    _X=self._transform(X,item)
+                    list_X.append(_X)
+                X=list_X
 
+            elif isinstance(self.pre_transform,dict):
+                dict_X={}
+                for key, val in self.pre_transform.items():
+                    _X=self._transform(X,val)
+                    dict_X[key]=_X
+                X = dict_X
+
+            else:
+                X=self._transform(X,self.pre_transform)
         if self.transforms is not None:
             if isinstance(self.transforms,(tuple,list)):
                 list_X=[],list_y=[]
@@ -132,8 +157,8 @@ class LabeledDataset(Dataset):
                 dict_y={}
                 for key, val in self.transforms.items():
                     _X,_y=self._transforms(X,y,val)
-                    dict_X[key]=val
-                    dict_y[key]=val
+                    dict_X[key]=_X
+                    dict_y[key]=_y
                 X = dict_X
                 y = dict_y
             else:
@@ -150,7 +175,7 @@ class LabeledDataset(Dataset):
                     dict_X = {}
                     for key, val in self.transform.items():
                         _X = self._transform(X, val)
-                        dict_X[key] = val
+                        dict_X[key] = _X
                     X = dict_X
                 else:
                     X=self._transform(X,self.transform)
@@ -158,14 +183,14 @@ class LabeledDataset(Dataset):
                 if isinstance(self.target_transform, (tuple, list)):
                     list_y = []
                     for item in self.target_transform:
-                        _y, = self._transform(y, item)
+                        _y = self._transform(y, item)
                         list_y.append(_y)
                     y = list_y
                 elif isinstance(self.target_transform, dict):
                     dict_y = {}
                     for key, val in self.target_transform.items():
                         _y = self._transform(y, val)
-                        dict_y[key] = val
+                        dict_y[key] = _y
                     y = dict_y
                 else:
                     y=self.target_transform(y,self.target_transform)

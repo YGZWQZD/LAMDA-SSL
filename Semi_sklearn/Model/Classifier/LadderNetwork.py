@@ -93,24 +93,9 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.encoder_activations = encoder_activations
         self._estimator_type = ClassifierMixin._estimator_type
 
-    def init_augmentation(self):
-        if self._augmentation is not None:
-            if isinstance(self._augmentation, dict):
-                self.to_image = self._augmentation['augmentation'] \
-                    if 'augmentation' in self._augmentation.keys() \
-                    else self._augmentation['To_image']
-            elif isinstance(self._augmentation, (list, tuple)):
-                self.to_image = self._augmentation[0]
-            else:
-                self.to_image = copy.deepcopy(self._augmentation)
     def init_optimizer(self):
         if isinstance(self._optimizer,SemiOptimizer):
             self._optimizer=self._optimizer.init_optimizer(params=self._network.parameters())
-    def init_transform(self):
-        self._train_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
-        self._train_dataset.add_unlabeled_transform(self.to_image, dim=1, x=0, y=0)
-        self._test_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
-        self._valid_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
 
     def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X

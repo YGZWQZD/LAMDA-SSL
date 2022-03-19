@@ -400,7 +400,6 @@ class class_status:
         return class_counts
 
 def _l2_normalize(d):
-
     d = d.numpy()
     d /= (np.sqrt(np.sum(d ** 2, axis=(1, 2, 3))).reshape((-1, 1, 1, 1)) + 1e-16)
     return torch.from_numpy(d)

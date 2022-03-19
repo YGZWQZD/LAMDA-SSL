@@ -17,8 +17,12 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
                  dim_in,
                  num_class,
                  dim_z,
-                 dim_hidden,
-                 activations,
+                 dim_hidden_de,
+                 activations_de,
+                 dim_hidden_en_y,
+                 activations_en_y,
+                 dim_hidden_en_z,
+                 activations_en_z,
                  alpha,
                  num_labeled=None,
                  train_dataset=None,
@@ -54,7 +58,11 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
                  test_sampler=None,
                  test_batch_sampler=None,
                  parallel=None):
-        network=VAE.SSVAE( dim_in=dim_in,num_class=num_class,dim_z=dim_z,dim_hidden=dim_hidden,activations=activations,device=device) if network is None else network
+        network=VAE.SSVAE( dim_in=dim_in,num_class=num_class,dim_z=dim_z,
+                           dim_hidden_de=dim_hidden_de,activations_de=activations_de,
+                           dim_hidden_en_y=dim_hidden_en_y, activations_en_y=activations_en_y,
+                           dim_hidden_en_z=dim_hidden_en_z, activations_en_z=activations_en_z,
+                           device=device) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -89,30 +97,13 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
                                     evaluation=evaluation,
                                     parallel=parallel
                                     )
-        self.dim_hidden=dim_hidden
+        # self.dim_hidden=dim_hidden
         self.dim_z=dim_z
         self.dim_in=dim_in
         self.num_class=num_class
         self.alpha=alpha
         self.num_labeled=num_labeled
         self._estimator_type = [GeneratorMixin._estimator_type,ClassifierMixin._estimator_type]
-
-    def init_augmentation(self):
-        if self._augmentation is not None:
-            if isinstance(self._augmentation, dict):
-                self.to_image = self._augmentation['augmentation'] \
-                    if 'augmentation' in self._augmentation.keys() \
-                    else self._augmentation['To_image']
-            elif isinstance(self._augmentation, (list, tuple)):
-                self.to_image = self._augmentation[0]
-            else:
-                self.to_image = copy.deepcopy(self._augmentation)
-
-    def init_transform(self):
-        self._train_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
-        self._train_dataset.add_unlabeled_transform(self.to_image, dim=1, x=0, y=0)
-        self._test_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
-        self._valid_dataset.add_transform(self.to_image, dim=1, x=0, y=0)
 
     def loss_components_fn(self,x, y, z, p_y, p_z, p_x_yz, q_z_xy):
         # SSL paper eq 6 for an given y (observed or enumerated from q_y)

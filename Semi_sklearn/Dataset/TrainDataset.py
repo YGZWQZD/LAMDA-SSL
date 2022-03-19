@@ -7,6 +7,7 @@ class TrainDataset(Dataset):
     def __init__(self,
                  transforms=None,
                  transform=None,
+                 pre_transform=None,
                  target_transform=None,
                  unlabeled_transform=None,
                  labeled_size=None,
@@ -92,6 +93,10 @@ class TrainDataset(Dataset):
 
     def add_transforms(self,transforms,dim,x,y=0):
         self.labeled_dataset.add_transforms(transforms, dim, x, y)
+
+    def add_pre_transform(self,transform,dim,x,y=0):
+        self.labeled_dataset.add_pre_transform(transform, dim, x, y)
+        self.unlabeled_dataset.add_pre_transform(transform, dim, x, y)
 
     def add_unlabeled_transform(self,unlabeled_transform,dim,x,y=0):
         self.unlabeled_dataset.add_transform(unlabeled_transform,dim,x,y)

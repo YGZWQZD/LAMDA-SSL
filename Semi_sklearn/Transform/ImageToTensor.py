@@ -19,8 +19,7 @@ class ToTensor(Transformer):
             return X
 
         elif isinstance(X,torch.Tensor):
-            X=X.numpy()
-            X = torch.FloatTensor(X)
+            X = X.float()
             return X
         else:
             X=torch.FloatTensor(X)

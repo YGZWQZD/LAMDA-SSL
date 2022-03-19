@@ -15,6 +15,15 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                  valid_dataloader=None,
                  test_dataloader=None,
 
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+
                  augmentation=None,
                  network=None,
 
@@ -55,7 +64,14 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                                     valid_batch_sampler=valid_batch_sampler,
                                     test_sampler=test_sampler,
                                     test_batch_sampler=test_batch_sampler,
-
+                                    labeled_dataset=labeled_dataset,
+                                    unlabeled_dataset=unlabeled_dataset,
+                                    labeled_dataloader=labeled_dataloader,
+                                    unlabeled_dataloader=unlabeled_dataloader,
+                                    labeled_sampler=labeled_sampler,
+                                    unlabeled_sampler=unlabeled_sampler,
+                                    labeled_batch_sampler=labeled_batch_sampler,
+                                    unlabeled_batch_sampler=unlabeled_batch_sampler,
                                     epoch=epoch,
                                     num_it_epoch=num_it_epoch,
                                     num_it_total=num_it_total,

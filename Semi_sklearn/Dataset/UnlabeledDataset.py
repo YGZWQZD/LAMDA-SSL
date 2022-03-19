@@ -10,6 +10,7 @@ from Semi_sklearn.utils import get_len,get_indexing_method
 
 class UnlabeledDataset(Dataset):
     def __init__(self,
+                 pre_transform=None,
                  transform=None
                  ):
         # if isinstance(root, (str, bytes)):
@@ -57,6 +58,16 @@ class UnlabeledDataset(Dataset):
                 self.transform=[self.transform]
             self.transform[x]=self.insert(self.transform[x],y,transform)
 
+    def add_pre_transform(self,transform,dim=1,x=0,y=0):
+        if self.pre_transform is None:
+            self.pre_transform=transform
+        elif dim==0:
+            self.pre_transform=self.insert(self.pre_transform,x,transform)
+        else:
+            if not isinstance(self.pre_transform, (dict, tuple, list)):
+                self.pre_transform=[self.pre_transform]
+            self.pre_transform[x]=self.insert(self.pre_transform[x],y,transform)
+
     def _transform(self,X,transform):
 
         if isinstance(transform,(list,tuple)):
@@ -74,7 +85,25 @@ class UnlabeledDataset(Dataset):
             raise TransformError('Transforms is not Callable!')
         return X
 
-    def apply_transform(self,X,y):
+    def apply_transform(self,X,y=None):
+        if self.pre_transform is not None:
+            if isinstance(self.pre_transform,(tuple,list)):
+                list_X=[]
+                for item in self.pre_transform:
+                    _X=self._transform(X,item)
+                    list_X.append(_X)
+                X=list_X
+
+            elif isinstance(self.pre_transform,dict):
+                dict_X={}
+                for key, val in self.pre_transform.items():
+                    _X=self._transform(X,val)
+                    dict_X[key]=_X
+                X = dict_X
+
+            else:
+                X=self._transform(X,self.pre_transform)
+
         if self.transform is not None:
             if isinstance(self.transform, (tuple, list)):
                 list_X = []
@@ -87,7 +116,7 @@ class UnlabeledDataset(Dataset):
                 dict_X = {}
                 for key, val in self.transform.items():
                     _X = self._transform(X, val)
-                    dict_X[key] = val
+                    dict_X[key] = _X
                 X = dict_X
             else:
                 X=self._transform(X,self.transform)
@@ -101,6 +130,7 @@ class UnlabeledDataset(Dataset):
         yi = indexing(y,i)
         Xi = copy.deepcopy(Xi)
         yi=copy.deepcopy(yi)
+
         Xi, yi = self.apply_transform(Xi, yi)
         return i,Xi, yi
 
