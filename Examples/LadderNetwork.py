@@ -26,7 +26,7 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Download\mnist',stratified=True,shuffle=True,download=False)
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False)
 # dataset
 import torch.nn as nn
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)

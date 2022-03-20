@@ -39,7 +39,7 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 
 # dataset
-dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
+dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
 dataset.init_transforms()
 

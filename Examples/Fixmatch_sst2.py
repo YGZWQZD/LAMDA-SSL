@@ -24,7 +24,7 @@ from Semi_sklearn.Transform.GloVe import Glove
 vectors=Glove()
 # dataset
 #dataset=IMDB(root='..\Download\IMDB',stratified=True,shuffle=True,download=False,vectors=vectors,length=300)
-dataset=SST2(root='..\Download\SST2',stratified=True,shuffle=True,download=False,vectors=vectors,length=50)
+dataset=SST2(root='..\Semi_sklearn\Download\SST2',stratified=True,shuffle=True,download=False,vectors=vectors,length=50)
 dataset.init_dataset()
 dataset.init_transforms()
 

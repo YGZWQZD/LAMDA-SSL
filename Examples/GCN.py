@@ -10,7 +10,7 @@ from Semi_sklearn.Evaluation.Classification.F1 import F1
 from Semi_sklearn.Evaluation.Classification.AUC import AUC
 from Semi_sklearn.Evaluation.Classification.Confusion_matrix import Confusion_matrix
 from Semi_sklearn.Opitimizer.Adam import Adam
-dataset=Cora(labeled_size=0.1,root='..\Download\Cora')
+dataset=Cora(labeled_size=0.1,root='..\Semi_sklearn\Download\Cora')
 
 dataset._init_dataset()
 # print(dataset.data.edge_index.shape)

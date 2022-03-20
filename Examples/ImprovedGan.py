@@ -31,7 +31,7 @@ from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 from Semi_sklearn.Model.Classifier.ImprovedGan import ImprovedGan
 
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Download\mnist',stratified=True,shuffle=True,download=False)
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
 dataset.init_transforms()
 
@@ -108,8 +108,8 @@ evaluation={
 model=ImprovedGan(dim_in=28*28,num_class=10,dim_z=500,dim_hidden=500,
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-                     epoch=1000,num_it_epoch=540,
-                     num_it_total=540*1000,optimizer=optimizer,device='cpu',
+                     epoch=10,num_it_epoch=540,
+                     num_it_total=540*10,optimizer=optimizer,device='cpu',
                      eval_it=200,mu=1,weight_decay=5e-4,evaluation=evaluation,
                      train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
                      train_batch_sampler=train_batchsampler,lambda_u=1)
@@ -118,7 +118,6 @@ model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_
 
 X=model.generate(100)
 print(X.shape)
-X=X.view(X.shape[0],28,28)
 X=X.detach().numpy()
 img=ToImage()(X[0])
 import matplotlib.pyplot as plt

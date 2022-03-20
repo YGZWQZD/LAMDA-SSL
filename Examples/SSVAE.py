@@ -29,7 +29,7 @@ from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 
 # dataset
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Download\mnist',stratified=True,shuffle=True,download=False)
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False)
 # dataset
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
@@ -91,9 +91,6 @@ weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 
-augmentation={
-    'To_image':ToImage()
-}
 
 # network
 # network=CifarResNeXt(cardinality=4,depth=28,base_width=4,num_classes=10)
@@ -115,21 +112,25 @@ evaluation={
 
 model=SSVAE(dim_in=(28,28),num_class=10,
                      dim_z=500,
-                     dim_hidden=500,
                      alpha=1,
                      num_labeled=6000,
-                     # bernoulli=False,
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-                     augmentation=augmentation,
-                     epoch=1000,num_it_epoch=540,
-                     num_it_total=540*1000,optimizer=optimizer,device='cpu',
-                     eval_it=50,mu=1,weight_decay=5e-4,evaluation=evaluation,
+                     epoch=50,num_it_epoch=540,
+                     num_it_total=540*50,optimizer=optimizer,device='cpu',
+                     eval_it=200,mu=1,weight_decay=5e-4,evaluation=evaluation,
                      train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
                      train_batch_sampler=train_batchsampler)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
-
+X=model.generate(100)
+print(X.shape)
+X=X.detach().numpy()
+img=ToImage()(X[0])
+import matplotlib.pyplot as plt
+plt.imshow(img)
+plt.axis('off')
+plt.show()
 
 
 # from sklearn.model_selection import RandomizedSearchCV

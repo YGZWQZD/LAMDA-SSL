@@ -1,8 +1,7 @@
-from Semi_sklearn.Model.Classifier.LabelSpreading import Label_spreading
+from Semi_sklearn.Model.Classifier.LabelPropagation import Label_propagation
 from sklearn import datasets
 import numpy as np
 from sklearn.metrics import accuracy_score
-from sklearn.svm import SVC
 breast_cancer = datasets.load_digits()
 
 rng = np.random.RandomState(54)
@@ -16,7 +15,7 @@ labeled_X=data[random_unlabeled_points]
 labeled_y=breast_cancer.target[random_unlabeled_points]
 
 unlabeled_X=data[~random_unlabeled_points]
-model=Label_spreading()
+model=Label_propagation()
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 result=model.predict(unlabeled_X,Transductive=True)
 unlabeled_y=breast_cancer.target[~random_unlabeled_points]

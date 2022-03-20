@@ -8,7 +8,6 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Model.Classifier.ReMixmatch import ReMixmatch
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -25,7 +24,7 @@ from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Model.Classifier.S4L import S4L
 
 # dataset
-dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
+dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
 dataset.init_transforms()
 
