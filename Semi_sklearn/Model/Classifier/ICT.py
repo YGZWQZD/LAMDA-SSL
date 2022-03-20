@@ -10,6 +10,7 @@ from Semi_sklearn.utils import one_hot
 from Semi_sklearn.Transform.Mixup import Mixup
 import torch.nn.functional as F
 from Semi_sklearn.utils import Bn_Controller
+from Semi_sklearn.Loss.Cross_Entropy import Cross_Entropy
 import torch.nn as nn
 import  Semi_sklearn.Model.ICT as Base_ICT
 
@@ -98,8 +99,8 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam=train_result
         sup_loss = cross_entropy(logits_x_lb, lb_y).mean()  # CE_loss for labeled data
-        unsup_loss = lam*nn.CrossEntropyLoss()(logits_x_ulb_mix,logits_x_ulb_1) +\
-                     (1.0 - lam)*nn.CrossEntropyLoss()(logits_x_ulb_mix,logits_x_ulb_2)
+        unsup_loss = lam*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_1)) +\
+                     (1.0 - lam)*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_2))
         # unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
         loss = sup_loss + self.lambda_u * _warmup * unsup_loss

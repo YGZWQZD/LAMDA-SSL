@@ -15,4 +15,8 @@ class Cross_Entropy(nn.Module):
             assert logits.shape == targets.shape
             log_pred = F.log_softmax(logits, dim=-1)
             nll_loss = torch.sum(-targets * log_pred, dim=1)
+            if self.reduction=='mean':
+                nll_loss=nll_loss.mean()
+            elif self.reduction=='sum':
+                nll_loss=nll_loss.sum()
             return nll_loss
