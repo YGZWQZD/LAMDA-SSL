@@ -3,7 +3,7 @@ from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
-from sklearn.base import ClassifierMixin
+from sklearn.base import RegressorMixin
 from torch.nn import Softmax
 import torch
 from Semi_sklearn.utils import partial
@@ -11,6 +11,7 @@ from Semi_sklearn.utils import class_status
 from Semi_sklearn.utils import cross_entropy,consistency_loss
 from Semi_sklearn.utils import Bn_Controller
 import Semi_sklearn.Model.TemporalEnsembling as Base_TemporalEnsembling
+from Semi_sklearn.Loss.Consistency import Consistency
 import numpy as np
 
 # def fix_bn(m,train=False):
@@ -21,7 +22,7 @@ import numpy as np
 #         else:
 #             m.eval()
 
-class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMixin):
+class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,RegressorMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -100,14 +101,14 @@ class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMi
                                     num_classes=num_classes,
                                     num_samples=num_samples
                                     )
-        self._estimator_type = ClassifierMixin._estimator_type
+        self._estimator_type = RegressorMixin._estimator_type
 
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb,iter_unlab_pslab  = train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
+        sup_loss = Consistency(reduction='mean')(logits_x_lb, lb_y)
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb,iter_unlab_pslab.detach())
+        unsup_loss = Consistency(reduction='mean')(logits_x_ulb,iter_unlab_pslab.detach())
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 

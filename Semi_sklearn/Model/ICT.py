@@ -1,27 +1,18 @@
 import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
-from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from sklearn.base import ClassifierMixin
-from torch.nn import Softmax
 import torch
-from Semi_sklearn.utils import partial
-from Semi_sklearn.utils import class_status
-from Semi_sklearn.utils import cross_entropy,consistency_loss
-from Semi_sklearn.utils import Bn_Controller
-import Semi_sklearn.Model.TemporalEnsembling as Base_TemporalEnsembling
+from Semi_sklearn.utils import cross_entropy
 import numpy as np
+from Semi_sklearn.utils import class_status
+from Semi_sklearn.utils import one_hot
+from Semi_sklearn.Transform.Mixup import Mixup
+import torch.nn.functional as F
+from Semi_sklearn.utils import Bn_Controller
+import torch.nn as nn
 
-# def fix_bn(m,train=False):
-#     classname = m.__class__.__name__
-#     if classname.find('BatchNorm') != -1:
-#         if train:
-#             m.train()
-#         else:
-#             m.eval()
-
-class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMixin):
+class ICT(InductiveEstimator,SemiDeepModelMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -58,10 +49,10 @@ class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMi
                  mu=None,
                  ema_decay=None,
                  weight_decay=None,
-                 num_classes=None,
-                 num_samples=None
+                 num_classes=10,
+                 alpha=None
                  ):
-        Base_TemporalEnsembling.TemporalEnsembling.__init__(self,train_dataset=train_dataset,
+        SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
@@ -94,22 +85,46 @@ class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMi
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation,
-                                    warmup=warmup,
-                                    lambda_u=lambda_u,
-                                    num_classes=num_classes,
-                                    num_samples=num_samples
+                                    evaluation=evaluation
                                     )
-        self._estimator_type = ClassifierMixin._estimator_type
+        self.ema_decay=ema_decay
+        self.lambda_u=lambda_u
+        self.weight_decay=weight_decay
+        self.warmup=warmup
+        self.alpha=alpha
+        self.num_classes=num_classes
+        self.bn_controller=Bn_Controller()
 
+    def init_transform(self):
+        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
 
-    def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb, lb_y, logits_x_ulb,iter_unlab_pslab  = train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
-        _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb,iter_unlab_pslab.detach())
-        loss = sup_loss + _warmup * self.lambda_u *unsup_loss
-        return loss
+    def start_fit(self):
+        self.num_classes = self.num_classes if self.num_classes is not None else \
+            class_status(self._train_dataset.labeled_dataset.y).num_class
+        self.it_total = 0
+        self._network.zero_grad()
+        self._network.train()
+
+    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+
+        lb_x = lb_X[0]
+        ulb_x_1 =ulb_X[0]
+        logits_x_lb = self._network(lb_x)
+        index = torch.randperm(ulb_x_1.size(0)).to(self.device)
+        ulb_x_2=ulb_x_1[index]
+        mixup=Mixup(self.alpha)
+        mixed_x = mixup.fit(ulb_x_1).transform(ulb_x_2)
+        lam=mixup.lam
+
+        self.bn_controller.freeze_bn(self._network)
+        logits_x_ulb_1 = self._network(ulb_x_1)
+        logits_x_ulb_2 = self._network(ulb_x_2)
+        logits_x_ulb_mix = self._network(mixed_x)
+        self.bn_controller.unfreeze_bn(self._network)
+
+        return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam
+
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)

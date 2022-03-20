@@ -1,27 +1,20 @@
 import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
-from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
-from sklearn.base import ClassifierMixin
-from torch.nn import Softmax
+from sklearn.base import RegressorMixin
 import torch
-from Semi_sklearn.utils import partial
-from Semi_sklearn.utils import class_status
-from Semi_sklearn.utils import cross_entropy,consistency_loss
-from Semi_sklearn.utils import Bn_Controller
-import Semi_sklearn.Model.TemporalEnsembling as Base_TemporalEnsembling
+from Semi_sklearn.utils import cross_entropy
+from Semi_sklearn.Loss.Consistency import Consistency
 import numpy as np
+from Semi_sklearn.utils import class_status
+from Semi_sklearn.utils import one_hot
+from Semi_sklearn.Transform.Mixup import Mixup
+import torch.nn.functional as F
+from Semi_sklearn.utils import Bn_Controller
+import torch.nn as nn
+import  Semi_sklearn.Model.ICT as ICT_model
 
-# def fix_bn(m,train=False):
-#     classname = m.__class__.__name__
-#     if classname.find('BatchNorm') != -1:
-#         if train:
-#             m.train()
-#         else:
-#             m.eval()
-
-class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMixin):
+class ICT(ICT_model.ICT,RegressorMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -58,10 +51,11 @@ class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMi
                  mu=None,
                  ema_decay=None,
                  weight_decay=None,
-                 num_classes=None,
-                 num_samples=None
+                 T=None,
+                 num_classes=10,
+                 alpha=None
                  ):
-        Base_TemporalEnsembling.TemporalEnsembling.__init__(self,train_dataset=train_dataset,
+        ICT_model.ICT.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
@@ -95,20 +89,23 @@ class TemporalEnsembling(Base_TemporalEnsembling.TemporalEnsembling,ClassifierMi
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
-                                    warmup=warmup,
-                                    lambda_u=lambda_u,
-                                    num_classes=num_classes,
-                                    num_samples=num_samples
+                                   warmup=warmup,
+                                   lambda_u=lambda_u,
+                                   T=T,
+                                   num_classes=num_classes,
+                                   alpha=alpha
                                     )
-        self._estimator_type = ClassifierMixin._estimator_type
+        self._estimator_type = RegressorMixin._estimator_type
 
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb, lb_y, logits_x_ulb,iter_unlab_pslab  = train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
+        logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam=train_result
+        sup_loss = Consistency(reduction='mean')(logits_x_lb, lb_y)  # CE_loss for labeled data
+        unsup_loss = lam*Consistency(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_1) +\
+                     (1.0 - lam)*Consistency(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_2)
+        # unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb,iter_unlab_pslab.detach())
-        loss = sup_loss + _warmup * self.lambda_u *unsup_loss
+        loss = sup_loss + self.lambda_u * _warmup * unsup_loss
         return loss
 
     def predict(self,X=None,valid=None):

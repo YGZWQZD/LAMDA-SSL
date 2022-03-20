@@ -132,4 +132,3 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)
-
