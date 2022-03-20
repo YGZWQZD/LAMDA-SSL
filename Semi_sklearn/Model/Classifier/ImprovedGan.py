@@ -1,16 +1,13 @@
 import copy
 
-import numpy as np
 import torch.nn.functional as F
 
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 import Semi_sklearn.Network.ImprovedGan as ImGan
-import random
 from sklearn.base import ClassifierMixin
 import torch
-from Semi_sklearn.utils import one_hot
 from torch.autograd import Variable
 from Semi_sklearn.utils import to_device
 from Semi_sklearn.Base.GeneratorMixin import GeneratorMixin
@@ -118,8 +115,8 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
             ulb_X = ulb_X[0] if isinstance(ulb_X, (list, tuple)) else ulb_X
             # print(lb_X.max())
             num_unlabeled = ulb_X.shape[0]
-            lb_X=lb_X*1/255.
-            ulb_X = ulb_X * 1 / 255.
+            # lb_X=lb_X*1/255.
+            # ulb_X = ulb_X * 1 / 255.
             ulb_X_1, ulb_X_2 = ulb_X[:num_unlabeled // 2], ulb_X[num_unlabeled // 2:]
 
             train_D_result = self.train_D(lb_X, lb_y, ulb_X_1)
@@ -259,7 +256,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
         X=X.view(X.shape[0],-1)
-        X=X*1/255.
+        # X=X*1/255.
         outputs = self._network(X)
         return outputs
 
@@ -269,5 +266,6 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
     def generate(self,num,z=None):
 
         z = Variable(torch.randn(num, self.dim_z).to(self.device)) if z is None else z
-
-        return self._network.G(num,z)
+        z=self._network.G(num,z)
+        z=z.view(z.shape[0],self.dim_in)
+        return z

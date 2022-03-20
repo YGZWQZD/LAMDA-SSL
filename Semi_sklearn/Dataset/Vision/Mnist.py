@@ -1,14 +1,16 @@
-import numpy as np
 from Semi_sklearn.Dataset.SemiDataset import SemiDataset
 from Semi_sklearn.Dataset.VisionMixin import VisionMixin
-from torchvision.datasets.utils import check_integrity, download_and_extract_archive
-import os
-import pickle
-from Semi_sklearn.Split.SemiSplit import SemiSplit
+
+from Semi_sklearn.Transform.ImageToTensor import ToTensor
+from sklearn.pipeline import Pipeline
+
+from Semi_sklearn.Transform.ToImage import ToImage
+from Semi_sklearn.Split.Split import SemiSplit
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.LabeledDataset import LabeledDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from torchvision.datasets import mnist
+from Semi_sklearn.Transform.MinMaxScalar import MinMaxScalar
 
 class Mnist(SemiDataset,VisionMixin):
     def __init__(
@@ -58,7 +60,8 @@ class Mnist(SemiDataset,VisionMixin):
         self.valid_indexing_method=None
         self.test_X_indexing_method=None
         self.test_y_indexing_method=None
-
+        self.min_val=0
+        self.max_val=255
 
         self.train_data=mnist.MNIST(root=root,download=download,train=True)
         self.test_data=mnist.MNIST(root=root,download=False,train=False)
@@ -67,6 +70,24 @@ class Mnist(SemiDataset,VisionMixin):
                              valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
         VisionMixin.__init__(self)
+
+    def init_transforms(self):
+        self.transforms=None
+        self.target_transform=None
+        self.pre_transform=ToImage()
+        self.transform=Pipeline([('ToTensor',ToTensor()),
+                              ('MinMaxScalar',MinMaxScalar(min_val=self.min_val,max_val=self.max_val))
+                              ])
+        self.unlabeled_transform=Pipeline([('ToTensor',ToTensor()),
+                              ('MinMaxScalar',MinMaxScalar(min_val=self.min_val,max_val=self.max_val))
+                              ])
+        self.test_transform=Pipeline([('ToTensor',ToTensor()),
+                              ('MinMaxScalar',MinMaxScalar(min_val=self.min_val,max_val=self.max_val))
+                              ])
+        self.valid_transform=Pipeline([('ToTensor',ToTensor()),
+                              ('MinMaxScalar',MinMaxScalar(min_val=self.min_val,max_val=self.max_val))
+                              ])
+        return self
 
     def _init_dataset(self):
 

@@ -12,7 +12,7 @@ class Solarize(Transformer):
         self.num_bins=num_bins
         self.magnitude=magnitude
         self.magnitudes=torch.linspace(self.max_v, self.min_v, self.num_bins)
-        self.v=float(self.magnitudes[self.magnitude].item()) if v is None else v
+        self.v=float(self.magnitudes[self.magnitude-1].item()) if v is None else v
 
     def transform(self,X):
         if isinstance(X,np.ndarray):

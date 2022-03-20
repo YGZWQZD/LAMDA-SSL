@@ -14,7 +14,6 @@ class LabeledDataset(Dataset):
         self.transforms=transforms
         self.transform=transform
         self.pre_transform=pre_transform
-        # TODO add pre_transform for VisionMixin and TextMixin
         self.target_transform=target_transform
         self.X=None
         self.y=None

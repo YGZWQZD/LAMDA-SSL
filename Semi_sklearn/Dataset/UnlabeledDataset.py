@@ -17,6 +17,7 @@ class UnlabeledDataset(Dataset):
         #     root = os.path.expanduser(root)
         # self.root = root
         self.transform=transform
+        self.pre_transform = pre_transform
         self.X=None
         self.y=None
         self.len=None

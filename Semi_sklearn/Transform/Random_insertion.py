@@ -1,13 +1,13 @@
 from Semi_sklearn.Transform.Transformer import Transformer
-from Semi_sklearn.Transform.Synonyms import Synonyms
+from Semi_sklearn.Test.Synonyms import Synonyms
 import random
-from Semi_sklearn.Transform.EDA_tokenizer import EDA_tokenzier
+from Semi_sklearn.Transform.Tokenizer import Tokenizer
 
 class Random_insertion(Transformer):
     def __init__(self,n=1,tokenizer=None):
         super(Random_insertion, self).__init__()
         self.n=n
-        self.tokenizer=tokenizer if tokenizer is not None else EDA_tokenzier()
+        self.tokenizer=tokenizer if tokenizer is not None else Tokenizer('basic_english','en')
 
     def add_word(self,X):
 

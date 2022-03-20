@@ -1,11 +1,11 @@
 from Semi_sklearn.Transform.Transformer import Transformer
 import random
-from Semi_sklearn.Transform.EDA_tokenizer import EDA_tokenzier
+from Semi_sklearn.Transform.Tokenizer import Tokenizer
 class Random_deletion(Transformer):
     def __init__(self,p,tokenizer=None):
         super(Random_deletion, self).__init__()
         self.p=p
-        self.tokenizer=tokenizer if tokenizer is not None else EDA_tokenzier()
+        self.tokenizer=tokenizer if tokenizer is not None else Tokenizer('basic_english','en')
     def transform(self,X):
         tokenized=True
         if isinstance(X, str):

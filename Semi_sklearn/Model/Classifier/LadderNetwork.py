@@ -101,8 +101,8 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(list,tuple)) else lb_y
         ulb_X=ulb_X[0]if isinstance(ulb_X,(list,tuple)) else ulb_X
-        lb_X=lb_X*1/255.
-        ulb_X = ulb_X * 1 / 255.
+        # lb_X=lb_X*1/255.
+        # ulb_X = ulb_X * 1 / 255.
         lb_X=lb_X.view(lb_X.shape[0],-1)
         ulb_X = ulb_X.view(ulb_X.shape[0], -1)
         lb_X= Variable(lb_X, requires_grad=False)
@@ -160,7 +160,7 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
-        X=X*1/255.
+        # X=X*1/255.
         _X=X.view(X.shape[0],-1)
         outputs = self._network(_X)
         return outputs

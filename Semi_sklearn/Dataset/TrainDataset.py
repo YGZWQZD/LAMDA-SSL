@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 from .LabeledDataset import LabeledDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
-from ..Split.SemiSplit import SemiSplit
+from ..Split.Split import SemiSplit
 
 class TrainDataset(Dataset):
     def __init__(self,

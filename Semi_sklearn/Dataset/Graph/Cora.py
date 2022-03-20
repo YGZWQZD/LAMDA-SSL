@@ -1,6 +1,6 @@
 import numpy as np
 from Semi_sklearn.Dataset.SemiDataset import SemiDataset
-from Semi_sklearn.Split.SemiSplit import SemiSplit
+from Semi_sklearn.Split.Split import SemiSplit
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.LabeledDataset import LabeledDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset

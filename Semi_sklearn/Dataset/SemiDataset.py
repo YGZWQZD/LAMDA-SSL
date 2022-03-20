@@ -3,7 +3,7 @@ from .TrainDataset import TrainDataset
 from .LabeledDataset import LabeledDataset
 from .UnlabeledDataset import UnlabeledDataset
 from ..utils import get_indexing_method
-from ..Split.SemiSplit import SemiSplit
+from ..Split.Split import SemiSplit
 # from Semi_sklearn.utils import partial
 # import torch
 # from scipy import sparse

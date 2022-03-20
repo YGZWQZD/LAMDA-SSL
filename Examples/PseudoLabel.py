@@ -8,6 +8,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
+from Semi_sklearn.Model.Classifier.PseudoLabel import PseudoLabel
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -41,8 +42,6 @@ test_y=getattr(dataset.test_dataset,'y')
 train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
-
-
 valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
 
 test_dataset=UnlabeledDataset(transform=dataset.test_transform)
@@ -53,7 +52,7 @@ weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 
-strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10)),
+strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=10,num_bins=30)),
                               ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
                               ('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
@@ -95,33 +94,18 @@ evaluation={
     'Confusion_matrix':Confusion_matrix(normalize='true')
 }
 
-# model
-epoch=1
-num_it_total=2**20
-threshold=0.95
-lambda_u=1
-mu=7
-T=1
-weight_decay=0
-device='cpu'
-ema_decay=0.999
+model=PseudoLabel(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
+               train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
+               augmentation=augmentation,network=network,epoch=1,num_it_epoch=2**20,
+               num_it_total=2**20,optimizer=optimizer,scheduler=scheduler,device='cuda:0',
+               eval_it=2000,mu=1,weight_decay=5e-4,evaluation=evaluation,
+               lambda_u=1,train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
+               train_batch_sampler=train_batchsampler,ema_decay=0.999,warmup=0.4,threshold=0.95)
+
+model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 
 
 
 
-train_batch_sampler=None,
 
-valid_batch_sampler=None,
 
-test_batch_sampler=None,
-labeled_dataset=None,
-unlabeled_dataset=None,
-labeled_dataloader=None,
-unlabeled_dataloader=None,
-labeled_sampler=None,
-unlabeled_sampler=None,
-labeled_batch_sampler=None,
-unlabeled_batch_sampler=None,
-num_it_epoch=None,
-eval_epoch=None,
-eval_it=None,

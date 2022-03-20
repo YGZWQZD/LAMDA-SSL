@@ -2,7 +2,7 @@ from Semi_sklearn.Dataset.SemiDataset import SemiDataset
 from Semi_sklearn.Dataset.TextMixin import TextMixin
 from torchtext.utils import download_from_url,extract_archive
 import io
-from Semi_sklearn.Split.SemiSplit import SemiSplit
+from Semi_sklearn.Split.Split import SemiSplit
 from Semi_sklearn.Dataset.LabeledDataset import LabeledDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset

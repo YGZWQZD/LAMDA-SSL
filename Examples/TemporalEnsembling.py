@@ -8,6 +8,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
+from Semi_sklearn.Model.Classifier.TemporalEnsembling import TemporalEnsembling
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -41,8 +42,6 @@ test_y=getattr(dataset.test_dataset,'y')
 train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
-
-
 valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
 
 test_dataset=UnlabeledDataset(transform=dataset.test_transform)
@@ -53,7 +52,7 @@ weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 
-strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10)),
+strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=10,num_bins=30)),
                               ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
                               ('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
@@ -62,22 +61,21 @@ augmentation={
     'weakly_augmentation':weakly_augmentation,
     'strongly_augmentation':strongly_augmentation
 }
+
 # optimizer
-optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
-scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
+optimizer=SGD(lr=0.1,momentum=0.9,weight_decay=5e-4)
+scheduler=CosineAnnealingLR(eta_min=0.0001,T_max=400)
 
 #dataloader
 train_dataloader=TrainDataLoader(num_workers=0)
-valid_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
-test_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
+test_dataloader=LabeledDataLoader(batch_size=100,num_workers=0,drop_last=False)
+valid_dataloader=LabeledDataLoader(batch_size=100,num_workers=0,drop_last=False)
 
 # sampler
-train_sampler=RandomSampler(replacement=True,num_samples=64*(2**20))
-train_batchsampler=SemiBatchSampler(batch_size=64,drop_last=True)
-valid_sampler=SequentialSampler()
+train_sampler=[RandomSampler(replacement=True),RandomSampler(replacement=False)]
+train_batchsampler=SemiBatchSampler(batch_size=100,drop_last=True)
 test_sampler=SequentialSampler()
-
-
+valid_sampler=SequentialSampler()
 
 # network
 # network=CifarResNeXt(cardinality=4,depth=28,base_width=4,num_classes=10)
@@ -95,33 +93,40 @@ evaluation={
     'Confusion_matrix':Confusion_matrix(normalize='true')
 }
 
-# model
-epoch=1
-num_it_total=2**20
-threshold=0.95
-lambda_u=1
-mu=7
-T=1
-weight_decay=0
-device='cpu'
-ema_decay=0.999
+model=TemporalEnsembling(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
+               train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
+               augmentation=augmentation,network=network,epoch=400,num_it_epoch=460,
+               num_it_total=460*400,optimizer=optimizer,scheduler=scheduler,device='cpu',
+               eval_it=2000,mu=1,weight_decay=5e-4,evaluation=evaluation,
+               lambda_u=30,train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
+               train_batch_sampler=train_batchsampler,ema_decay=0.6,warmup=0.4)
+
+model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
+
+
+
+# from sklearn.model_selection import RandomizedSearchCV
+#
+# model_=Fixmatch(train_dataset=train_dataset,test_dataset=test_dataset,
+#                train_dataloader=train_dataloader,test_dataloader=test_dataloader,
+#                augmentation=augmentation,network=network,epoch=1,num_it_epoch=2,num_it_total=2,
+#                optimizer=optimizer,scheduler=scheduler,device='cpu',eval_it=1,
+#                mu=7,T=1,weight_decay=0,evaluation=evaluation,train_sampler=train_sampler,
+#                 test_sampler=test_sampler,train_batch_sampler=train_batchsampler,ema_decay=0.999)
+#
+# param_dict = {"threshold": [0.7, 1],
+#               "lambda_u":[0.8,1]
+#               }
+#
+# random_search = RandomizedSearchCV(model_, param_distributions=param_dict,
+#                                    n_iter=1, cv=4,scoring='accuracy')
+#
+# random_search.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
+
+# print(labeled_X.shape)
+# print(unlabeled_X.shape)
 
 
 
 
-train_batch_sampler=None,
 
-valid_batch_sampler=None,
-
-test_batch_sampler=None,
-labeled_dataset=None,
-unlabeled_dataset=None,
-labeled_dataloader=None,
-unlabeled_dataloader=None,
-labeled_sampler=None,
-unlabeled_sampler=None,
-labeled_batch_sampler=None,
-unlabeled_batch_sampler=None,
-num_it_epoch=None,
-eval_epoch=None,
-eval_it=None,

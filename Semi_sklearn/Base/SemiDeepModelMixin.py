@@ -11,7 +11,7 @@ from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from Semi_sklearn.utils import EMA
 from Semi_sklearn.utils import to_device
 from torch.nn import Softmax
-from Semi_sklearn.Data_loader.TrainDataloader import TrainDataLoader
+from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 
 class SemiDeepModelMixin(SemiEstimator):
     def __init__(self, train_dataset=None,
