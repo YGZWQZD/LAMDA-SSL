@@ -4,7 +4,7 @@ from sklearn.base import ClassifierMixin
 from Semi_sklearn.utils import cross_entropy,consistency_loss
 import numpy as np
 
-from Semi_sklearn.Model.MeanTeacher import MeanTeacher
+from Semi_sklearn.Alogrithm.MeanTeacher import MeanTeacher
 
 class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
     def __init__(self,train_dataset=None,

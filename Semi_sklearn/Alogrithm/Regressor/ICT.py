@@ -12,7 +12,7 @@ from Semi_sklearn.Transform.Mixup import Mixup
 import torch.nn.functional as F
 from Semi_sklearn.utils import Bn_Controller
 import torch.nn as nn
-import  Semi_sklearn.Model.ICT as ICT_model
+import  Semi_sklearn.Alogrithm.ICT as ICT_model
 
 class ICT(ICT_model.ICT,RegressorMixin):
     def __init__(self,train_dataset=None,

@@ -10,7 +10,7 @@ from Semi_sklearn.utils import partial
 from Semi_sklearn.utils import class_status
 from Semi_sklearn.utils import cross_entropy,consistency_loss
 from Semi_sklearn.utils import Bn_Controller
-import Semi_sklearn.Model.TemporalEnsembling as Base_TemporalEnsembling
+import Semi_sklearn.Alogrithm.TemporalEnsembling as Base_TemporalEnsembling
 import numpy as np
 
 # def fix_bn(m,train=False):

@@ -10,7 +10,7 @@ class Mixup(Transformer):
 
     def fit(self,X,y=None,**fit_params):
         self.X=X
-        self.y=None
+        self.y=y
         return self
 
     def transform(self,X):

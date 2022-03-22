@@ -6,7 +6,7 @@ from Semi_sklearn.utils import cross_entropy,consistency_loss
 import numpy as np
 
 import torch
-from Semi_sklearn.Model.Pimodel import PiModel
+from Semi_sklearn.Alogrithm.Pimodel import PiModel
 
 class PiModelClassifier(PiModel,ClassifierMixin):
     def __init__(self,train_dataset=None,

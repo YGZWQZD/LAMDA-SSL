@@ -92,19 +92,22 @@ class Generator(nn.Module):
 
 
     def forward(self, batch_size=10,z=None):
-        z = Variable(torch.rand(batch_size, self.z_dim), requires_grad = False).to(self.device) if z is None else z
+        z = Variable(torch.rand(batch_size, self.z_dim), requires_grad = False,volatile = not self.training).to(self.device) if z is None else z
         for _ in range(self.num_hidden):
             z = self.activations[_](self.bn_layers[_](self.layers[_](z)) + self.bn_b[_])
         if len(self.activations)==self.num_hidden+1:
             z = self.activations[self.num_hidden](self.fc(z))
+        else:
+            z=self.fc(z)
         return z
 
 class ImprovedGAN(nn.Module):
     def __init__(self, G=None, D=None,dim_in = 28 ** 2,
-                 hidden_G=[500,500],hidden_D=[500,500],
-                 noise_level=[0.3,0.5,0.5,0.5,0.5,0.5],
-                 activations_G=[nn.Softplus(),nn.Softplus(),nn.Softplus()],
-                 activations_D=[nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
+                 hidden_G=[1000,500,250,250,250],
+                 hidden_D=[1000,500,250,250,250],
+                 noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
+                 activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus(),nn.Softplus(), nn.Softplus(), nn.Softplus()],
+                 activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  output_dim = 10,z_dim=100,device='cpu'):
         super(ImprovedGAN, self).__init__()
         if isinstance(dim_in,numbers.Number):

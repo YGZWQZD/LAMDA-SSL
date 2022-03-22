@@ -3,7 +3,7 @@ from Semi_sklearn.Loss.Consistency import Consistency
 from sklearn.base import RegressorMixin
 import numpy as np
 
-from Semi_sklearn.Model.MeanTeacher import MeanTeacher
+from Semi_sklearn.Alogrithm.MeanTeacher import MeanTeacher
 
 class MeanTeacherClassifier(MeanTeacher,RegressorMixin):
     def __init__(self,train_dataset=None,

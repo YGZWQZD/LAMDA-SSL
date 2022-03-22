@@ -4,7 +4,7 @@ from sklearn.base import RegressorMixin
 from Semi_sklearn.Loss.Consistency import Consistency
 import numpy as np
 
-from Semi_sklearn.Model.Pimodel import PiModel
+from Semi_sklearn.Alogrithm.Pimodel import PiModel
 
 class PiModelClassifier(PiModel,RegressorMixin):
     def __init__(self,train_dataset=None,

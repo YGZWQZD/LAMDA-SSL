@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from Semi_sklearn.utils import Bn_Controller
 from Semi_sklearn.Loss.Cross_Entropy import Cross_Entropy
 import torch.nn as nn
-import  Semi_sklearn.Model.ICT as Base_ICT
+import  Semi_sklearn.Alogrithm.ICT as Base_ICT
 
 class ICT(Base_ICT.ICT,ClassifierMixin):
     def __init__(self,train_dataset=None,
