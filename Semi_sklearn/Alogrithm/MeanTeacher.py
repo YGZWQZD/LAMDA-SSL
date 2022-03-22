@@ -3,14 +3,10 @@ from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
-from sklearn.base import ClassifierMixin
-from torch.nn import Softmax
+from Semi_sklearn.utils import EMA
 import torch
-from Semi_sklearn.utils import partial
-from Semi_sklearn.utils import class_status
-from Semi_sklearn.utils import cross_entropy,consistency_loss
 from Semi_sklearn.utils import Bn_Controller
-import numpy as np
+from Semi_sklearn.utils import partial
 
 # def fix_bn(m,train=False):
 #     classname = m.__class__.__name__
@@ -20,7 +16,7 @@ import numpy as np
 #         else:
 #             m.eval()
 
-class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin):
+class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -56,9 +52,7 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None,
-                 num_classes=None,
-                 num_samples=None
+                 weight_decay=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -99,76 +93,32 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin):
         self.lambda_u=lambda_u
         self.weight_decay=weight_decay
         self.warmup=warmup
-        self.num_classes=num_classes
-        self.num_samples=num_samples
-        self.ema_pslab=None
-        self.epoch_pslab=None
         self.bn_controller=Bn_Controller()
-        self._estimator_type = ClassifierMixin._estimator_type
 
-    def start_fit(self):
-        n_classes = self.num_classes if self.num_classes is not None else \
-                        class_status(self._train_dataset.labeled_dataset.y).num_class
-
-        n_samples = self.num_samples if self.num_samples is not None else \
-                        self._train_dataset.unlabeled_dataset.__len__()
-        self.epoch_pslab = self.create_soft_pslab(n_samples=n_samples,
-                                           n_classes=n_classes,dtype='rand')
-        self.ema_pslab   = self.create_soft_pslab(n_samples=n_samples,
-                                           n_classes=n_classes,dtype='zero')
-        self.it_total = 0
-        self._network.zero_grad()
-        self._network.train()
-
-    def end_epoch(self):
-           self._scheduler.step()
-
-    def create_soft_pslab(self, n_samples, n_classes, dtype='rand'):
-        if dtype == 'rand':
-            pslab = torch.randint(0, n_classes, (n_samples, n_classes))
-        elif dtype == 'zero':
-            pslab = torch.zeros(n_samples, n_classes)
-        else:
-            raise ValueError('Unknown pslab dtype: {}'.format(dtype))
-        return pslab.to(self.device)
-
-    def update_ema_predictions(self,iter_pslab,idxs):
-        ema_iter_pslab = (self.ema_decay * self.ema_pslab[idxs]) + (1.0 - self.ema_decay) * iter_pslab
-        self.ema_pslab[idxs] = ema_iter_pslab
-        return ema_iter_pslab / (1.0 - self.ema_decay ** (self._epoch+ 1.0))
+    def init_transform(self):
+        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
+        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-
-
-        # _ulb_idx=ulb_idx.tolist() if ulb_idx is not None else ulb_idx
-
-        lb_X=lb_X[0]
-        ulb_X=ulb_X[0]
-
-
+        lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
+        lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
+        ulb_X_1,ulb_X_2=ulb_X[0],ulb_X[1]
         logits_x_lb = self._network(lb_X)
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb = self._network(ulb_X)
+        logits_x_ulb_2 = self._network(ulb_X_2)
         self.bn_controller.unfreeze_bn(self._network)
-        # with torch.no_grad():
-        #     print(self.epoch_pslab.dtype)
-        #     iter_unlab_pslab = self.update_ema_predictions(logits_x_ulb.clone().detach(),ulb_X)
+        if self.ema is not None:
+            self.ema.apply_shadow()
         with torch.no_grad():
-            iter_unlab_pslab = self.update_ema_predictions(logits_x_ulb.clone().detach(),ulb_idx)
+            logits_x_ulb_1 = self._network(ulb_X_1)
+        if self.ema is not None:
+            self.ema.restore()
+        return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
 
-        return logits_x_lb,lb_y,logits_x_ulb,iter_unlab_pslab
-
-    def optimize(self,*args,**kwargs):
-        self._optimizer.step()
-        self._network.zero_grad()
-
-    def estimate(self,X,idx=None,*args,**kwargs):
-        X=self.normalization.fit_transform(X)
-        outputs = self._network(X)
-        return outputs
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)
-
 
 

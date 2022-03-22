@@ -1,7 +1,7 @@
 import copy
 
 import torch.nn.functional as F
-
+import torch.nn as nn
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
@@ -14,10 +14,14 @@ from Semi_sklearn.Base.GeneratorMixin import GeneratorMixin
 
 class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,GeneratorMixin):
     def __init__(self,
-                 dim_in,
-                 num_class,
-                 dim_z,
-                 dim_hidden,
+                 dim_in=(28,28),
+                 num_class=10,
+                 dim_z=500,
+                 hidden_G=[500,500],
+                 hidden_D=[1000,500,250,250,250],
+                 noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
+                 activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus()],
+                 activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  num_labeled=None,
                  train_dataset=None,
                  valid_dataset=None,
@@ -53,7 +57,11 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                  test_sampler=None,
                  test_batch_sampler=None,
                  parallel=None):
-        network=ImGan.ImprovedGAN( dim_in = dim_in, output_dim = num_class,z_dim=dim_z) if network is None else network
+        network=ImGan.ImprovedGAN( dim_in = dim_in, hidden_G=hidden_G,
+                                   hidden_D=hidden_D,activations_D=activations_D,
+                                   activations_G=activations_G,
+                                   noise_level=noise_level,
+                                   output_dim = num_class,z_dim=dim_z) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -88,7 +96,6 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                                     evaluation=evaluation,
                                     parallel=parallel
                                     )
-        self.dim_hidden=dim_hidden
         self.dim_z=dim_z
         self.dim_in=dim_in
         self.num_class=num_class
@@ -113,7 +120,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
             lb_X = lb_X[0] if isinstance(lb_X, (list, tuple)) else lb_X
             lb_y = lb_y[0] if isinstance(lb_y, (list, tuple)) else lb_y
             ulb_X = ulb_X[0] if isinstance(ulb_X, (list, tuple)) else ulb_X
-            # print(lb_X.max())
+
             num_unlabeled = ulb_X.shape[0]
             # lb_X=lb_X*1/255.
             # ulb_X = ulb_X * 1 / 255.

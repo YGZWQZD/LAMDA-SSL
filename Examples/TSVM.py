@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Classifier.TSVM import TSVM
+from Semi_sklearn.Alogrithm.Classifier.TSVM import TSVM
 import numpy as np
 from sklearn import datasets
 

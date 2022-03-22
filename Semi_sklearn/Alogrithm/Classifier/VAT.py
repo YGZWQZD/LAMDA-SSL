@@ -1,15 +1,18 @@
 import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
-from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
+
 from sklearn.base import ClassifierMixin
+import numpy as np
 from Semi_sklearn.utils import EMA
 import torch
-from Semi_sklearn.utils import cross_entropy
 from Semi_sklearn.utils import class_status
+from Semi_sklearn.utils import partial
 from torch.nn import Softmax
-import math
+from Semi_sklearn.utils import _l2_normalize,kl_div_with_logit,cross_entropy
+from torch.autograd import Variable
+import torch.nn.functional as F
+from Semi_sklearn.utils import Bn_Controller
 
 # def fix_bn(m,train=False):
 #     classname = m.__class__.__name__
@@ -19,7 +22,7 @@ import math
 #         else:
 #             m.eval()
 
-class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -54,11 +57,14 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 threshold=0.95,
                  num_classes=None,
                  tsa_schedule=None,
                  weight_decay=None,
-                 T=0.4
+                 eps=6,
+                 warmup=None,
+                 it_vat=1,
+                 xi=1e-6,
+                 lambda_entmin=0.06
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -97,18 +103,17 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
-        self.threshold=threshold
         self.tsa_schedule=tsa_schedule
         self.num_classes=num_classes
-        self.T=T
         self.weight_decay=weight_decay
+        self.warmup=warmup
+        self.eps=eps
+        self.it_vat=it_vat
+        self.xi=xi
+        self.lambda_entmin=lambda_entmin
+        self.bn_controller=Bn_Controller()
         self._estimator_type = ClassifierMixin._estimator_type
 
-    def init_transform(self):
-        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
-        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
@@ -117,45 +122,51 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        lb_X=lb_X[0]
-        w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
-        num_lb = lb_X.shape[0]
-        inputs = torch.cat([lb_X, w_ulb_X, s_ulb_X], dim=0)
-        logits = self._network(inputs)
-        logits_x_lb = logits[:num_lb]
-        logits_x_ulb_w, logits_x_ulb_s = logits[num_lb:].chunk(2)
-        return logits_x_lb,lb_y,logits_x_ulb_w, logits_x_ulb_s
+        _lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
+        _ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
 
-    def get_tsa(self):
-        training_progress = self.it_total / self.num_it_total
+        logits_x_lb = self._network(_lb_X)
+        # print(torch.any(torch.isnan(logits_x_lb)))
+        self.bn_controller.freeze_bn(self._network)
+        logits_x_ulb = self._network(_ulb_X)
 
-        if self.tsa_schedule is None or self.tsa_schedule == 'none':
-            return 1
-        else:
-            if self.tsa_schedule == 'linear':
-                threshold = training_progress
-            elif self.tsa_schedule == 'exp':
-                scale = 5
-                threshold = math.exp((training_progress - 1) * scale)
-            elif self.tsa_schedule == 'log':
-                scale = 5
-                threshold = 1 - math.exp((-training_progress) * scale)
-            else:
-                raise ValueError('Can not get tsa' )
-            tsa = threshold * (1 - 1 / self.num_classes) + 1 / self.num_classes
-            return tsa
+        # print(torch.any(torch.isnan(logits_x_lb)))
+        # print(torch.any(torch.isnan(logits_x_ulb)))
+        d = torch.Tensor(_ulb_X.size()).normal_()
+        for i in range(self.it_vat):
+            d = _l2_normalize(d)
+            d = Variable(d.to(self.device), requires_grad=True)
+            y_hat = self._network(_ulb_X + d)
+            # print(torch.any(torch.isnan(y_hat)))
+            delta_kl = kl_div_with_logit(logits_x_ulb.detach(), y_hat)
+            # print(delta_kl)
+            delta_kl.backward()
+            d = d.grad.data.clone()
+            self._network.zero_grad()
+
+        d = _l2_normalize(d)
+        d = Variable(d)
+        r_adv = self.eps * d
+        y_hat = self._network(_ulb_X + r_adv.detach())
+        # print(torch.any(torch.isnan(y_hat)))
+        self.bn_controller.unfreeze_bn(self._network)
+        logits_x_ulb=logits_x_ulb.detach()
+        return logits_x_lb,lb_y,logits_x_ulb, y_hat
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb_w, logits_x_ulb_s=train_result
-        tsa = self.get_tsa()
-        sup_mask = torch.max(torch.softmax(logits_x_lb, dim=-1), dim=-1)[0].le(tsa).float().detach()
-        sup_loss = (cross_entropy(logits_x_lb, lb_y, reduction='none')* sup_mask).mean()  # CE_loss for labeled data
-        pseudo_label = torch.softmax(logits_x_ulb_w, dim=-1)
-        max_probs, max_idx = torch.max(pseudo_label, dim=-1)
-        mask = max_probs.ge(self.threshold).float()
-        pseudo_label = torch.softmax(logits_x_ulb_w / self.T, dim=-1)
-        unsup_loss = (cross_entropy(logits_x_ulb_s, pseudo_label,use_hard_labels=False)*mask ).mean() # MSE loss for unlabeled data
-        loss = sup_loss + self.lambda_u * unsup_loss
+        logits_x_lb,lb_y,logits_x_ulb,y_hat=train_result
+        unsup_warmup = np.clip(self.it_total / (self.warmup * self.num_it_total),
+                a_min=0.0, a_max=1.0)
+
+        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
+        # print(sup_loss)
+        unsup_loss = kl_div_with_logit(logits_x_ulb, y_hat)
+        # print(unsup_loss)
+        p = F.softmax(logits_x_ulb, dim=1)
+        entmin_loss=-(p*F.log_softmax(logits_x_ulb, dim=1)).sum(dim=1).mean(dim=0)
+        # print(entmin_loss)
+        loss = sup_loss + self.lambda_u * unsup_loss * unsup_warmup + self.lambda_entmin * entmin_loss
         return loss
 
     def predict(self,X=None,valid=None):

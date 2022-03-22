@@ -4,15 +4,23 @@ from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from sklearn.base import ClassifierMixin
-from Semi_sklearn.utils import EMA
-import torch
-from Semi_sklearn.utils import cross_entropy
-from Semi_sklearn.utils import partial
-import numpy as np
 from torch.nn import Softmax
+import torch
+from Semi_sklearn.utils import partial
+from Semi_sklearn.utils import class_status
+from Semi_sklearn.utils import cross_entropy,consistency_loss
 from Semi_sklearn.utils import Bn_Controller
+import numpy as np
 
-class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+# def fix_bn(m,train=False):
+#     classname = m.__class__.__name__
+#     if classname.find('BatchNorm') != -1:
+#         if train:
+#             m.train()
+#         else:
+#             m.eval()
+
+class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -49,7 +57,8 @@ class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  mu=None,
                  ema_decay=None,
                  weight_decay=None,
-                 threshold=0.95
+                 num_classes=None,
+                 num_samples=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -88,42 +97,78 @@ class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
-        self.threshold=threshold
         self.weight_decay=weight_decay
         self.warmup=warmup
+        self.num_classes=num_classes
+        self.num_samples=num_samples
+        self.ema_pslab=None
+        self.epoch_pslab=None
         self.bn_controller=Bn_Controller()
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def start_fit(self):
+        n_classes = self.num_classes if self.num_classes is not None else \
+                        class_status(self._train_dataset.labeled_dataset.y).num_class
+
+        n_samples = self.num_samples if self.num_samples is not None else \
+                        self._train_dataset.unlabeled_dataset.__len__()
+        self.epoch_pslab = self.create_soft_pslab(n_samples=n_samples,
+                                           n_classes=n_classes,dtype='rand')
+        self.ema_pslab   = self.create_soft_pslab(n_samples=n_samples,
+                                           n_classes=n_classes,dtype='zero')
+        self.it_total = 0
+        self._network.zero_grad()
+        self._network.train()
+
+    def end_epoch(self):
+           self._scheduler.step()
+
+    def create_soft_pslab(self, n_samples, n_classes, dtype='rand'):
+        if dtype == 'rand':
+            pslab = torch.randint(0, n_classes, (n_samples, n_classes))
+        elif dtype == 'zero':
+            pslab = torch.zeros(n_samples, n_classes)
+        else:
+            raise ValueError('Unknown pslab dtype: {}'.format(dtype))
+        return pslab.to(self.device)
+
+    def update_ema_predictions(self,iter_pslab,idxs):
+        ema_iter_pslab = (self.ema_decay * self.ema_pslab[idxs]) + (1.0 - self.ema_decay) * iter_pslab
+        self.ema_pslab[idxs] = ema_iter_pslab
+        return ema_iter_pslab / (1.0 - self.ema_decay ** (self._epoch+ 1.0))
+
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
-        w_lb_X=lb_X[0]
-        w_ulb_X=ulb_X[0]
 
+        # _ulb_idx=ulb_idx.tolist() if ulb_idx is not None else ulb_idx
 
-        logits_x_lb = self._network(w_lb_X)
+        lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
 
+        lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
+        ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
+        logits_x_lb = self._network(lb_X)
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb = self._network(w_ulb_X)
+        logits_x_ulb = self._network(ulb_X)
         self.bn_controller.unfreeze_bn(self._network)
+        # with torch.no_grad():
+        #     print(self.epoch_pslab.dtype)
+        #     iter_unlab_pslab = self.update_ema_predictions(logits_x_ulb.clone().detach(),ulb_X)
+        with torch.no_grad():
+            iter_unlab_pslab = self.update_ema_predictions(logits_x_ulb.clone().detach(),ulb_idx)
 
-        return logits_x_lb,lb_y,logits_x_ulb
+        return logits_x_lb,lb_y,logits_x_ulb,iter_unlab_pslab
 
+    def optimize(self,*args,**kwargs):
+        self._optimizer.step()
+        self._network.zero_grad()
 
-    def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')  # CE_loss for labeled data
-
-        _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        pseudo_label = torch.softmax(logits_x_ulb, dim=-1)
-        max_probs, max_idx = torch.max(pseudo_label, dim=-1)
-        mask = max_probs.ge(self.threshold).float()
-
-        unsup_loss = (cross_entropy(logits_x_ulb, max_idx.detach())*mask ).mean() # MSE loss for unlabeled data
-
-        loss = sup_loss + self.lambda_u * unsup_loss * _warmup
-        return loss
+    def estimate(self,X,idx=None,*args,**kwargs):
+        X=self.normalization.fit_transform(X)
+        outputs = self._network(X)
+        return outputs
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+
 
 

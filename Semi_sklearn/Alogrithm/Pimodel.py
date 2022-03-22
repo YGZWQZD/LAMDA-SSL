@@ -5,8 +5,8 @@ from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
 from Semi_sklearn.utils import EMA
 import torch
-from Semi_sklearn.utils import Bn_Controller
 from Semi_sklearn.utils import partial
+from Semi_sklearn.utils import Bn_Controller
 
 # def fix_bn(m,train=False):
 #     classname = m.__class__.__name__
@@ -16,7 +16,7 @@ from Semi_sklearn.utils import partial
 #         else:
 #             m.eval()
 
-class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
+class PiModel(InductiveEstimator,SemiDeepModelMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -102,22 +102,20 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        lb_X=lb_X[0]
+        lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
+        lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
         ulb_X_1,ulb_X_2=ulb_X[0],ulb_X[1]
+
         logits_x_lb = self._network(lb_X)
         self.bn_controller.freeze_bn(self._network)
+        logits_x_ulb_1 = self._network(ulb_X_1)
         logits_x_ulb_2 = self._network(ulb_X_2)
         self.bn_controller.unfreeze_bn(self._network)
-        if self.ema is not None:
-            self.ema.apply_shadow()
-        with torch.no_grad():
-            logits_x_ulb_1 = self._network(ulb_X_1)
-        if self.ema is not None:
-            self.ema.restore()
         return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
 
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+
 
 

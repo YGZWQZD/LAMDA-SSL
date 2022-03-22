@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Classifier.LabelPropagation import Label_propagation
+from Semi_sklearn.Alogrithm.Classifier.LabelPropagation import Label_propagation
 from sklearn import datasets
 import numpy as np
 from sklearn.metrics import accuracy_score

@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Classifier.Co_training import Co_training
+from Semi_sklearn.Alogrithm.Classifier.Co_training import Co_training
 import numpy as np
 from sklearn import datasets
 from sklearn.svm import LinearSVC

@@ -2,15 +2,16 @@ from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
 from Semi_sklearn.Transform.RandomCrop import RandomCrop
 from Semi_sklearn.Transform.RandAugment import RandAugment
 from Semi_sklearn.Transform.Cutout import Cutout
-from Semi_sklearn.Model.Classifier.SSVAE import SSVAE
+from Semi_sklearn.Alogrithm.Classifier.SSVAE import SSVAE
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 from Semi_sklearn.Opitimizer.Adam import Adam
 from Semi_sklearn.Transform.ToImage import ToImage
+import torch.nn as nn
 from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Model.Classifier.MeanTeacher import MeanTeacherClassifier
+from Semi_sklearn.Alogrithm.Classifier.MeanTeacher import MeanTeacherClassifier
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -50,7 +51,7 @@ test_y=getattr(dataset.test_dataset,'y')
 # print(labeled_X.shape)
 # print(unlabeled_X.shape)
 
-train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
+train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
 valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
@@ -111,7 +112,12 @@ evaluation={
 
 
 model=SSVAE(dim_in=(28,28),num_class=10,
-                     dim_z=500,
+                     dim_z=50,
+                     dim_hidden_de=[500, 500],
+                     dim_hidden_en_y=[500, 500], dim_hidden_en_z=[500, 500],
+                     activations_de=[nn.Softplus(), nn.Softplus()],
+                     activations_en_y=[nn.Softplus(), nn.Softplus()],
+                     activations_en_z=[nn.Softplus(), nn.Softplus()],
                      alpha=1,
                      num_labeled=6000,
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,

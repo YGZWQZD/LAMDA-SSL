@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Classifier.LapSVM import LapSVM
+from Semi_sklearn.Alogrithm.Classifier.LapSVM import LapSVM
 import numpy as np
 from sklearn import datasets
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy

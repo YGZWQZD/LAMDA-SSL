@@ -1,30 +1,27 @@
 import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
+from sklearn.base import ClassifierMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
-from sklearn.base import ClassifierMixin
-from Semi_sklearn.utils import EMA
-import torch
-from Semi_sklearn.utils import cross_entropy
-from Semi_sklearn.utils import partial
-import numpy as np
 from torch.nn import Softmax
-from Semi_sklearn.utils import class_status
-from Semi_sklearn.utils import one_hot
-from Semi_sklearn.Transform.Mixup import Mixup
 import torch.nn.functional as F
-from Semi_sklearn.utils import Bn_Controller
+from collections import Counter
+from Semi_sklearn.utils import EMA
+from Semi_sklearn.utils import class_status
+from Semi_sklearn.utils import cross_entropy
+import torch
 
-# def fix_bn(m,train=False):
-#     classname = m.__class__.__name__
-#     if classname.find('BatchNorm') != -1:
-#         if train:
-#             m.train()
-#         else:
-#             m.eval()
+def interleave(x, size):
+    s = list(x.shape)
+    return x.reshape([-1, size] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
 
-class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+def de_interleave(x, size):
+    s = list(x.shape)
+    return x.reshape([size, -1] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
+
+
+class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -50,20 +47,23 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  epoch=1,
                  num_it_epoch=None,
                  num_it_total=None,
-                 warmup=None,
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
+                 threshold=None,
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None,
                  T=None,
+                 weight_decay=None,
                  num_classes=10,
-                 alpha=None
+                 thresh_warmup=None,
+                 use_hard_labels=False,
+                 use_DA=False,
+                 p_target=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -100,104 +100,91 @@ class Mixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     device=device,
                                     evaluation=evaluation
                                     )
-        self.ema_decay=ema_decay
+
         self.lambda_u=lambda_u
-        self.weight_decay=weight_decay
-        self.warmup=warmup
+        self.threshold=threshold
         self.T=T
-        self.alpha=alpha
         self.num_classes=num_classes
-        self.bn_controller=Bn_Controller()
+        self.classwise_acc=None
+        self.selected_label=None
+        self.thresh_warmup=thresh_warmup
+        self.use_hard_labels=use_hard_labels
+        self.p_model=None
+        self.p_target=p_target
+        self.use_DA=use_DA
         self._estimator_type = ClassifierMixin._estimator_type
 
     def init_transform(self):
         self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
+        self._train_dataset.add_unlabeled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
 
     def start_fit(self):
+        # print(self._train_dataset.labeled_dataset.y)
         self.num_classes = self.num_classes if self.num_classes is not None else \
             class_status(self._train_dataset.labeled_dataset.y).num_class
-        self.it_total = 0
+        if self.p_target is None:
+            class_counts=torch.Tensor(class_status(self._train_dataset.labeled_dataset.y).class_counts).to(self.device)
+            self.p_target = (class_counts / class_counts.sum(dim=-1, keepdim=True))
+        self.selected_label = torch.ones((len(self._train_dataset.unlabeled_dataset),), dtype=torch.long, ) * -1
+        self.selected_label = self.selected_label.to(self.device)
+        self.classwise_acc = torch.zeros((self.num_classes)).to(self.device)
         self._network.zero_grad()
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+        w_lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
+        num_lb = w_lb_X.shape[0]
+        pseudo_counter = Counter(self.selected_label.tolist())
+        if max(pseudo_counter.values()) < len(self._train_dataset.unlabeled_dataset):  # not all(5w) -1
+            if self.thresh_warmup:
+                for i in range(self.num_classes):
+                    self.classwise_acc[i] = pseudo_counter[i] / max(pseudo_counter.values())
+            else:
+                wo_negative_one = copy.deepcopy(pseudo_counter)
+                if -1 in wo_negative_one.keys():
+                    wo_negative_one.pop(-1)
+                for i in range(self.num_classes):
+                    self.classwise_acc[i] = pseudo_counter[i] / max(wo_negative_one.values())
 
-        lb_x=lb_X[0]
-        ulb_x_1,ulb_x_2=ulb_X[0],ulb_X[1]
+        inputs = torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
+        logits = self._network(inputs)
+        logits_x_lb = logits[:num_lb]
+        logits_x_ulb_w, logits_x_ulb_s = logits[num_lb:].chunk(2)
+        logits_x_ulb_w = logits_x_ulb_w.detach()
+        pseudo_label = torch.softmax(logits_x_ulb_w, dim=-1)
+        if self.use_DA:
+            if self.p_model == None:
+                self.p_model = torch.mean(pseudo_label.detach(), dim=0)
+            else:
+                self.p_model = self.p_model * 0.999 + torch.mean(pseudo_label.detach(), dim=0) * 0.001
+            pseudo_label = pseudo_label * self.p_target / self.p_model
+            pseudo_label = (pseudo_label / pseudo_label.sum(dim=-1, keepdim=True))
+        max_probs, max_idx = torch.max(pseudo_label, dim=-1)
+        mask = (max_probs.ge(self.threshold * (self.classwise_acc[max_idx] / (2. - self.classwise_acc[max_idx]))).float()).mean()
+        select = max_probs.ge(self.threshold ).long()
+        if ulb_idx[select == 1].nelement() != 0:
+            self.selected_label[ulb_idx[select == 1]] = max_idx.long()[select == 1]
+        if self.use_hard_labels is not True:
+            pseudo_label = torch.softmax(logits_x_ulb_w / self.T, dim=-1)
+        else:
+            pseudo_label=max_idx.long()
 
-        num_lb = lb_x.shape[0]
-        with torch.no_grad():
-            # self._network.apply(partial(fix_bn, train=True))
-            self.bn_controller.freeze_bn(self._network)
-            logits_x_ulb_w1 = self._network(ulb_x_1)
-            logits_x_ulb_w2 = self._network(ulb_x_2)
-            self.bn_controller.unfreeze_bn(self._network)
-            # print(torch.any(torch.isnan(logits_x_ulb_w1)))
-            # print(torch.any(torch.isnan(logits_x_ulb_w2)))
-
-            avg_prob_x_ulb = (torch.softmax(logits_x_ulb_w1, dim=1) + torch.softmax(logits_x_ulb_w2, dim=1)) / 2
-            avg_prob_x_ulb = (avg_prob_x_ulb / avg_prob_x_ulb.sum(dim=-1, keepdim=True))
-            # sharpening
-            sharpen_prob_x_ulb = avg_prob_x_ulb ** (1 / self.T)
-            sharpen_prob_x_ulb = (sharpen_prob_x_ulb / sharpen_prob_x_ulb.sum(dim=-1, keepdim=True)).detach()
-            input_labels = torch.cat(
-                [one_hot(lb_y, self.num_classes,device=self.device).to(self.device), sharpen_prob_x_ulb, sharpen_prob_x_ulb], dim=0)
-            inputs = torch.cat([lb_x, ulb_x_1, ulb_x_2])
-            index = torch.randperm(inputs.size(0)).to(self.device)
-
-            mixed_x, mixed_y=Mixup(self.alpha).fit((inputs,input_labels)).transform((inputs[index],input_labels[index]))
-            mixed_x = list(torch.split(mixed_x, num_lb))
-            mixed_x = self.interleave(mixed_x, num_lb)
-
-
-        _mix_0=self._network(mixed_x[0])
-        logits = [_mix_0]
-        # calculate BN for only the first batch
-        self.bn_controller.freeze_bn(self._network)
-        for ipt in mixed_x[1:]:
-
-            _mix_i=self._network(ipt)
-
-            logits.append(_mix_i)
-
-        # put interleaved samples back
-        logits = self.interleave(logits, num_lb)
-        self.bn_controller.unfreeze_bn(self._network)
-        logits_x = logits[0]
-        logits_u = torch.cat(logits[1:], dim=0)
-        return logits_x,mixed_y[:num_lb],logits_u,mixed_y[num_lb:]
-
-    def interleave_offsets(self, batch, nu):
-        groups = [batch // (nu + 1)] * (nu + 1)
-        for x in range(batch - sum(groups)):
-            groups[-x - 1] += 1
-        offsets = [0]
-        for g in groups:
-            offsets.append(offsets[-1] + g)
-        assert offsets[-1] == batch
-        return offsets
-
-    def interleave(self, xy, batch):
-        nu = len(xy) - 1
-        offsets = self.interleave_offsets(batch, nu)
-        xy = [[v[offsets[p]:offsets[p + 1]] for p in range(nu + 1)] for v in xy]
-        for i in range(1, nu + 1):
-            xy[0][i], xy[i][i] = xy[i][i], xy[0][i]
-        return [torch.cat(v, dim=0) for v in xy]
+        result=(logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask)
+        return result
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb,ulb_y=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y,use_hard_labels=False).mean()  # CE_loss for labeled data
-        unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
-        _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        loss = sup_loss + self.lambda_u * _warmup * unsup_loss
+        logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask = train_result
+        Lx = cross_entropy(logits_x_lb, lb_y, reduction='mean')
+        if self.use_hard_labels:
+            Lu = (cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels, reduction='none') * mask).mean()
+        else:
+            Lu = cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels) * mask.mean()
+        loss = Lx + self.lambda_u * Lu
         return loss
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)
-
-
 

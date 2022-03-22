@@ -8,7 +8,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Model.Classifier.Mixmatch import Mixmatch
+from Semi_sklearn.Alogrithm.Classifier.Mixmatch import Mixmatch
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -39,7 +39,7 @@ valid_y=getattr(dataset.test_dataset,'y')
 test_X=getattr(dataset.test_dataset,'X')
 test_y=getattr(dataset.test_dataset,'y')
 
-train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
+train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
 valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)

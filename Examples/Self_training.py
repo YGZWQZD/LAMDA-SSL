@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Classifier.Self_training import Self_training
+from Semi_sklearn.Alogrithm.Classifier.Self_training import Self_training
 import numpy as np
 from sklearn import datasets
 

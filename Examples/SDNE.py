@@ -23,7 +23,7 @@ print(dataset.data)
 # print(torch.sum(dataset.data.unlabeled_mask))
 
 data=dataset.data
-from Semi_sklearn.Model.Classifier.SDNE import SDNE
+from Semi_sklearn.Alogrithm.Classifier.SDNE import SDNE
 optimizer=Adam(lr=0.001)
 from Semi_sklearn.Scheduler.StepLR import StepLR
 LR=StepLR(step_size=10,gamma=0.9)

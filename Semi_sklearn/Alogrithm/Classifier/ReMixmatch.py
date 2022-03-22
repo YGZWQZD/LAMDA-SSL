@@ -133,8 +133,8 @@ class ReMixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-
-        lb_x_w = lb_X[0]
+        lb_x_w=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
 
         ulb_x_w, ulb_x_s_1, ulb_x_s_2 = ulb_X[0],ulb_X[1],ulb_X[2]
 

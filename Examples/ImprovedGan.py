@@ -4,7 +4,7 @@ from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
 from Semi_sklearn.Transform.RandomCrop import RandomCrop
 from Semi_sklearn.Transform.RandAugment import RandAugment
 from Semi_sklearn.Transform.Cutout import Cutout
-from Semi_sklearn.Model.Classifier.SSVAE import SSVAE
+from Semi_sklearn.Alogrithm.Classifier.SSVAE import SSVAE
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 from Semi_sklearn.Opitimizer.Adam import Adam
 from Semi_sklearn.Transform.ToImage import ToImage
@@ -12,7 +12,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Model.Classifier.MeanTeacher import MeanTeacherClassifier
+from Semi_sklearn.Alogrithm.Classifier.MeanTeacher import MeanTeacherClassifier
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -28,8 +28,8 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Transform.ImageToTensor import ToTensor
 from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
-from Semi_sklearn.Model.Classifier.ImprovedGan import ImprovedGan
-
+from Semi_sklearn.Alogrithm.Classifier.ImprovedGan import ImprovedGan
+import torch.nn as nn
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
 dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
@@ -46,7 +46,7 @@ valid_y=getattr(dataset.test_dataset,'y')
 test_X=getattr(dataset.test_dataset,'X')
 test_y=getattr(dataset.test_dataset,'y')
 
-train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
+train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
 valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
@@ -69,7 +69,7 @@ test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 #     'strongly_augmentation':strongly_augmentation
 # }
 # optimizer
-optimizer=Adam(lr=0.02)
+optimizer=Adam(lr=0.02,betas= (0.5, 0.999))
 # scheduler=Linear_warmup(num_warmup_steps=15,num_training_steps=10)
 
 #dataloader
@@ -105,7 +105,11 @@ evaluation={
 }
 
 
-model=ImprovedGan(dim_in=28*28,num_class=10,dim_z=500,dim_hidden=500,
+model=ImprovedGan(dim_in=(28,28),num_class=10,dim_z=100,hidden_G=[500,500],
+                     hidden_D=[1000,500,250,250,250],
+                     noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
+                     activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus()],
+                     activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
                      epoch=10,num_it_epoch=540,

@@ -3,20 +3,16 @@ from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
+from sklearn.base import ClassifierMixin
 from Semi_sklearn.utils import EMA
 import torch
+from Semi_sklearn.utils import cross_entropy
 from Semi_sklearn.utils import partial
+import numpy as np
+from torch.nn import Softmax
 from Semi_sklearn.utils import Bn_Controller
 
-# def fix_bn(m,train=False):
-#     classname = m.__class__.__name__
-#     if classname.find('BatchNorm') != -1:
-#         if train:
-#             m.train()
-#         else:
-#             m.eval()
-
-class PiModel(InductiveEstimator,SemiDeepModelMixin):
+class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -52,7 +48,8 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None
+                 weight_decay=None,
+                 threshold=0.95
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -91,30 +88,42 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
+        self.threshold=threshold
         self.weight_decay=weight_decay
         self.warmup=warmup
         self.bn_controller=Bn_Controller()
-
-    def init_transform(self):
-        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
-        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
+        self._estimator_type = ClassifierMixin._estimator_type
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        lb_X=lb_X[0]
-        ulb_X_1,ulb_X_2=ulb_X[0],ulb_X[1]
 
-        logits_x_lb = self._network(lb_X)
+        w_lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
+        w_ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
+
+        logits_x_lb = self._network(w_lb_X)
+
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb_1 = self._network(ulb_X_1)
-        logits_x_ulb_2 = self._network(ulb_X_2)
+        logits_x_ulb = self._network(w_ulb_X)
         self.bn_controller.unfreeze_bn(self._network)
-        return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
 
+        return logits_x_lb,lb_y,logits_x_ulb
+
+
+    def get_loss(self,train_result,*args,**kwargs):
+        logits_x_lb,lb_y,logits_x_ulb=train_result
+        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')  # CE_loss for labeled data
+
+        _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
+        pseudo_label = torch.softmax(logits_x_ulb, dim=-1)
+        max_probs, max_idx = torch.max(pseudo_label, dim=-1)
+        mask = max_probs.ge(self.threshold).float()
+
+        unsup_loss = (cross_entropy(logits_x_ulb, max_idx.detach())*mask ).mean() # MSE loss for unlabeled data
+
+        loss = sup_loss + self.lambda_u * unsup_loss * _warmup
+        return loss
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)
-
 
 

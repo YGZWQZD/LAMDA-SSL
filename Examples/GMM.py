@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Classifier.SemiGMM import SemiGMM
+from Semi_sklearn.Alogrithm.Classifier.SemiGMM import SemiGMM
 from sklearn import datasets
 import numpy as np
 from sklearn.metrics import accuracy_score

@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Classifier.SemiBoost import SemiBoostClassifier
+from Semi_sklearn.Alogrithm.Classifier.SemiBoost import SemiBoostClassifier
 import numpy as np
 from sklearn import datasets
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy

@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Regressor.CoReg import CoReg
+from Semi_sklearn.Alogrithm.Regressor.CoReg import CoReg
 import numpy as np
 from sklearn import datasets
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy

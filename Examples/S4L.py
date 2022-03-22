@@ -21,7 +21,7 @@ from Semi_sklearn.Evaluation.Classification.AUC import AUC
 from Semi_sklearn.Evaluation.Classification.Confusion_matrix import Confusion_matrix
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
-from Semi_sklearn.Model.Classifier.S4L import S4L
+from Semi_sklearn.Alogrithm.Classifier.S4L import S4L
 
 # dataset
 dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
@@ -39,7 +39,7 @@ valid_y=getattr(dataset.test_dataset,'y')
 test_X=getattr(dataset.test_dataset,'X')
 test_y=getattr(dataset.test_dataset,'y')
 
-train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
+train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
 valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)

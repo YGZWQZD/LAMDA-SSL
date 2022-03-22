@@ -104,7 +104,8 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._train_dataset.add_unlabeled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        w_lb_X=lb_X[0]
+        w_lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
         w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
         batch_size = w_lb_X.shape[0]
         inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X))

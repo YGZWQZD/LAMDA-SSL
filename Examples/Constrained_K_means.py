@@ -1,4 +1,4 @@
-from Semi_sklearn.Model.Cluster.Constrained_k_means import Constrained_k_means
+from Semi_sklearn.Alogrithm.Cluster.Constrained_k_means import Constrained_k_means
 from sklearn.metrics import accuracy_score
 import numpy as np
 from sklearn import datasets
