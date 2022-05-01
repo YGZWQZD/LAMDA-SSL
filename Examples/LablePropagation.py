@@ -1,22 +1,29 @@
 from Semi_sklearn.Alogrithm.Classifier.LabelPropagation import Label_propagation
-from sklearn import datasets
+from Semi_sklearn.Alogrithm.Classifier.Assemble import Assemble
 import numpy as np
-from sklearn.metrics import accuracy_score
-breast_cancer = datasets.load_digits()
+from sklearn import datasets
+from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
+from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
+from Semi_sklearn.Evaluation.Classification.Recall import Recall
+f = open("../Result/LabelPropagation.txt", "w")
+dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
+dataset.init_dataset()
+dataset.init_transforms()
+# breast_cancer = datasets.load_boston()
+# rng = np.random.RandomState(55)
 
-rng = np.random.RandomState(54)
+# random_unlabeled_points = rng.rand(breast_cancer.target.shape[0]) < 0.3
 
-random_unlabeled_points = rng.rand(breast_cancer.target.shape[0]) < 0.3
-
-from sklearn import preprocessing
-data=preprocessing.MinMaxScaler().fit_transform(breast_cancer.data)
-
-labeled_X=data[random_unlabeled_points]
-labeled_y=breast_cancer.target[random_unlabeled_points]
-
-unlabeled_X=data[~random_unlabeled_points]
-model=Label_propagation()
+labeled_X=dataset.pre_transform.fit_transform(dataset.labeled_X)
+labeled_y=dataset.labeled_y
+unlabeled_X=dataset.pre_transform.fit_transform(dataset.unlabeled_X)
+unlabeled_y=dataset.unlabeled_y
+test_X=dataset.pre_transform.fit_transform(dataset.test_X)
+test_y=dataset.test_y
+model=Label_propagation(gamma=5,max_iter=10000)
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
-result=model.predict(unlabeled_X,Transductive=True)
-unlabeled_y=breast_cancer.target[~random_unlabeled_points]
-print(accuracy_score(unlabeled_y,result))
+result=model.predict(test_X,Transductive=False)
+print('Accuracy',file=f)
+print(Accuracy().scoring(test_y,result),file=f)
+print('Recall',file=f)
+print(Recall().scoring(test_y,result),file=f)

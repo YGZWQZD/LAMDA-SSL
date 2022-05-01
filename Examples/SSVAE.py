@@ -30,7 +30,8 @@ from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 
 # dataset
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False)
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False,random_state=0)
+# f = open("../Result/SSVAE.txt", "w")
 # dataset
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
@@ -74,7 +75,7 @@ test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 #     'strongly_augmentation':strongly_augmentation
 # }
 # optimizer
-optimizer=Adam(lr=0.02)
+optimizer=Adam(lr=3e-4)
 # scheduler=Linear_warmup(num_warmup_steps=15,num_training_steps=10)
 
 #dataloader
@@ -87,10 +88,6 @@ train_sampler=[RandomSampler(replacement=True,num_samples=100*540),RandomSampler
 train_batchsampler=SemiBatchSampler(batch_size=100,drop_last=True)
 test_sampler=SequentialSampler()
 valid_sampler=SequentialSampler()
-
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
 
 
 # network
@@ -118,25 +115,26 @@ model=SSVAE(dim_in=(28,28),num_class=10,
                      activations_de=[nn.Softplus(), nn.Softplus()],
                      activations_en_y=[nn.Softplus(), nn.Softplus()],
                      activations_en_z=[nn.Softplus(), nn.Softplus()],
-                     alpha=1,
+                     alpha=0.1,
                      num_labeled=6000,
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
                      epoch=50,num_it_epoch=540,
                      num_it_total=540*50,optimizer=optimizer,device='cpu',
-                     eval_it=200,mu=1,weight_decay=5e-4,evaluation=evaluation,
+                     eval_it=200,mu=1,weight_decay=0,evaluation=evaluation,
                      train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
-                     train_batch_sampler=train_batchsampler)
+                     train_batch_sampler=train_batchsampler,file=None)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 X=model.generate(100)
-print(X.shape)
+# print(X.shape)
 X=X.detach().numpy()
-img=ToImage()(X[0])
-import matplotlib.pyplot as plt
-plt.imshow(img)
-plt.axis('off')
-plt.show()
+for _ in range(100):
+    img=ToImage()(X[_])
+    import matplotlib.pyplot as plt
+    plt.imshow(img)
+    plt.axis('off')
+    plt.show()
 
 
 # from sklearn.model_selection import RandomizedSearchCV

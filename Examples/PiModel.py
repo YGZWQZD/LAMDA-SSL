@@ -58,8 +58,7 @@ strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=10,num_bins=30)
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 augmentation={
-    'weakly_augmentation':weakly_augmentation,
-    'strongly_augmentation':strongly_augmentation
+    'weakly_augmentation':weakly_augmentation
 }
 # optimizer
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
@@ -95,7 +94,7 @@ evaluation={
 model=PiModelClassifier(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
                augmentation=augmentation,network=network,epoch=1,num_it_epoch=2**20,
-               num_it_total=2**20,optimizer=optimizer,scheduler=scheduler,device='cuda:0',
+               num_it_total=2**20,optimizer=optimizer,scheduler=scheduler,device='cpu',
                eval_it=2000,mu=1,weight_decay=5e-4,evaluation=evaluation,
                lambda_u=10,train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
                train_batch_sampler=train_batchsampler,ema_decay=0.999,warmup=0.4)

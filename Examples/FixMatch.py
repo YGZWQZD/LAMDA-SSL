@@ -24,7 +24,7 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 
 # dataset
-dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
+dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False)
 dataset.init_dataset()
 dataset.init_transforms()
 
@@ -54,7 +54,7 @@ weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 
-strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10)),
+strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,random=True)),
                               ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
                               ('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
@@ -99,8 +99,8 @@ evaluation={
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
                augmentation=augmentation,
-               network=network,epoch=1,num_it_epoch=2**20,
-               num_it_total=2**20,optimizer=optimizer,scheduler=scheduler,device='cpu',
+               network=network,epoch=1,num_it_epoch=1,
+               num_it_total=1,optimizer=optimizer,scheduler=scheduler,device='cpu',
                eval_it=2000,mu=7,T=1,weight_decay=0,evaluation=evaluation,threshold=0.95,
                lambda_u=1.0,train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
                train_batch_sampler=train_batchsampler,ema_decay=0.999)

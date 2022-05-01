@@ -26,8 +26,9 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False)
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False,random_state=0)
 # dataset
+f = open("../Result/LadderNetwork.txt", "w")
 import torch.nn as nn
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
@@ -105,11 +106,11 @@ model=Ladder_Network(dim_in=28*28,num_class=10,
                      encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-                     epoch=1000,num_it_epoch=540,
-                     num_it_total=540*1000,optimizer=optimizer,scheduler=scheduler,device='cpu',
+                     epoch=100,num_it_epoch=540,
+                     num_it_total=540*100,optimizer=optimizer,scheduler=scheduler,device='cpu',
                      eval_it=100,mu=1,weight_decay=5e-4,evaluation=evaluation,
                      train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
-                     train_batch_sampler=train_batchsampler)
+                     train_batch_sampler=train_batchsampler,file=f)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 

@@ -1,21 +1,24 @@
 from Semi_sklearn.Alogrithm.Cluster.Constrained_k_means import Constrained_k_means
-from sklearn.metrics import accuracy_score
 import numpy as np
 from sklearn import datasets
-data=datasets.load_wine()
-# model=Constrained_k_means(k=3)
+from Semi_sklearn.Evaluation.Cluster.Davies_Bouldin_Score import Davies_Bouldin_Score
+from Semi_sklearn.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallows_Score
+from Semi_sklearn.Dataset.Table.Wine import Wine
+f = open("../Result/Constrained k means.txt", "w")
+dataset=Wine(labeled_size=0.2,stratified=True,shuffle=True,random_state=0)
+dataset.init_dataset()
+dataset.init_transforms()
+# breast_cancer = datasets.load_boston()
+# rng = np.random.RandomState(55)
 
-rng = np.random.RandomState(55)
-#0,7
-#1,2,3
-#4,5,6
-# model=Constrained_Seed_k_means(k=3)
-random_unlabeled_points = rng.rand(data.target.shape[0]) < 0.3
+# random_unlabeled_points = rng.rand(breast_cancer.target.shape[0]) < 0.3
 
-labeled_X=data.data[random_unlabeled_points]
-labeled_y=data.target[random_unlabeled_points]
-unlabeled_X=data.data[~random_unlabeled_points]
-unlabeled_y=data.target[~random_unlabeled_points]
+labeled_X=dataset.pre_transform.fit_transform(dataset.labeled_X)
+labeled_y=dataset.labeled_y
+unlabeled_X=dataset.pre_transform.fit_transform(dataset.unlabeled_X)
+unlabeled_y=dataset.unlabeled_y
+# test_X=dataset.pre_transform.fit_transform(dataset.test_X)
+# test_y=dataset.test_y
 # clusters={}
 
 # for _ in range(3):
@@ -24,7 +27,18 @@ unlabeled_y=data.target[~random_unlabeled_points]
 #     clusters[labeled_y[_]].add(_)
 # model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 model=Constrained_k_means(k=3)
-model.fit(X=labeled_X,ml=[{1,2},{1,3},{4,5}],cl=[{1,4},{4,7},{0,2},{2,4}])
-print(model.predict(unlabeled_X))
-
-print(accuracy_score(unlabeled_y,model.predict(unlabeled_X,Transductive=False)))
+ml=[]
+cl=[]
+for i in range(labeled_X.shape[0]):
+    for j in range(i+1,labeled_X.shape[0]):
+        if labeled_y[i]==labeled_y[j]:
+            ml.append({i,j})
+        else:
+            cl.append({i,j})
+model.fit(X=np.vstack((labeled_X,unlabeled_X)),ml=ml,cl=cl)
+result=model.predict(unlabeled_X,Transductive=True)
+# print(result)
+print("DB Index",file=f)
+print(Davies_Bouldin_Score().scoring(clusters=result,X=np.vstack((labeled_X,unlabeled_X))),file=f)
+print("FM Index",file=f)
+print(Fowlkes_Mallows_Score().scoring(clusters=result,y_true=np.hstack((labeled_y,unlabeled_y))),file=f)

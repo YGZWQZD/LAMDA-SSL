@@ -31,7 +31,8 @@ from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 from Semi_sklearn.Alogrithm.Classifier.ImprovedGan import ImprovedGan
 import torch.nn as nn
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False)
+f = open("../Result/ImprovedGAN.txt", "w")
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False,random_state=0)
 dataset.init_dataset()
 dataset.init_transforms()
 
@@ -69,7 +70,7 @@ test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 #     'strongly_augmentation':strongly_augmentation
 # }
 # optimizer
-optimizer=Adam(lr=0.02,betas= (0.5, 0.999))
+optimizer=Adam(lr=0.003,betas= (0.5, 0.999))
 # scheduler=Linear_warmup(num_warmup_steps=15,num_training_steps=10)
 
 #dataloader
@@ -112,22 +113,23 @@ model=ImprovedGan(dim_in=(28,28),num_class=10,dim_z=100,hidden_G=[500,500],
                      activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-                     epoch=10,num_it_epoch=540,
-                     num_it_total=540*10,optimizer=optimizer,device='cpu',
-                     eval_it=200,mu=1,weight_decay=5e-4,evaluation=evaluation,
+                     epoch=100,num_it_epoch=540,
+                     num_it_total=540*100,optimizer=optimizer,device='cpu',
+                     eval_it=200,mu=1,evaluation=evaluation,
                      train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
-                     train_batch_sampler=train_batchsampler,lambda_u=1)
+                     train_batch_sampler=train_batchsampler,lambda_u=1,file=f)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 
 X=model.generate(100)
-print(X.shape)
+# print(X.shape)
 X=X.detach().numpy()
-img=ToImage()(X[0])
-import matplotlib.pyplot as plt
-plt.imshow(img)
-plt.axis('off')
-plt.show()
+for _ in range(100):
+    img=ToImage()(X[_])
+    import matplotlib.pyplot as plt
+    plt.imshow(img)
+    plt.axis('off')
+    plt.show()
 
 # from sklearn.model_selection import RandomizedSearchCV
 #
