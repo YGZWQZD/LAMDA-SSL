@@ -51,7 +51,7 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
                  mu=None,
                  ema_decay=None,
                  weight_decay=None,
-                 num_classes=10,
+                 # num_classes=10,
                  alpha=None
                  ):
         Base_ICT.ICT.__init__(self,train_dataset=train_dataset,
@@ -90,7 +90,7 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
                                     evaluation=evaluation,
                                    warmup=warmup,
                                    lambda_u=lambda_u,
-                                   num_classes=num_classes,
+                                   # num_classes=num_classes,
                                    alpha=alpha
                                     )
         self._estimator_type = ClassifierMixin._estimator_type
@@ -99,8 +99,10 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam=train_result
         sup_loss = cross_entropy(logits_x_lb, lb_y).mean()  # CE_loss for labeled data
-        unsup_loss = lam*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_1)) +\
-                     (1.0 - lam)*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_2))
+        # unsup_loss = lam*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_1)) +\
+        #              (1.0 - lam)*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_2))
+        unsup_loss = Cross_Entropy(use_hard_labels=False, reduction='mean')(logits_x_ulb_mix,lam * nn.Softmax(dim=-1)(logits_x_ulb_1)+(1-lam)*
+                                                                            nn.Softmax(dim=-1)(logits_x_ulb_2))
         # unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
         loss = sup_loss + self.lambda_u * _warmup * unsup_loss

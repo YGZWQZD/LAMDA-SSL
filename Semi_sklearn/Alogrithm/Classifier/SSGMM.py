@@ -16,7 +16,7 @@ def normfun(x, mu, sigma):
 
     return pdf
 
-class SemiGMM(InductiveEstimator,ClassifierMixin):
+class SSGMM(InductiveEstimator,ClassifierMixin):
     def __init__(self,n_class, tolerance=1e-8, max_iterations=300):
         self.n_class=n_class
         self.tolerance=tolerance
@@ -57,7 +57,7 @@ class SemiGMM(InductiveEstimator,ClassifierMixin):
         # self.alpha=np.array(self.alpha)
         self.gamma=np.empty((U,self.n_class))
         self.alpha = np.random.rand(self.n_class)
-        self.alpha = self.alpha / self.alpha.sum()      # 保证所有p_k的和为1
+        self.alpha = self.alpha / self.alpha.sum()
         self.mu = np.random.rand(self.n_class, X.shape[1])
         self.sigma = np.empty((self.n_class, X.shape[1], X.shape[1]))
         for i in range(self.n_class):
@@ -65,7 +65,7 @@ class SemiGMM(InductiveEstimator,ClassifierMixin):
 
         for _ in range(self.max_iterations):
             # E Step
-            print(_)
+            # print(_)
             pre=copy.copy(self.alpha)
 
             for j in range(U):
@@ -92,7 +92,7 @@ class SemiGMM(InductiveEstimator,ClassifierMixin):
                 #print(_norm)
                 self.mu[i]=_sum_mu/_norm
 
-                print(self.mu[i])
+                # print(self.mu[i])
                 self.alpha[i]=_norm/m
 
 

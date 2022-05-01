@@ -4,13 +4,13 @@ from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.svm import SVC
 import numpy as np
-
+from sklearn.metrics.pairwise import rbf_kernel
 class S3VM(InductiveEstimator,ClassifierMixin):
     def __init__(
             self,
             Cl=1.0,
             Cu=0.001,
-            kernel="rbf",
+            kernel=rbf_kernel,
             degree=3,
             gamma="scale",
             coef0=0.0,

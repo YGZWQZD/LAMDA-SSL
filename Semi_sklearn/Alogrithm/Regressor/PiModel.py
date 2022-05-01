@@ -6,7 +6,7 @@ import numpy as np
 
 from Semi_sklearn.Alogrithm.Pimodel import PiModel
 
-class PiModelClassifier(PiModel,RegressorMixin):
+class PiModelRegressor(PiModel,RegressorMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -42,7 +42,8 @@ class PiModelClassifier(PiModel,RegressorMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None
+                 weight_decay=None,
+                 file=None
                  ):
         PiModel.__init__(self,train_dataset=train_dataset,
                              valid_dataset=valid_dataset,
@@ -79,15 +80,23 @@ class PiModelClassifier(PiModel,RegressorMixin):
                              lambda_u=lambda_u,
                              mu=mu,
                              ema_decay=ema_decay,
-                             weight_decay=weight_decay)
+                             weight_decay=weight_decay,
+                            file=file
+                         )
         self._estimator_type = RegressorMixin._estimator_type
 
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
+        # print(logits_x_lb)
+        # print(lb_y)
+        # print(logits_x_ulb_1)
+        # print(logits_x_ulb_2)
         sup_loss = Consistency()(logits_x_lb, lb_y)
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
         unsup_loss = Consistency()(logits_x_ulb_1,logits_x_ulb_2.detach())
+        # print(sup_loss)
+        # print(unsup_loss)
         loss = sup_loss + _warmup * self.lambda_u *unsup_loss
         return loss
 

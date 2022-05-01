@@ -52,7 +52,8 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None
+                 weight_decay=None,
+                 file=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -87,7 +88,8 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    file=file
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u

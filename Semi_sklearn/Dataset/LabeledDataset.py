@@ -66,7 +66,11 @@ class LabeledDataset(Dataset):
         return l
 
     def add_transform(self,transform,dim=1,x=0,y=0):
-        if self.transform is None:
+        if transform is None and dim == 1:
+            return
+        if transform is None and dim == 0 and x==0:
+            return
+        if self.transform is None and dim==0 and x==0:
             self.transform=transform
         elif dim==0:
             self.transform=self.insert(self.transform,x,transform)
@@ -76,7 +80,11 @@ class LabeledDataset(Dataset):
             self.transform[x]=self.insert(self.transform[x],y,transform)
 
     def add_pre_transform(self,transform,dim=1,x=0,y=0):
-        if self.pre_transform is None:
+        if transform is None and dim == 1:
+            return
+        if transform is None and dim == 0 and x==0:
+            return
+        if self.pre_transform is None and dim==0 and x==0:
             self.pre_transform=transform
         elif dim==0:
             self.pre_transform=self.insert(self.pre_transform,x,transform)
@@ -86,7 +94,11 @@ class LabeledDataset(Dataset):
             self.pre_transform[x]=self.insert(self.pre_transform[x],y,transform)
 
     def add_transforms(self,transforms,dim=1,x=0,y=0):
-        if self.transforms is None:
+        if transforms is None and dim == 1:
+            return
+        if transforms is None and dim == 0 and x==0:
+            return
+        if self.transforms is None and dim==0 and x==0:
             self.transforms=transforms
         elif dim==0:
             self.transforms=self.insert(self.transforms,x,transforms)
@@ -96,7 +108,11 @@ class LabeledDataset(Dataset):
             self.transforms[x]=self.insert(self.transforms[x],y,transforms)
 
     def add_target_transform(self,target_transform,dim=1,x=0,y=0):
-        if self.target_transform is None:
+        if target_transform is None and dim == 1:
+            return
+        if target_transform is None and dim == 0 and x==0:
+            return
+        if self.target_transform is None and dim==0 and x==0:
             self.target_transform=target_transform
         elif dim==0:
             self.target_transform=self.insert(self.target_transform,x,target_transform)
@@ -192,7 +208,7 @@ class LabeledDataset(Dataset):
                         dict_y[key] = _y
                     y = dict_y
                 else:
-                    y=self.target_transform(y,self.target_transform)
+                    y=self._transform(y,self.target_transform)
         return X,y
 
     def __getitem__(self, i):

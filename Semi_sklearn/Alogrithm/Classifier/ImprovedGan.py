@@ -40,7 +40,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                  eval_it=None,
                  mu=None,
                  optimizer=None,
-                 weight_decay=5e-4,
+                 weight_decay=0,
                  lambda_u=1.0,
                  ema_decay=None,
                  scheduler=None,
@@ -56,7 +56,8 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                  valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
-                 parallel=None):
+                 parallel=None,
+                 file=None):
         network=ImGan.ImprovedGAN( dim_in = dim_in, hidden_G=hidden_G,
                                    hidden_D=hidden_D,activations_D=activations_D,
                                    activations_G=activations_G,
@@ -94,7 +95,8 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
-                                    parallel=parallel
+                                    parallel=parallel,
+                                    file=file
                                     )
         self.dim_z=dim_z
         self.dim_in=dim_in
@@ -137,7 +139,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
 
             self.it_total += 1
             self.it_epoch += 1
-            print(self.it_total)
+            print(self.it_total,file=self.file)
 
             if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
                 self.evaluate(X=valid_X, y=valid_y,valid=True)
@@ -274,5 +276,5 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
 
         z = Variable(torch.randn(num, self.dim_z).to(self.device)) if z is None else z
         z=self._network.G(num,z)
-        z=z.view(z.shape[0],self.dim_in)
+        z=z.view(tuple([z.shape[0]])+tuple(self.dim_in))
         return z

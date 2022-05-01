@@ -12,4 +12,6 @@ class Consistency(nn.Module):
             logits_1=self.activation_1(logits_1)
         if self.activation_2 is not None:
             logits_2=self.activation_2(logits_2)
-        F.mse_loss(logits_1, logits_2, reduction='mean')
+        # print(logits_1.dtype)
+        # print(logits_2.dtype)
+        return F.mse_loss(logits_1, logits_2, reduction=self.reduction)

@@ -52,7 +52,8 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None
+                 weight_decay=None,
+                 file=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -87,7 +88,8 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    file=file
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
@@ -99,6 +101,7 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
         self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        # print(self.weakly_augmentation)
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):

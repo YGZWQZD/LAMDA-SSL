@@ -356,6 +356,8 @@ class EMA:
 def cross_entropy(logits, targets, use_hard_labels=True, reduction='none'):
     if use_hard_labels:
         log_pred = F.log_softmax(logits, dim=-1)
+        # print(log_pred[0])
+        # print(targets[0])
         return F.nll_loss(log_pred, targets, reduction=reduction)
         # return F.cross_entropy(logits, targets, reduction=reduction) this is unstable
     else:
@@ -399,10 +401,14 @@ class class_status:
         class_counts = np.bincount(y_indices)
         return class_counts
 
+
 def _l2_normalize(d):
-    d = d.numpy()
-    d /= (np.sqrt(np.sum(d ** 2, axis=(1, 2, 3))).reshape((-1, 1, 1, 1)) + 1e-16)
-    return torch.from_numpy(d)
+    d /= (torch.sqrt(torch.sum(d ** 2, dim=(1, 2, 3))).reshape((-1, 1, 1, 1)) + 1e-16)
+    return d
+# def _l2_normalize(d):
+#     d = d.numpy()
+#     d /= (np.sqrt(np.sum(d ** 2, axis=(1, 2, 3))).reshape((-1, 1, 1, 1)) + 1e-16)
+#     return torch.from_numpy(d)
 
 def kl_div_with_logit(q_logit, p_logit):
     q = F.softmax(q_logit, dim=1)

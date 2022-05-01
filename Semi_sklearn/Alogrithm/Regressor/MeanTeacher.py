@@ -5,7 +5,7 @@ import numpy as np
 
 from Semi_sklearn.Alogrithm.MeanTeacher import MeanTeacher
 
-class MeanTeacherClassifier(MeanTeacher,RegressorMixin):
+class MeanTeacherRegressor(MeanTeacher,RegressorMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -45,7 +45,8 @@ class MeanTeacherClassifier(MeanTeacher,RegressorMixin):
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None
+                 weight_decay=None,
+                 file=None
                  ):
         MeanTeacher.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -84,7 +85,8 @@ class MeanTeacherClassifier(MeanTeacher,RegressorMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation)
+                                    evaluation=evaluation,
+                             file=file)
         self._estimator_type = RegressorMixin._estimator_type
 
 

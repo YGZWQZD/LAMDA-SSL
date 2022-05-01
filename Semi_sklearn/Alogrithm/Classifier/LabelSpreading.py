@@ -6,7 +6,7 @@ class Label_spreading(TransductiveEstimator,ClassifierMixin):
     def __init__(
         self,
         kernel="rbf",
-        gamma=20,
+        gamma=10,
         n_neighbors=7,
         alpha=0.2,
         max_iter=30,

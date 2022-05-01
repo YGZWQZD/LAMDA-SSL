@@ -120,10 +120,10 @@ class Cora(SemiDataset,GraphMixin):
         self.data.labeled_mask.fill_(False)
         self.data.test_mask.fill_(False)
         self.data.val_mask.fill_(False)
-        if unlabeled_X is not None:
-            self.data.unlabeled_mask[unlabeled_X] = True
         if labeled_X is not None:
             self.data.labeled_mask[labeled_X] = True
+        if unlabeled_X is not None:
+            self.data.unlabeled_mask[unlabeled_X] = True
         if valid_X is not None:
             self.data.val_mask[valid_X]=True
         if test_X is not None:

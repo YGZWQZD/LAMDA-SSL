@@ -23,29 +23,29 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 
 # dataset
-dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
-dataset.init_dataset()
-dataset.init_transforms()
+# dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
+# dataset.init_dataset()
+# dataset.init_transforms()
 
-labeled_dataset=dataset.train_dataset.get_dataset(labeled=True)
-unlabeled_dataset=dataset.train_dataset.get_dataset(labeled=False)
+# labeled_dataset=dataset.train_dataset.get_dataset(labeled=True)
+# unlabeled_dataset=dataset.train_dataset.get_dataset(labeled=False)
+#
+# unlabeled_X=getattr(unlabeled_dataset,'X')
+# labeled_X=getattr(labeled_dataset,'X')
+# labeled_y=getattr(labeled_dataset,'y')
+# valid_X=getattr(dataset.test_dataset,'X')
+# valid_y=getattr(dataset.test_dataset,'y')
+# test_X=getattr(dataset.test_dataset,'X')
+# test_y=getattr(dataset.test_dataset,'y')
 
-unlabeled_X=getattr(unlabeled_dataset,'X')
-labeled_X=getattr(labeled_dataset,'X')
-labeled_y=getattr(labeled_dataset,'y')
-valid_X=getattr(dataset.test_dataset,'X')
-valid_y=getattr(dataset.test_dataset,'y')
-test_X=getattr(dataset.test_dataset,'X')
-test_y=getattr(dataset.test_dataset,'y')
-
-train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
-                           target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
-
-
-
-valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
-
-test_dataset=UnlabeledDataset(transform=dataset.test_transform)
+# train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,
+#                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
+#
+#
+#
+# valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
+#
+# test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 
 # augmentation
 
@@ -109,19 +109,19 @@ ema_decay=0.999
 
 
 
-train_batch_sampler=None,
+train_batch_sampler=None
 
-valid_batch_sampler=None,
+valid_batch_sampler=None
 
-test_batch_sampler=None,
-labeled_dataset=None,
-unlabeled_dataset=None,
-labeled_dataloader=None,
-unlabeled_dataloader=None,
-labeled_sampler=None,
-unlabeled_sampler=None,
-labeled_batch_sampler=None,
-unlabeled_batch_sampler=None,
-num_it_epoch=None,
-eval_epoch=None,
-eval_it=None,
+test_batch_sampler=None
+labeled_dataset=None
+unlabeled_dataset=None
+labeled_dataloader=None
+unlabeled_dataloader=None
+labeled_sampler=None
+unlabeled_sampler=None
+labeled_batch_sampler=None
+unlabeled_batch_sampler=None
+num_it_epoch=None
+eval_epoch=None
+eval_it=None

@@ -48,7 +48,8 @@ class SemiDeepModelMixin(SemiEstimator):
                  valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
-                 parallel=None
+                 parallel=None,
+                 file=None
                  ):
         self.train_dataset=train_dataset if train_dataset is not None else TrainDataset(labeled_dataset, unlabeled_dataset)
         self.valid_dataset = valid_dataset if valid_dataset is not None else test_dataset
@@ -129,6 +130,7 @@ class SemiDeepModelMixin(SemiEstimator):
         self.strongly_augmentation=None
         self.normalization=None
         self.ema=None
+        self.file=file
         self._estimator_type=None
         self.init_model()
         self.init_epoch()
@@ -272,7 +274,9 @@ class SemiDeepModelMixin(SemiEstimator):
             self.start_epoch()
             self.train_batch_loop(valid_X,valid_y)
             self.end_epoch()
+            # print(self.eval_epoch)
             if valid_X is not None and self.eval_epoch is not None and self._epoch % self.eval_epoch==0:
+
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
 
     def train_batch_loop(self,valid_X=None,valid_y=None):
@@ -295,7 +299,7 @@ class SemiDeepModelMixin(SemiEstimator):
 
             self.it_total += 1
             self.it_epoch += 1
-            print(self.it_total)
+            print(self.it_total,file=self.file)
 
             if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
                 self.evaluate(X=valid_X, y=valid_y,valid=True)
@@ -344,16 +348,25 @@ class SemiDeepModelMixin(SemiEstimator):
         elif isinstance(self.evaluation,(list,tuple)):
             result=[]
             for eval in self.evaluation:
-                result.append(eval.scoring(y,y_pred,y_score))
+                if self._estimator_type == 'classifier' or 'classifier' in self._estimator_type:
+                    result.append(eval.scoring(y,y_pred,y_score))
+                else:
+                    result.append(eval.scoring(y, y_pred))
             return result
         elif isinstance(self.evaluation,dict):
             result={}
             for key,val in self.evaluation.items():
-                result[key]=val.scoring(y,y_pred,y_score)
-                print(key,' ',result[key])
+                if self._estimator_type == 'classifier' or 'classifier' in self._estimator_type:
+                    result[key]=val.scoring(y,y_pred,y_score)
+                else:
+                    result[key] = val.scoring(y, y_pred)
+                print(key,' ',result[key],file=self.file)
             return result
         else:
-            result=self.evaluation.scoring(y,y_pred,y_score)
+            if self._estimator_type == 'classifier' or 'classifier' in self._estimator_type:
+                result=self.evaluation.scoring(y,y_pred,y_score)
+            else:
+                result = self.evaluation.scoring(y, y_pred)
             return result
 
     def start_fit(self, *args, **kwargs):
@@ -417,7 +430,8 @@ class SemiDeepModelMixin(SemiEstimator):
             return y_pred
         else:
             self.y_score=y_est
-            return y_est
+            y_pred=self.y_score
+            return y_pred
 
     # @abstractmethod
     def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):

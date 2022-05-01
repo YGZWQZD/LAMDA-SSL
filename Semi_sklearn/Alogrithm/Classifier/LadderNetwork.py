@@ -48,7 +48,8 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  valid_batch_sampler=None,
                  test_sampler=None,
                  test_batch_sampler=None,
-                 parallel=None):
+                 parallel=None,
+                 file=None):
         network=Ladder(encoder_sizes=encoder_sizes, encoder_activations=encoder_activations,
                   noise_std=noise_std,dim_in=dim_in,n_class=num_class,device=device) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
@@ -83,7 +84,8 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
-                                    parallel=parallel
+                                    parallel=parallel,
+                                    file=file
                                     )
         self.dim_in=dim_in
         self.num_class=num_class

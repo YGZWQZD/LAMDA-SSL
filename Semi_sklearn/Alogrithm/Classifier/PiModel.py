@@ -88,10 +88,10 @@ class PiModelClassifier(PiModel,ClassifierMixin):
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
         sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
-        _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb_1,logits_x_ulb_2.detach())
-        loss = sup_loss + _warmup * self.lambda_u *unsup_loss
-        return loss
+        # _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
+        # unsup_loss = consistency_loss(logits_x_ulb_1,logits_x_ulb_2.detach())
+        # loss = sup_loss + _warmup * self.lambda_u *unsup_loss
+        return sup_loss
 
     def predict(self,X=None,valid=None):
         return SemiDeepModelMixin.predict(self,X=X,valid=valid)

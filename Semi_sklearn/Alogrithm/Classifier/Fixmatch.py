@@ -16,10 +16,10 @@ def de_interleave(x, size):
     return x.reshape([size, -1] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
 
 class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
-    def __init__(self,train_dataset=config.train_dataset,
+    def __init__(self,train_dataset=None,
 
-                 valid_dataset=config.valid_dataset,
-                 test_dataset=config.test_dataset,
+                 valid_dataset=None,
+                 test_dataset=None,
                  train_dataloader=config.train_dataloader,
 
                  valid_dataloader=config.valid_dataloader,

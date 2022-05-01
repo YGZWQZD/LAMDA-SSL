@@ -7,7 +7,7 @@ from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from sklearn import datasets
 import numpy as np
 
-class BreastCancer(SemiDataset,TableMixin):
+class Boston(SemiDataset,TableMixin):
     def __init__(
         self,
         root=None,
@@ -57,11 +57,11 @@ class BreastCancer(SemiDataset,TableMixin):
         self.test_y_indexing_method=None
 
 
-        self.dataset=datasets.load_breast_cancer()
+        self.dataset=datasets.load_boston()
         SemiDataset.__init__(self,transforms=transforms,transform=transform, target_transform=target_transform,
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
-                             valid_transform=valid_transform,labeled_size=labeled_size,test_size=test_size,
-                             valid_size=valid_size,stratified=stratified,shuffle=shuffle,random_state=random_state)
+                             valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,test_size=test_size,
+                             stratified=stratified,shuffle=shuffle,random_state=random_state)
         TableMixin.__init__(self)
 
     def _init_dataset(self):

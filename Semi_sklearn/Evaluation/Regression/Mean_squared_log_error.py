@@ -1,4 +1,4 @@
-from Semi_sklearn.Evaluation.Regression import EvaluationRegressor
+from Semi_sklearn.Evaluation.Regression.EvaluationRegressor import EvaluationRegressor
 from sklearn.metrics import mean_squared_log_error
 from Semi_sklearn.utils import partial
 class Mean_squared_log_error(EvaluationRegressor):

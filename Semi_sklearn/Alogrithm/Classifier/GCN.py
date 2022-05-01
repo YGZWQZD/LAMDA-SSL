@@ -18,7 +18,8 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  device='cpu',
                  evaluation=None,
                  weight_decay=None,
-                 network=None
+                 network=None,
+                 file=None
                  ):
         self.network=network if network is not None else GCNNET.GCN(num_features=num_features,num_classes=num_classes,
                                                                     normalize=normalize)
@@ -30,14 +31,15 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     eval_epoch=eval_epoch,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    file=file
                                     )
         self._estimator_type = ClassifierMixin._estimator_type
 
     def init_optimizer(self):
         if isinstance(self._optimizer,SemiOptimizer):
             grouped_parameters=[
-                dict(params=self._network.conv1.parameters(), weight_decay=5e-4),
+                dict(params=self._network.conv1.parameters(), weight_decay=self.weight_decay),
                 dict(params=self._network.conv2.parameters(), weight_decay=0)
             ]
             self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
@@ -58,7 +60,7 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             valid_X=self.data.val_mask
 
         for self._epoch in range(1,self.epoch+1):
-            print(self._epoch)
+            print(self._epoch,file=self.file)
             train_result = self.train(lb_X=self.data.labeled_mask)
 
             self.end_batch_train(train_result)
@@ -115,10 +117,8 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         elif isinstance(self.evaluation,dict):
             result={}
             for key,val in self.evaluation.items():
-                # print(y.shape)
-                # print(y_pred.shape)
                 result[key]=val.scoring(y,y_pred,y_score)
-                print(key,' ',result[key])
+                print(key,' ',result[key],file=self.file)
             return result
         else:
             result=self.evaluation.scoring(y,y_pred,y_score)

@@ -109,6 +109,22 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
+    def init_augmentation(self):
+        # print(self._augmentation)
+        if self._augmentation is not None:
+            if isinstance(self._augmentation, dict):
+                self.weakly_augmentation = self._augmentation['augmentation'] \
+                    if 'augmentation' in self._augmentation.keys() \
+                    else self._augmentation['weakly_augmentation']
+                if 'strongly_augmentation' in self._augmentation.keys():
+                    self.strongly_augmentation = self._augmentation['strongly_augmentation']
+            elif isinstance(self._augmentation, (list, tuple)):
+                self.weakly_augmentation = self._augmentation[0]
+                if len(self._augmentation) > 1:
+                    self.strongly_augmentation = self._augmentation[1]
+            else:
+                self.strongly_augmentation = copy.deepcopy(self._augmentation)
+                self.weakly_augmentation=None
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \

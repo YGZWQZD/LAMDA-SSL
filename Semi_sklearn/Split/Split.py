@@ -6,6 +6,7 @@ from sklearn.utils import check_random_state
 from Semi_sklearn.utils import to_numpy,get_indexing_method,indexing
 
 def get_split_num(X,labeled_size=0.1):
+    # print(labeled_size)
     len_X = get_len(X)
     labeled_size_type = np.asarray(labeled_size).dtype.kind
     # if labeled_size is not None and labeled_size_type not in ("i", "f"):
@@ -25,12 +26,14 @@ def get_split_num(X,labeled_size=0.1):
     if labeled_size_type == "f":
         num_labeled = ceil(labeled_size * len_X)
     else:
-        num_labeled = float(labeled_size)
+
+        num_labeled = labeled_size
     num_unlabeled=len_X-num_labeled
     return num_labeled,num_unlabeled
 
 def get_split_index(y,num_labeled,num_unlabeled,stratified,shuffle,random_state=None):
     rng=check_random_state(seed=random_state)
+    # print(num_labeled,num_unlabeled)
     num_total=num_labeled+num_unlabeled
     if stratified:
         try:
@@ -88,6 +91,7 @@ def get_split_index(y,num_labeled,num_unlabeled,stratified,shuffle,random_state=
             ind_unlabeled = rng.permutation(ind_unlabeled)
     else:
         if shuffle:
+            # print(num_total)
             permutation = rng.permutation(num_total)
         else:
             permutation = np.arange(num_total)
@@ -96,6 +100,7 @@ def get_split_index(y,num_labeled,num_unlabeled,stratified,shuffle,random_state=
     return ind_labeled,ind_unlabeled
 
 def SemiSplit(stratified,shuffle,random_state=None, X=None, y=None,labeled_size=None):
+        # print(labeled_size)
         num_labeled, num_unlabeled = get_split_num(X, labeled_size)
         ind_labeled, ind_unlabeled = get_split_index(y=y, num_labeled=num_labeled, num_unlabeled=num_unlabeled,
                                                    stratified=stratified, shuffle=shuffle,

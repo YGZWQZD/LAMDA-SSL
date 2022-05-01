@@ -16,7 +16,7 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
                         max_models = 300,
                         sample_percent = 0.01,
                         sigma_percentile = 90,
-                        similarity_kernel = 'rbf'):
+                        similarity_kernel = 'rbf',gamma=0.1):
 
         self.BaseModel = base_model
         self.n_neighbors=n_neighbors
@@ -26,6 +26,7 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
         self.sigma_percentile=sigma_percentile
         self.similarity_kernel=similarity_kernel
         self._estimator_type = ClassifierMixin._estimator_type
+        self.gamma=gamma
 
     def fit(self, X, y,unlabeled_X):
         classes, y_indices = np.unique(y, return_inverse=True)
@@ -72,7 +73,7 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
             # First aprox
             # print(X_all)
             # print(rbf_kernel(X_all, gamma = 1))
-            self.S = np.sqrt(rbf_kernel(X_all, gamma = 0.05))
+            self.S = np.sqrt(rbf_kernel(X_all, gamma = self.gamma))
             # set gamma parameter as the 15th percentile
             sigma = np.percentile(np.log(self.S), self.sigma_percentile)
             sigma_2 = (1/sigma**2)*np.ones((self.S.shape[0],self.S.shape[0]))

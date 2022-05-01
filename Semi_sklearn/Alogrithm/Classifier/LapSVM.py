@@ -6,20 +6,25 @@ from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.metrics.pairwise import rbf_kernel
 import copy
+import inspect
 
 class LapSVM(InductiveEstimator,ClassifierMixin):
-    def __init__(self,neighbor_mode ='connectivity',
+    def __init__(self,
+           distance_function= rbf_kernel,
+           gamma_d=0.01,
+           neighbor_mode =None,
            n_neighbor= 5,
-           t= 1,
            kernel_function= rbf_kernel,
-           gamma=0.01,
+           gamma_k=0.01,
            gamma_A= 0.03125,
            gamma_I= 0):
+        self.distance_function=distance_function
         self.neighbor_mode=neighbor_mode
         self.n_neighbor=n_neighbor
-        self.t=t
+        # self.t=t
         self.kernel_function=kernel_function
-        self.gamma=gamma
+        self.gamma_k=gamma_k
+        self.gamma_d=gamma_d
         self.gamma_A=gamma_A
         self.gamma_I=gamma_I
         self._estimator_type = ClassifierMixin._estimator_type
@@ -45,19 +50,45 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         if self.neighbor_mode=='connectivity':
             W = kneighbors_graph(self.X, self.n_neighbor, mode='connectivity',include_self=False)
             W = (((W + W.T) > 0) * 1)
+            # print(W.shape)
+            # print(type(W))
+            # print(W.sum(0).shape)
+            # L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
         elif self.neighbor_mode=='distance':
             W = kneighbors_graph(self.X, self.n_neighbor, mode='distance',include_self=False)
             W = W.maximum(W.T)
             W = sparse.csr_matrix((np.exp(-W.data**2/4/self.t),W.indices,W.indptr),shape=(self.X.shape[0],self.X.shape[0]))
+            # print(W.shape)
+            # print(type(W))
+            # print(W.sum(0).shape)
+            # L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
+        elif self.distance_function is not None:
+            if 'gamma' in inspect.getfullargspec(self.distance_function).args:
+                W=self.distance_function(self.X,self.X,self.gamma_d)
+            else:
+                W = self.distance_function(self.X, self.X)
+            W=sparse.csr_matrix(W)
+            # print(W.shape)
+            # print(type(W))
+            # print(W.sum(0).shape)
+
+
         else:
             raise Exception()
 
         # Computing Graph Laplacian
+        # print(W.sum(0).shape)
         L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
-
+        # L=np.array(W.sum(0))[0]
+        # print(L)
+        # L=sparse.diags(L)
+        # L=L.tocsr()
+        # L=L-W
         # Computing K with k(i,j) = kernel(i, j)
-        K = self.kernel_function(self.X,self.X,self.gamma)
-
+        if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
+            K = self.kernel_function(self.X,self.X,self.gamma_k)
+        else:
+            K = self.kernel_function(self.X, self.X)
         l=X.shape[0]
         u=unlabeled_X.shape[0]
         # Creating matrix J [I (l x l), 0 (l x (l+u))]
@@ -108,7 +139,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         del almost_alpha, Q
 
         # Finding optimal decision boundary b using labeled data
-        new_K = self.kernel_function(self.X,X,self.gamma)
+        new_K = self.kernel_function(self.X,X,self.gamma_k)
         f = np.squeeze(np.array(self.alpha)).dot(new_K)
 
         self.sv_ind=np.nonzero((beta_hat>1e-7)*(beta_hat<(1/l-1e-7)))[0]
@@ -119,7 +150,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
 
 
     def decision_function(self,X):
-        new_K = self.kernel_function(self.X, X, self.gamma)
+        new_K = self.kernel_function(self.X, X, self.gamma_k)
         f = np.squeeze(np.array(self.alpha)).dot(new_K)
         return f+self.b
 

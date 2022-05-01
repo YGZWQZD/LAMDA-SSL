@@ -5,39 +5,39 @@ import torch.nn as nn
 import torch.distributions as DT
 import torch.nn.functional as F
 from torch.nn import init
-class GaussianSample(nn.Module):
-    """
-    Layer that represents a sample from a
-    Gaussian distribution.
-    """
-    def __init__(self, in_features, out_features):
-        super(GaussianSample, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-
-        self.mu = nn.Linear(in_features, out_features)
-        self.log_var = nn.Linear(in_features, out_features)
-
-    def reparametrize(self, mu, log_var):
-        epsilon = Variable(torch.randn(mu.size()), requires_grad=False)
-
-        if mu.is_cuda:
-            epsilon = epsilon.cuda()
-
-        # log_std = 0.5 * log_var
-        # std = exp(log_std)
-        std = log_var.mul(0.5).exp_()
-
-        # z = std * epsilon + mu
-        z = mu.addcmul(std, epsilon)
-
-        return z
-
-    def forward(self, x):
-        mu = self.mu(x)
-        log_var = F.softplus(self.log_var(x))
-
-        return self.reparametrize(mu, log_var), mu, log_var
+# class GaussianSample(nn.Module):
+#     """
+#     Layer that represents a sample from a
+#     Gaussian distribution.
+#     """
+#     def __init__(self, in_features, out_features):
+#         super(GaussianSample, self).__init__()
+#         self.in_features = in_features
+#         self.out_features = out_features
+#
+#         self.mu = nn.Linear(in_features, out_features)
+#         self.log_var = nn.Linear(in_features, out_features)
+#
+#     def reparametrize(self, mu, log_var):
+#         epsilon = Variable(torch.randn(mu.size()), requires_grad=False)
+#
+#         if mu.is_cuda:
+#             epsilon = epsilon.cuda()
+#
+#         # log_std = 0.5 * log_var
+#         # std = exp(log_std)
+#         std = log_var.mul(0.5).exp_()
+#
+#         # z = std * epsilon + mu
+#         z = mu.addcmul(std, epsilon)
+#
+#         return z
+#
+#     def forward(self, x):
+#         mu = self.mu(x)
+#         log_var = F.softplus(self.log_var(x))
+#
+#         return self.reparametrize(mu, log_var), mu, log_var
 
 class SSVAE(nn.Module):
     """
@@ -86,10 +86,10 @@ class SSVAE(nn.Module):
             self.decoder.add_module(name=name,module=activations_de[_])
         name = "Linear_" + str(num_hidden)
         in_dim = dim_hidden_de[num_hidden- 1]
-        out_dim=input_dim*2
+        out_dim=input_dim
         self.decoder.add_module(name=name, module=nn.Linear(in_dim,out_dim))
         name = "BatchNorm"
-        self.decoder.add_module(name=name, module=nn.BatchNorm1d(input_dim * 2, affine=False))
+        self.decoder.add_module(name=name, module=nn.BatchNorm1d(out_dim, affine=False))
         # nn.Linear(dim_z + num_class, dim_hidden),
         # nn.Softplus(),
         # nn.Linear(dim_hidden, dim_hidden),
@@ -156,9 +156,12 @@ class SSVAE(nn.Module):
 
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                init.xavier_normal(m.weight.data)
+                init.xavier_normal_(m.weight.data)
                 if m.bias is not None:
                     m.bias.data.zero_()
+        # for p in self.parameters():
+        #     p.data.normal_(0, 0.001)
+        #     if p.ndimension() == 1: p.data.fill_(0.)
         # for p in self.parameters():
         #     p.data.normal_(0, 0.001)
         #     if p.ndimension() == 1: p.data.fill_(0.)
@@ -173,6 +176,7 @@ class SSVAE(nn.Module):
         # print(logsigma )
         # print(logsigma.exp())
         return DT.Normal(mu, nn.Softplus()(logsigma).exp())
+        # return DT.Normal(mu, logsigma.exp())
 
     # q(y|x) = Categorical(y|pi_phi(x)) -- SSL paper eq 4
     def encode_y(self, x):
@@ -184,10 +188,10 @@ class SSVAE(nn.Module):
     #     return DT.Bernoulli(logits=self.decoder(yz))
     def decode(self, y, z):
         yz = torch.cat([y, z], dim=1)
-        mu, logsigma = self.decoder(yz).chunk(2, dim=-1)
+        reconstruction = DT.Bernoulli(logits=self.decoder(yz))
         # print(logsigma)
         # print(logsigma**2)
-        return DT.Normal(mu, nn.Softplus()(logsigma).exp())
+        return reconstruction
     # classification model q(y|x) using the trained q distribution
     def forward(self, x):
         y_probs = self.encode_y(x).probs

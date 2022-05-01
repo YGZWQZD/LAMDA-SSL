@@ -58,11 +58,11 @@ class CoReg(InductiveEstimator,RegressorMixin):
                     # Compute neighbors
                     omega = h.kneighbors(x_u, return_distance=False)[0]
                     # Retrain regressor after adding unlabeled point
-                    print(L_X.shape)
-                    print(x_u.shape)
+                    # print(L_X.shape)
+                    # print(x_u.shape)
                     X_temp = np.concatenate((L_X, x_u))
-                    print(L_y.shape)
-                    print(y_u_hat.shape)
+                    # print(L_y.shape)
+                    # print(y_u_hat.shape)
                     y_temp = np.concatenate((L_y, y_u_hat))  # use predicted y_u_hat
                     h_temp.fit(X_temp, y_temp)
 

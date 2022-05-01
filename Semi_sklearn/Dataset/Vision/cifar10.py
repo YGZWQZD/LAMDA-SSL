@@ -171,6 +171,7 @@ class CIFAR10(SemiDataset,VisionMixin):
             valid_y=None
 
         if self.labeled_size is not None:
+            # print(self.random_state)
             labeled_X, labeled_y, unlabeled_X, unlabeled_y = SemiSplit(X=train_X,y=train_y,
                                                                    labeled_size=self.labeled_size,
                                                                    stratified=self.stratified,

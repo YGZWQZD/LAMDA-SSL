@@ -35,7 +35,7 @@ import random
 
 
 class RandAugment(Transformer):
-    def __init__(self, n, m, num_bins,augment_list=None):
+    def __init__(self, n, m, num_bins,random=False,augment_list=None):
         super().__init__()
         self.n = n
         self.m = m
@@ -62,7 +62,11 @@ class RandAugment(Transformer):
             if min_v is None and max_v is None:
                 aug=op()
             else:
-                aug=op(min_v=min_v,max_v=max_v,num_bins=self.num_bins,magnitude=self.m)
+                if random:
+                    m=random.choice(range(1,self.m+1))
+                else:
+                    m=self.m
+                aug=op(min_v=min_v,max_v=max_v,num_bins=self.num_bins,magnitude=m)
             # print(X)
             # print(aug)
             X=aug.fit_transform(X)

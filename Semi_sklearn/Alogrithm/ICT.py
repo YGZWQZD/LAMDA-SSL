@@ -49,8 +49,8 @@ class ICT(InductiveEstimator,SemiDeepModelMixin):
                  mu=None,
                  ema_decay=None,
                  weight_decay=None,
-                 num_classes=10,
-                 alpha=None
+                 alpha=None,
+                 file=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -85,14 +85,15 @@ class ICT(InductiveEstimator,SemiDeepModelMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    file=file,
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
         self.weight_decay=weight_decay
         self.warmup=warmup
         self.alpha=alpha
-        self.num_classes=num_classes
+        # self.num_classes=num_classes
         self.bn_controller=Bn_Controller()
 
     def init_transform(self):
@@ -100,8 +101,8 @@ class ICT(InductiveEstimator,SemiDeepModelMixin):
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
 
     def start_fit(self):
-        self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labeled_dataset.y).num_class
+        # self.num_classes = self.num_classes if self.num_classes is not None else \
+        #     class_status(self._train_dataset.labeled_dataset.y).num_class
         self.it_total = 0
         self._network.zero_grad()
         self._network.train()

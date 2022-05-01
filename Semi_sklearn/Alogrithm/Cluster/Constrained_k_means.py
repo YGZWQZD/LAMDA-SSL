@@ -94,7 +94,7 @@ class Constrained_k_means(TransductiveEstimator,ClusterMixin):
                         break
 
                 if empty_flag:
-                    return "Clustering Not Found Exception"
+                    raise Exception("Clustering Not Found Exception")
 
             previous = c
 
@@ -118,6 +118,7 @@ class Constrained_k_means(TransductiveEstimator,ClusterMixin):
 
         self.center=c
         self.y=self.is_clustered
+        # print(self.is_clustered)
         # print(self.y)
         return self
 

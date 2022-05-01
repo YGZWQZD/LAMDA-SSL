@@ -135,7 +135,7 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         # print(torch.any(torch.isnan(logits_x_ulb)))
         d = torch.Tensor(_ulb_X.size()).normal_()
         for i in range(self.it_vat):
-            d = _l2_normalize(d)
+            d = self.xi*_l2_normalize(d)# r=self.xi*_l2_normalize(d)
             d = Variable(d.to(self.device), requires_grad=True)
             y_hat = self._network(_ulb_X + d)
             # print(torch.any(torch.isnan(y_hat)))
@@ -151,7 +151,6 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         y_hat = self._network(_ulb_X + r_adv.detach())
         # print(torch.any(torch.isnan(y_hat)))
         self.bn_controller.unfreeze_bn(self._network)
-        logits_x_ulb=logits_x_ulb.detach()
         return logits_x_lb,lb_y,logits_x_ulb, y_hat
 
     def get_loss(self,train_result,*args,**kwargs):
@@ -161,7 +160,7 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
         sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
         # print(sup_loss)
-        unsup_loss = kl_div_with_logit(logits_x_ulb, y_hat)
+        unsup_loss = kl_div_with_logit(logits_x_ulb.detach(), y_hat)
         # print(unsup_loss)
         p = F.softmax(logits_x_ulb, dim=1)
         entmin_loss=-(p*F.log_softmax(logits_x_ulb, dim=1)).sum(dim=1).mean(dim=0)

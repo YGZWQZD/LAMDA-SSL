@@ -51,9 +51,10 @@ class ICT(ICT_model.ICT,RegressorMixin):
                  mu=None,
                  ema_decay=None,
                  weight_decay=None,
-                 T=None,
-                 num_classes=10,
-                 alpha=None
+                 # T=None,
+                 # num_classes=10,
+                 alpha=None,
+                 file=None
                  ):
         ICT_model.ICT.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -91,9 +92,8 @@ class ICT(ICT_model.ICT,RegressorMixin):
                                     evaluation=evaluation,
                                    warmup=warmup,
                                    lambda_u=lambda_u,
-                                   T=T,
-                                   num_classes=num_classes,
-                                   alpha=alpha
+                                   alpha=alpha,
+                               file=file
                                     )
         self._estimator_type = RegressorMixin._estimator_type
 
@@ -105,6 +105,7 @@ class ICT(ICT_model.ICT,RegressorMixin):
                      (1.0 - lam)*Consistency(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_2)
         # unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
+        print(unsup_loss)
         loss = sup_loss + self.lambda_u * _warmup * unsup_loss
         return loss
 
