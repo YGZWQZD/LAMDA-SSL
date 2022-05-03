@@ -1,5 +1,4 @@
-[TOC]
-
+![logo](./Imgs/Logo.svg)
 #  Introduction
 
 Semi-sklearn is an efficient tool for semi-supervised learning which is easy to use.
