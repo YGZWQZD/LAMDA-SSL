@@ -2,13 +2,13 @@
 <img width="100px" style="border-radius: 50%" src="./Logo.png" > 
 <!-- ![logo](Logo.png) -->
 
-# docsify <small>3.5</small>
+# Semi-sklearn <small>1.0</small>
 
-> A magical documentation site generator.
+> An useful ans efficient toolbox for semi-supervised learning.
 
 - Simple and lightweight
 - No statically built html files
 - Multiple themes
 
-[GitHub](https://github.com/docsifyjs/docsify/)
-[Get Started](#docsify)
+[GitHub](https://github.com/YGZWQZD/Semi-sklearn/)
+[Get Started](?id=Headline)

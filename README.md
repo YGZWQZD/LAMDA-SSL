@@ -3,14 +3,13 @@
 <img width="500px" src="./Imgs/Logo.png"> 
 
 ![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn)![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn?color=red)![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn?color=green)![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn?color=yellow)
-
 </div>
 
 
 
 #  Introduction
 
-Semi-sklearn is an efficient tool for semi-supervised learning which is easy to use.
+Semi-sklearn is An useful ans efficient toolbox for semi-supervised learning.
 
 
 
