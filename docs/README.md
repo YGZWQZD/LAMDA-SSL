@@ -1,4 +1,4 @@
-![logo](Logo.svg)
+![](https://badgen.net/github/stars/micromatch/micromatch)
 
 #  Introduction
 
