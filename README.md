@@ -1,6 +1,5 @@
 <!-- ![logo](./Imgs/Logo.png)(width="50%") -->
-<center> <img width="500px" 
- bor src="./Imgs/Logo.png" > </center>
+<<img width="500px" src="./Imgs/Logo.png" style="center"> 
 
 #  Introduction
 
