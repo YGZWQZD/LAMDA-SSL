@@ -2,7 +2,7 @@ import copy
 
 import torch
 
-from Semi_sklearn.exceptions import TransformError
+# from Semi_sklearn.exceptions import TransformError
 from Semi_sklearn.utils import indexing
 from torch.utils.data.dataset import Dataset
 import os
@@ -95,7 +95,7 @@ class UnlabeledDataset(Dataset):
         elif hasattr(transform,'forward'):
             X = transform.forward(X)
         else:
-            raise TransformError('Transforms is not Callable!')
+            raise Exception('Transforms is not Callable!')
         return X
 
     def apply_transform(self,X,y=None):

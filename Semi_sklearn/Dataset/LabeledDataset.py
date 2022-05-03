@@ -1,5 +1,5 @@
 import copy
-from Semi_sklearn.exceptions import TransformError
+# from Semi_sklearn.exceptions import TransformError
 from Semi_sklearn.utils import indexing
 from torch.utils.data.dataset import Dataset
 from Semi_sklearn.utils import get_len,get_indexing_method
@@ -47,7 +47,7 @@ class LabeledDataset(Dataset):
         elif hasattr(transforms,'forward'):
             X, y = transforms.forward(X,y)
         else:
-            raise TransformError('Transforms is not Callable!')
+            raise Exception('Transforms is not Callable!')
         return X,y
 
     def to_list(self,l):
@@ -135,7 +135,7 @@ class LabeledDataset(Dataset):
         elif hasattr(transform,'forward'):
             X = transform.forward(X)
         else:
-            raise TransformError('Transforms is not Callable!')
+            raise Exception('Transforms is not Callable!')
         return X
 
     def apply_transform(self,X,y):
