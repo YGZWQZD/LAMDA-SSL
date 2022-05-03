@@ -1,7 +1,13 @@
 <!-- ![logo](./Imgs/Logo.png)(width="50%") -->
 <div align=center>
-<<img width="500px" src="./Imgs/Logo.png"> 
+<img width="500px" src="./Imgs/Logo.png"> 
+
+![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn)
+![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn?color=red)![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn?color=green)![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn?color=yellow)
+
 </div>
+
+
 
 #  Introduction
 
