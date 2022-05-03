@@ -1,6 +1,7 @@
 <!-- ![logo](./Imgs/Logo.png)(width="50%") -->
-<img width="500px" 
- bor src="./Imgs/Logo.svg" >
+<center> <img width="500px" 
+ bor src="./Imgs/Logo.png" > </center>
+
 #  Introduction
 
 Semi-sklearn is an efficient tool for semi-supervised learning which is easy to use.
