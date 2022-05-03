@@ -1,6 +1,6 @@
 #  Introduction
 Semi-sklearn is an efficient tool for semi-supervised learning which is easy to use.
-## Tasks
+<!-- ## Tasks -->
 
 # Quick Start
 
