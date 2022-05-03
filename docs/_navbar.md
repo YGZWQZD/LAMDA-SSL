@@ -1,2 +1,2 @@
 - [English](/)
-- [中文](/)
+- [中文](./zh-cn/README.md)
