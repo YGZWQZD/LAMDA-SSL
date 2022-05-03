@@ -1,5 +1,5 @@
 <!-- _coverpage.md -->
-<img width="500px" style="border-radius: 50%" bor src="./Logo.png" > 
+<img width="300px" style="border-radius: 50%" src="./Logo.png" > 
 <!-- ![logo](Logo.png) -->
 
 # docsify <small>3.5</small>
