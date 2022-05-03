@@ -11,4 +11,4 @@
 - Multiple themes
 
 [GitHub](https://github.com/YGZWQZD/Semi-sklearn/)
-[Get Started](?id=Headline)
+[Get Started](?id=Introduction)
