@@ -8,7 +8,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Alogrithm.Classifier.TemporalEnsembling import TemporalEnsembling
+from Semi_sklearn.Algorithm.Classifier.TemporalEnsembling import TemporalEnsembling
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -71,7 +71,7 @@ test_dataloader=LabeledDataLoader(batch_size=100,num_workers=0,drop_last=False)
 valid_dataloader=LabeledDataLoader(batch_size=100,num_workers=0,drop_last=False)
 
 # sampler
-train_sampler=[RandomSampler(replacement=True),RandomSampler(replacement=False)]
+train_sampler=[RandomSampler(replacement=True,num_samples=460*100),RandomSampler(replacement=False)]
 train_batchsampler=SemiBatchSampler(batch_size=100,drop_last=True)
 test_sampler=SequentialSampler()
 valid_sampler=SequentialSampler()

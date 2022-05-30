@@ -1,5 +1,5 @@
 <!-- _coverpage.md -->
-<img width="200px" style="border-radius: 50%" src="./Logo.png" > 
+<img width="200px" style="border-radius: 50%" src="./Imgs/Logo.png" > 
 <!-- ![logo](Logo.png) -->
 
 # Semi-sklearn <small>1.0</small>

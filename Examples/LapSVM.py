@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Classifier.LapSVM import LapSVM
+from Semi_sklearn.Algorithm.Classifier.LapSVM import LapSVM
 from Semi_sklearn.Evaluation.Classification.Recall import Recall
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer

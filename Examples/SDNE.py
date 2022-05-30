@@ -14,7 +14,7 @@ dataset=Cora(labeled_size=0.2,root='..\Semi_sklearn\Download\Cora',random_state=
 dataset.init_dataset()
 dataset.init_transforms()
 data=dataset.data
-from Semi_sklearn.Alogrithm.Classifier.SDNE import SDNE
+from Semi_sklearn.Algorithm.Classifier.SDNE import SDNE
 model=SDNE(
     num_nodes=data.x.shape[0],
     input_dim=data.x.shape[1],

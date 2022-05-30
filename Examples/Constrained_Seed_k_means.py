@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Cluster.Constrained_Seed_k_means import Constrained_Seed_k_means
+from Semi_sklearn.Algorithm.Cluster.Constrained_Seed_k_means import Constrained_Seed_k_means
 import numpy as np
 
 from Semi_sklearn.Evaluation.Cluster.Davies_Bouldin_Score import Davies_Bouldin_Score

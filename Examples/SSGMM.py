@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Classifier.SSGMM import SSGMM
+from Semi_sklearn.Algorithm.Classifier.SSGMM import SSGMM
 import numpy as np
 from sklearn import datasets
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy

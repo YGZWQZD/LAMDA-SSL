@@ -32,7 +32,7 @@ evaluation={
     'Confusion_matrix':Confusion_matrix(normalize='true')
 }
 data=dataset.data
-from Semi_sklearn.Alogrithm.Classifier.GCN import GCN
+from Semi_sklearn.Algorithm.Classifier.GCN import GCN
 optimizer=Adam(lr=0.02)
 
 model=GCN(

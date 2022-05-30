@@ -145,7 +145,7 @@ class SemiDeepModelMixin(SemiEstimator):
             torch.cuda.set_device(self.device)
         self._network=self._network.to(self.device)
         if self._parallel is not None:
-            self._parallel=self._parallel.init_parallel(self._network)
+            self._network=self._parallel.init_parallel(self._network)
 
     def init_augmentation(self):
         # print(self._augmentation)

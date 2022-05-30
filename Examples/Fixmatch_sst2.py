@@ -3,7 +3,7 @@ from Semi_sklearn.Opitimizer.SGD import SGD
 from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Alogrithm.Classifier.Fixmatch import Fixmatch
+from Semi_sklearn.Algorithm.Classifier.Fixmatch import Fixmatch
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler

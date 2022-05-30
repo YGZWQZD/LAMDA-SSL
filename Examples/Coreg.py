@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Regressor.CoReg import CoReg
+from Semi_sklearn.Algorithm.Regressor.CoReg import CoReg
 from Semi_sklearn.Evaluation.Regression.Mean_absolute_error import Mean_absolute_error
 from Semi_sklearn.Evaluation.Regression.Mean_squared_error import MeanSquaredError
 from Semi_sklearn.Dataset.Table.Boston import Boston

@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Classifier.Tri_training import TriTraining
+from Semi_sklearn.Algorithm.Classifier.Tri_training import TriTraining
 import numpy as np
 from sklearn import datasets
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy

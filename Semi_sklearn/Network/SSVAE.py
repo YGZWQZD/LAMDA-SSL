@@ -154,11 +154,9 @@ class SSVAE(nn.Module):
         out_dim=2 * dim_z
         self.encoder_z.add_module(name=name, module=nn.Linear(in_dim,out_dim))
 
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                init.xavier_normal_(m.weight.data)
-                if m.bias is not None:
-                    m.bias.data.zero_()
+        for p in self.parameters():
+            p.data.normal_(0, 0.001)
+            if p.ndimension() == 1: p.data.fill_(0.)
         # for p in self.parameters():
         #     p.data.normal_(0, 0.001)
         #     if p.ndimension() == 1: p.data.fill_(0.)
@@ -175,7 +173,7 @@ class SSVAE(nn.Module):
         # print(logsigma)
         # print(logsigma )
         # print(logsigma.exp())
-        return DT.Normal(mu, nn.Softplus()(logsigma).exp())
+        return DT.Normal(mu, logsigma.exp())
         # return DT.Normal(mu, logsigma.exp())
 
     # q(y|x) = Categorical(y|pi_phi(x)) -- SSL paper eq 4
@@ -192,6 +190,7 @@ class SSVAE(nn.Module):
         # print(logsigma)
         # print(logsigma**2)
         return reconstruction
+
     # classification model q(y|x) using the trained q distribution
     def forward(self, x):
         y_probs = self.encode_y(x).probs

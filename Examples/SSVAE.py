@@ -2,7 +2,7 @@ from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
 from Semi_sklearn.Transform.RandomCrop import RandomCrop
 from Semi_sklearn.Transform.RandAugment import RandAugment
 from Semi_sklearn.Transform.Cutout import Cutout
-from Semi_sklearn.Alogrithm.Classifier.SSVAE import SSVAE
+from Semi_sklearn.Algorithm.Classifier.SSVAE import SSVAE
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 from Semi_sklearn.Opitimizer.Adam import Adam
 from Semi_sklearn.Transform.ToImage import ToImage
@@ -11,7 +11,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Alogrithm.Classifier.MeanTeacher import MeanTeacherClassifier
+from Semi_sklearn.Algorithm.Classifier.MeanTeacher import MeanTeacherClassifier
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -30,7 +30,7 @@ from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 
 # dataset
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False,random_state=0)
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',labeled_size=3000,stratified=True,shuffle=True,download=False,random_state=0)
 # f = open("../Result/SSVAE.txt", "w")
 # dataset
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
@@ -84,7 +84,7 @@ valid_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 test_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # sampler
-train_sampler=[RandomSampler(replacement=True,num_samples=100*540),RandomSampler(replacement=False)]
+train_sampler=[RandomSampler(replacement=True,num_samples=100*570),RandomSampler(replacement=False)]
 train_batchsampler=SemiBatchSampler(batch_size=100,drop_last=True)
 test_sampler=SequentialSampler()
 valid_sampler=SequentialSampler()
@@ -108,7 +108,7 @@ evaluation={
 }
 
 
-model=SSVAE(dim_in=(28,28),num_class=10,
+model=SSVAE(dim_in=(1,28,28),num_class=10,
                      dim_z=50,
                      dim_hidden_de=[500, 500],
                      dim_hidden_en_y=[500, 500], dim_hidden_en_z=[500, 500],
@@ -116,12 +116,12 @@ model=SSVAE(dim_in=(28,28),num_class=10,
                      activations_en_y=[nn.Softplus(), nn.Softplus()],
                      activations_en_z=[nn.Softplus(), nn.Softplus()],
                      alpha=0.1,
-                     num_labeled=6000,
+                     num_labeled=3000,
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-                     epoch=50,num_it_epoch=540,
-                     num_it_total=540*50,optimizer=optimizer,device='cpu',
-                     eval_it=200,mu=1,weight_decay=0,evaluation=evaluation,
+                     epoch=0,num_it_epoch=570,
+                     num_it_total=570*0,optimizer=optimizer,device='cpu',
+                     eval_it=1000,mu=1,weight_decay=0,evaluation=evaluation,
                      train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
                      train_batch_sampler=train_batchsampler,file=None)
 
@@ -129,12 +129,16 @@ model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_
 X=model.generate(100)
 # print(X.shape)
 X=X.detach().numpy()
+print(X.shape)
 for _ in range(100):
-    img=ToImage()(X[_])
-    import matplotlib.pyplot as plt
-    plt.imshow(img)
-    plt.axis('off')
-    plt.show()
+    img=ToImage()(X[_].squeeze(0))
+    img.convert('RGB').save('../Result/Imgs/SSVAE/' + str(_) + '.jpg')
+    # print(type(img))
+    # import matplotlib.pyplot as plt
+
+    # plt.imshow(img)
+    # plt.axis('off')
+    # plt.show()
 
 
 # from sklearn.model_selection import RandomizedSearchCV

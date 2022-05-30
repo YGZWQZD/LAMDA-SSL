@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Classifier.LabelSpreading import Label_spreading
+from Semi_sklearn.Algorithm.Classifier.LabelSpreading import Label_spreading
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
 from Semi_sklearn.Evaluation.Classification.Recall import Recall

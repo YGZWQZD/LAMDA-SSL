@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Classifier.Assemble import Assemble
+from Semi_sklearn.Algorithm.Classifier.Assemble import Assemble
 import numpy as np
 from sklearn import datasets
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy

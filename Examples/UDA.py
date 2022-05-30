@@ -23,7 +23,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import DataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Alogrithm.Classifier.UDA import UDA
+from Semi_sklearn.Algorithm.Classifier.UDA import UDA
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler

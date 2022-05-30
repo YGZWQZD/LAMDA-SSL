@@ -4,7 +4,7 @@ from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
 from Semi_sklearn.Transform.RandomCrop import RandomCrop
 from Semi_sklearn.Transform.RandAugment import RandAugment
 from Semi_sklearn.Transform.Cutout import Cutout
-from Semi_sklearn.Alogrithm.Classifier.SSVAE import SSVAE
+from Semi_sklearn.Algorithm.Classifier.SSVAE import SSVAE
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 from Semi_sklearn.Opitimizer.Adam import Adam
 from Semi_sklearn.Transform.ToImage import ToImage
@@ -12,7 +12,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Alogrithm.Classifier.MeanTeacher import MeanTeacherClassifier
+from Semi_sklearn.Algorithm.Classifier.MeanTeacher import MeanTeacherClassifier
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -28,7 +28,7 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Transform.ImageToTensor import ToTensor
 from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
-from Semi_sklearn.Alogrithm.Classifier.ImprovedGan import ImprovedGan
+from Semi_sklearn.Algorithm.Classifier.ImprovedGan import ImprovedGan
 import torch.nn as nn
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
 f = open("../Result/ImprovedGAN.txt", "w")

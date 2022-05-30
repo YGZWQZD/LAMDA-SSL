@@ -2,7 +2,7 @@ from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
 from Semi_sklearn.Transform.RandomCrop import RandomCrop
 from Semi_sklearn.Transform.RandAugment import RandAugment
 from Semi_sklearn.Transform.Cutout import Cutout
-from Semi_sklearn.Alogrithm.Classifier.LadderNetwork import Ladder_Network
+from Semi_sklearn.Algorithm.Classifier.LadderNetwork import Ladder_Network
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 from Semi_sklearn.Opitimizer.Adam import Adam
 from Semi_sklearn.Transform.ToImage import ToImage
@@ -10,7 +10,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Alogrithm.Classifier.MeanTeacher import MeanTeacherClassifier
+from Semi_sklearn.Algorithm.Classifier.MeanTeacher import MeanTeacherClassifier
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -26,9 +26,9 @@ from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 from Semi_sklearn.Scheduler.Linear_warmup import Linear_warmup
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
-dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False,random_state=0)
+dataset=Mnist(root='..\Semi_sklearn\Download\mnist',labeled_size=6000,stratified=True,shuffle=True,download=False,random_state=0)
 # dataset
-f = open("../Result/LadderNetwork.txt", "w")
+f = open("../Result/LadderNetwork1.txt", "w")
 import torch.nn as nn
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
@@ -99,15 +99,15 @@ evaluation={
 }
 
 
-model=Ladder_Network(dim_in=28*28,num_class=10,
+model=Ladder_Network(dim_in=(1,28,28),num_class=10,
                      noise_std=0.2,
                      lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
                      encoder_sizes=[1000, 500, 250, 250, 250],
                      encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                      train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                      train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-                     epoch=100,num_it_epoch=540,
-                     num_it_total=540*100,optimizer=optimizer,scheduler=scheduler,device='cpu',
+                     epoch=500,num_it_epoch=540,
+                     num_it_total=540*500,optimizer=optimizer,scheduler=scheduler,device='cpu',
                      eval_it=100,mu=1,weight_decay=5e-4,evaluation=evaluation,
                      train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
                      train_batch_sampler=train_batchsampler,file=f)

@@ -289,7 +289,7 @@ class StackedDecoders(torch.nn.Module):
             self.decoders_ref.append(decoder_ref)
             self.decoders.add_module(decoder_ref, decoder)
 
-        self.bottom_decoder = Decoder(d_in, None)
+        self.bottom_decoder = Decoder(d_in, None,device=self.device)
 
     def forward(self, tilde_z_layers, u_top, tilde_z_bottom):
         # Note that tilde_z_layers should be in reversed order of encoders

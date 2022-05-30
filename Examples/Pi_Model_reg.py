@@ -7,7 +7,7 @@ from Semi_sklearn.Evaluation.Regression.Mean_absolute_error import Mean_absolute
 from Semi_sklearn.Network.MLP_Reg import MLP_Reg
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Alogrithm.Regressor.PiModel import PiModelRegressor
+from Semi_sklearn.Algorithm.Regressor.PiModel import PiModelRegressor
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler

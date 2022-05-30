@@ -48,14 +48,14 @@ class Discriminator(nn.Module):
 
     def forward(self, x):
         x = x.view(-1, self.input_dim)
-        noise = torch.randn(x.size()) * self.noise_level[0] if self.training else torch.Tensor([0]).to(self.device)
+        noise = torch.randn(x.size()).to(self.device) * self.noise_level[0] if self.training else torch.Tensor([0]).to(self.device)
 
         x = x + Variable(noise, requires_grad = False)
         x_f=x
         for i in range(len(self.layers)):
             m = self.layers[i]
             x_f = self.activations[i](m(x))
-            noise = torch.randn(x_f.size()) * self.noise_level[i+1] if self.training else torch.Tensor([0]).to(self.device)
+            noise = torch.randn(x_f.size()).to(self.device) * self.noise_level[i+1] if self.training else torch.Tensor([0]).to(self.device)
             x = (x_f + Variable(noise, requires_grad = False))
 
         self.feature=x_f

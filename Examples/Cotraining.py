@@ -1,4 +1,4 @@
-from Semi_sklearn.Alogrithm.Classifier.Co_training import Co_training
+from Semi_sklearn.Algorithm.Classifier.Co_training import Co_training
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
 from Semi_sklearn.Evaluation.Classification.Recall import Recall
