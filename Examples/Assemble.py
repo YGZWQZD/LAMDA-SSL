@@ -1,6 +1,4 @@
 from Semi_sklearn.Algorithm.Classifier.Assemble import Assemble
-import numpy as np
-from sklearn import datasets
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
 from Semi_sklearn.Evaluation.Classification.Recall import Recall
@@ -23,6 +21,8 @@ model=Assemble(T=100000)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 result=model.predict(X=test_X)
+print('Result',file=f)
+print(result,file=f)
 print('Accuracy',file=f)
 print(Accuracy().scoring(test_y,result),file=f)
 print('Recall',file=f)

@@ -2,9 +2,6 @@ import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from sklearn.base import ClassifierMixin
-from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
-from Semi_sklearn.Scheduler.SemiScheduler import SemiScheduler
-from torch.nn import Softmax
 import torch.nn.functional as F
 from collections import Counter
 from Semi_sklearn.utils import EMA
