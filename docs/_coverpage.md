@@ -4,7 +4,7 @@
 
 # Semi-sklearn <small>1.0</small>
 
-> An useful ans efficient toolbox for semi-supervised learning.
+> An useful and efficient toolbox for semi-supervised learning.
 
 - 
 - 

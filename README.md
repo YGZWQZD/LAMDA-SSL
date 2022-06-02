@@ -9,7 +9,7 @@
 
 #  Introduction
 
-Semi-sklearn is An useful ans efficient toolbox for semi-supervised learning.
+Semi-sklearn is An useful and efficient toolbox for semi-supervised learning.
 
 
 
