@@ -8,7 +8,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Algorithm.Classifier.FlexMatch import FlexMatch
+from Semi_sklearn.Algorithm.Classifier.Flexmatch import Flexmatch
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -95,13 +95,13 @@ evaluation={
     'Confusion_matrix':Confusion_matrix(normalize='true')
 }
 
-model=FlexMatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
+model=Flexmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
+               train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batchsampler,
                train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-               augmentation=augmentation,network=network,epoch=1,num_it_epoch=2**20,
-               num_it_total=2**20,optimizer=optimizer,scheduler=scheduler,device='cpu',
-               eval_it=2000,mu=7,T=0.5,weight_decay=0,evaluation=evaluation,threshold=0.95,
-               lambda_u=1.0,train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
-               train_batch_sampler=train_batchsampler,ema_decay=0.999,use_hard_labels=True,num_classes=10,thresh_warmup=True)
+               augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,evaluation=evaluation,
+               epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cpu',mu=7,
+               num_classes=10,T=0.5,weight_decay=0,threshold=0.95,lambda_u=1.0,
+               ema_decay=0.999,use_hard_labels=True,thresh_warmup=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 

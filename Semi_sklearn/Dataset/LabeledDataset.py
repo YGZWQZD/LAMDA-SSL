@@ -35,7 +35,6 @@ class LabeledDataset(Dataset):
         X, y = copy.deepcopy(X), copy.deepcopy(y)
         if isinstance(transforms,(list,tuple)):
             for item in transforms:
-
                 X,y=self._transforms(self.X,y,item)
 
         elif callable(transforms):

@@ -48,6 +48,17 @@ valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
 
 test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 
+# sampler
+train_sampler=RandomSampler(replacement=True,num_samples=64*(2**20))
+train_batch_sampler=SemiBatchSampler(batch_size=64,drop_last=True)
+valid_sampler=SequentialSampler()
+test_sampler=SequentialSampler()
+
+#dataloader
+train_dataloader=TrainDataLoader(num_workers=0)
+valid_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
+test_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
+
 # augmentation
 
 weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
@@ -63,27 +74,18 @@ augmentation={
     'weakly_augmentation':weakly_augmentation,
     'strongly_augmentation':strongly_augmentation
 }
-# optimizer
-optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
-scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
-
-#dataloader
-train_dataloader=TrainDataLoader(num_workers=0)
-valid_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
-test_dataloader=LabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
-
-# sampler
-train_sampler=RandomSampler(replacement=True,num_samples=64*(2**20))
-train_batchsampler=SemiBatchSampler(batch_size=64,drop_last=True)
-valid_sampler=SequentialSampler()
-test_sampler=SequentialSampler()
-
 
 
 # network
 # network=CifarResNeXt(cardinality=4,depth=28,base_width=4,num_classes=10)
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
 #network=ResNet50(n_class=10)
+
+# optimizer
+optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
+
+# scheduler
+scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 
 # evalutation
 evaluation={
@@ -95,15 +97,15 @@ evaluation={
     'AUC':AUC(multi_class='ovo'),
     'Confusion_matrix':Confusion_matrix(normalize='true')
 }
-
+# parallel
+from Semi_sklearn.Distributed.DataParallel import DataParallel
+parallel=DataParallel(device_ids=['cpu','cuda:0'],output_device='cpu')
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
+               train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
                train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-               augmentation=augmentation,
-               network=network,epoch=1,num_it_epoch=1,
-               num_it_total=1,optimizer=optimizer,scheduler=scheduler,device='cpu',
-               eval_it=2000,mu=7,T=1,weight_decay=0,evaluation=evaluation,threshold=0.95,
-               lambda_u=1.0,train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
-               train_batch_sampler=train_batchsampler,ema_decay=0.999)
+               augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,evaluation=evaluation,
+               epoch=1,num_it_epoch=1,num_it_total=1,eval_it=2000,device='cpu',mu=7,parallel=parallel,
+               T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 

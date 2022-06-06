@@ -17,11 +17,9 @@ def de_interleave(x, size):
 
 class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
-
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=config.train_dataloader,
-
                  valid_dataloader=config.valid_dataloader,
                  test_dataloader=config.test_dataloader,
                  augmentation=config.augmentation,
@@ -54,7 +52,8 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  mu=config.mu,
                  ema_decay=config.ema_decay,
                  T=config.T,
-                 weight_decay=config.weight_decay
+                 weight_decay=config.weight_decay,
+                 parallel=None,
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -89,7 +88,8 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    parallel=parallel
                                     )
         self.lambda_u=lambda_u
         self.threshold=threshold

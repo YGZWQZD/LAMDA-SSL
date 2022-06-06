@@ -4,7 +4,6 @@ from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from sklearn.base import ClassifierMixin
 import torch.nn.functional as F
 from collections import Counter
-from Semi_sklearn.utils import EMA
 from Semi_sklearn.utils import class_status
 from Semi_sklearn.utils import cross_entropy
 import torch
@@ -18,7 +17,7 @@ def de_interleave(x, size):
     return x.reshape([size, -1] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
 
 
-class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -124,7 +123,10 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         if self.p_target is None:
             class_counts=torch.Tensor(class_status(self._train_dataset.labeled_dataset.y).class_counts).to(self.device)
             self.p_target = (class_counts / class_counts.sum(dim=-1, keepdim=True))
-        self.selected_label = torch.ones((len(self._train_dataset.unlabeled_dataset),), dtype=torch.long, ) * -1
+        else:
+            self.p_target=self.p_target.to(self.device)
+        # print(self.p_target)
+        self.selected_label = torch.ones((len(self._train_dataset.unlabeled_dataset),), dtype=torch.long ) * -1
         self.selected_label = self.selected_label.to(self.device)
         self.classwise_acc = torch.zeros((self.num_classes)).to(self.device)
         self._network.zero_grad()
@@ -135,6 +137,8 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
         num_lb = w_lb_X.shape[0]
         pseudo_counter = Counter(self.selected_label.tolist())
+        print(pseudo_counter)
+        print(len(self._train_dataset.unlabeled_dataset))
         if max(pseudo_counter.values()) < len(self._train_dataset.unlabeled_dataset):  # not all(5w) -1
             if self.thresh_warmup:
                 for i in range(self.num_classes):
@@ -149,7 +153,7 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         inputs = torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
         logits = self._network(inputs)
         logits_x_lb = logits[:num_lb]
-        logits_x_ulb_w, logits_x_ulb_s = logits[num_lb:].chunk(2)
+        logits_x_ulb_w , logits_x_ulb_s = logits[num_lb:].chunk(2)
         logits_x_ulb_w = logits_x_ulb_w.detach()
         pseudo_label = torch.softmax(logits_x_ulb_w, dim=-1)
         if self.use_DA:
@@ -160,14 +164,14 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             pseudo_label = pseudo_label * self.p_target / self.p_model
             pseudo_label = (pseudo_label / pseudo_label.sum(dim=-1, keepdim=True))
         max_probs, max_idx = torch.max(pseudo_label, dim=-1)
-        mask = (max_probs.ge(self.threshold * (self.classwise_acc[max_idx] / (2. - self.classwise_acc[max_idx]))).float()).mean()
+        mask = max_probs.ge(self.threshold * (self.classwise_acc[max_idx] / (2. - self.classwise_acc[max_idx]))).float()
         select = max_probs.ge(self.threshold ).long()
         if ulb_idx[select == 1].nelement() != 0:
             self.selected_label[ulb_idx[select == 1]] = max_idx.long()[select == 1]
         if self.use_hard_labels is not True:
             pseudo_label = torch.softmax(logits_x_ulb_w / self.T, dim=-1)
         else:
-            pseudo_label=max_idx.long()
+            pseudo_label=max_idx
 
         result=(logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask)
         return result
@@ -179,7 +183,7 @@ class FlexMatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         if self.use_hard_labels:
             Lu = (cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels, reduction='none') * mask).mean()
         else:
-            Lu = cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels) * mask.mean()
+            Lu = (cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels) * mask).mean()
         loss = Lx + self.lambda_u * Lu
         return loss
 

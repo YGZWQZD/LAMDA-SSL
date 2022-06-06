@@ -98,7 +98,7 @@ class SemiDataset(Dataset):
             if valid_dataset is not None:
                 self.valid_dataset = valid_dataset
             elif valid_X is not None:
-                self.valid_dataset.inin_dataset(test_X, test_y)
+                self.valid_dataset.inin_dataset(valid_X, valid_y)
         else:
             if labeled_dataset is not None:
                 labeled_X = getattr(labeled_dataset, 'X')
@@ -116,7 +116,7 @@ class SemiDataset(Dataset):
                                                            shuffle=self.shuffle,
                                                            random_state=self.random_state
                                                         )
-                self.test_dataset.inin_dataset(self.test_X, self.test_y)
+                self.test_dataset.inin_dataset(test_X, test_y)
 
             if valid_dataset is not None:
                 self.valid_dataset=valid_dataset
@@ -132,9 +132,8 @@ class SemiDataset(Dataset):
                                                            stratified=self.stratified,
                                                            shuffle=self.shuffle,
                                                            random_state=self.random_state
-                                                        )
-                self.valid_dataset.inin_dataset(self.test_X, self.test_y)
-
+                                                           )
+                self.valid_dataset.inin_dataset(valid_X, valid_y)
 
             self.train_dataset.init_dataset(labeled_X=labeled_X,labeled_y=labeled_y,unlabeled_X=unlabeled_X,
                     unlabeled_y=unlabeled_y,labeled_dataset=labeled_dataset,unlabeled_dataset=unlabeled_dataset)
@@ -150,7 +149,12 @@ class SemiDataset(Dataset):
         self.labeled_y = getattr(self.labeled_dataset,'y')
         self.unlabeled_X = getattr(self.unlabeled_dataset,'X')
         self.unlabeled_y = getattr(self.unlabeled_dataset,'y')
-
+        if self.valid_X is None:
+            self.valid_X =self.test_X
+            self.valid_y=self.test_y
+        if self.test_X is None:
+            self.test_X=self.valid_X
+            self.test_y=self.valid_y
         self.labeled_X_indexing_method=get_indexing_method(self.labeled_X)
         self.labeled_y_indexing_method = get_indexing_method(self.labeled_y)
         self.unlabeled_X_indexing_method =get_indexing_method(self.unlabeled_X)

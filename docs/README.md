@@ -79,19 +79,343 @@ Semi-sklearn provides different evaluation indicators for different tasks, such 
 
 ## Load Data
 
+以CIFAR10数据集为例,首先CIFAR10类。
+```python
+from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
+```
+
+实例化一个封装好的CIFAR10数据集,相当于一个数据管理器，root参数表示数据集存放地址，labeled_size参数表示有标注样本的数量或比例，stratified参数表示对数据集进行划分时是否要按类别比例划分，shuffle参数表示是否需要对数据集进行打乱，download参数表示是否需要下载数据集。
+```python
+dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False)
+```
+
+通过init_dataset方法初始化数据集的内部结构，如果使用Semi-sklearn中的数据集，不需要设置参数，如果使用自定义数据集，需要传入具体的数据。
+```python
+dataset.init_dataset()
+```
+
+之后通过init_transform方法初始化数据预处理方式，这里直接采用默认设置。
+```python
+dataset.init_transform()
+```
+
+可以通过访问封装数据集参数的方法获取数据集中的具体数据。
+```python
+labeled_dataset=getattr(dataset,'labeled_dataset')
+unlabeled_dataset=getattr(dataset,'unlabeled_dataset')
+unlabeled_X=getattr(unlabeled_dataset,'X')
+labeled_X=getattr(labeled_dataset,'X')
+labeled_y=getattr(labeled_dataset,'y')
+valid_X=getattr(dataset.valid_dataset,'X')
+valid_y=getattr(dataset.valid_dataset,'y')
+test_X=getattr(dataset.test_dataset,'X')
+test_y=getattr(dataset.test_dataset,'y')
+```
+
 ## Transform Data
 
-## Train a Classical SSL Model
+以RandAugment数据增广为例，首先导入RandAugment类。
+```python
+from Semi_sklearn.Transform.RandAugment import RandAugment
+```
 
-## Train a Deep SSL Model
+对RandAugment进行实例化，参数n为进行随机增广的次数，表示增广的幅度，num_bins表示幅度划分的级别数。这里设置将增广幅度划分为10个等级，并采用第10级的增广增广2次。
+```python
+augmentation=RandAugment(n=2,m=10,num_bins=10)
+```
+
+之后输入数据完成数据增广。由两种方式：可以调用fit_transform()方法：
+```python
+augmented_X=augmentation.fit_transform(X)
+```
+
+也可以直接调用__call__()方法：
+```python
+augmented_X=augmentation(X)
+```
 
 ## Use Pipeline Mechanism
 
+Semi-sklearn支持Pipeline机制，将多种数据处理方式以流水线的形式用于数据处理。
+如在FixMatch算法中的强数据增广和弱数据增广。
+```python
+from sklearn.pipeline import Pipeline
+from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
+from Semi_sklearn.Transform.RandomCrop import RandomCrop
+from Semi_sklearn.Transform.RandAugment import RandAugment
+from Semi_sklearn.Transform.Cutout import Cutout
+weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
+                              ])
+
+strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,random=True)),
+                              ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
+                              ('RandomHorizontalFlip',RandomHorizontalFlip()),
+                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
+                              ])
+```
+
+可以直接调用fit_transform()方法完成数据处理。
+```python
+weakly_augmented_X=weakly_augmentation.fit_transform(X)
+strongly_augmented_X=strongly_augmentation.fit_transform(X)
+```
+
+## Train a Classical SSL Model
+
+以Self-training算法为例。
+首先导入并初始化BreastCancer数据集。
+```python
+from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
+dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
+dataset.init_dataset()
+dataset.init_transforms()
+```
+
+对数据进行预处理。
+```python
+labeled_X=dataset.pre_transform.fit_transform(dataset.labeled_X)
+labeled_y=dataset.labeled_y
+unlabeled_X=dataset.pre_transform.fit_transform(dataset.unlabeled_X)
+unlabeled_y=dataset.unlabeled_y
+test_X=dataset.pre_transform.fit_transform(dataset.test_X)
+test_y=dataset.test_y
+```
+
+调用并初始化Self-training模型，以SVM模型为基学习器。
+```python
+from Semi_sklearn.Algorithm.Classifier.Self_training import Self_training
+from sklearn.svm import SVC
+SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
+model=Self_training(base_estimator=SVM,threshold=0.8,criterion="threshold",max_iter=100)
+```
+
+调用fit()方法进行模型训练。
+```python
+model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
+```
+
+对测试数据进行预测。
+```python
+result=model.predict(X=test_X)
+```
+
+对模型效果进行评估。
+```python
+from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
+from Semi_sklearn.Evaluation.Classification.Recall import Recall
+print(Accuracy().scoring(test_y,result))
+print(Recall().scoring(test_y,result))
+```
+
+## Train a Deep SSL Model
+
+以FixMatch算法为例。
+首先导入并初始化CIFAR10数据集。
+```python
+from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
+dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
+dataset.init_dataset()
+dataset.init_transforms()
+```
+
+通过访问封装数据集参数的方法获取数据集中的具体数据。
+```python
+labeled_dataset=getattr(dataset,'labeled_dataset')
+unlabeled_dataset=getattr(dataset,'unlabeled_dataset')
+unlabeled_X=getattr(unlabeled_dataset,'X')
+labeled_X=getattr(labeled_dataset,'X')
+labeled_y=getattr(labeled_dataset,'y')
+valid_X=getattr(dataset.valid_dataset,'X')
+valid_y=getattr(dataset.valid_dataset,'y')
+test_X=getattr(dataset.test_dataset,'X')
+test_y=getattr(dataset.test_dataset,'y')
+```
+
+在深度学习中，需要使用数据加载器，首先需要将具体数据进行进行封装，并确定数据加载过程中的处理方式。
+```python
+from Semi_sklearn.Dataset.TrainDataset import TrainDataset
+from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
+train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
+                           target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
+
+valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
+
+test_dataset=UnlabeledDataset(transform=dataset.test_transform)
+```
+
+在初始化数据加载器之前，可以根据需求设置采样器,即sampler和batch_sampler，这里训练时采用随机采样，测试和验证时采用顺序采样。
+```python
+from Semi_sklearn.Sampler.RandomSampler import RandomSampler
+from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
+from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
+train_sampler=RandomSampler(replacement=True,num_samples=64*(2**20))
+train_batch_sampler=SemiBatchSampler(batch_size=64,drop_last=True)
+valid_sampler=SequentialSampler()
+test_sampler=SequentialSampler()
+```
+
+以Pipeline形式设置数据增广方法，若存在多种增广方式，可以用python字典或列表存储。
+```python
+from sklearn.pipeline import Pipeline
+from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
+from Semi_sklearn.Transform.RandomCrop import RandomCrop
+from Semi_sklearn.Transform.RandAugment import RandAugment
+from Semi_sklearn.Transform.Cutout import Cutout
+weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
+                              ])
+
+strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,random=True)),
+                              ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
+                              ('RandomHorizontalFlip',RandomHorizontalFlip()),
+                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
+                              ])
+augmentation={
+    'weakly_augmentation':weakly_augmentation,
+    'strongly_augmentation':strongly_augmentation
+}
+```
+
+之后设置深度学习中的神经网络结构，这里使用WideResNet作为神经网络的基本结构。
+```python
+from Semi_sklearn.Network.WideResNet import WideResNet
+network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
+```
+
+设置深度学习中的优化器，这里使用SGD优化器。
+```python
+from Semi_sklearn.Opitimizer.SGD import SGD
+optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
+```
+
+设置深度学习中的调度器用来在训练过程中调整学习率。
+```python
+from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
+scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
+```
+
+在深度半监督学习算法中，可以用字典存储多个评估指标，直接在模型初始化时作为参数用于在训练过程中验证模型效果。
+```python
+from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
+from Semi_sklearn.Evaluation.Classification.Top_k_accuracy import Top_k_accurary
+from Semi_sklearn.Evaluation.Classification.Precision import Precision
+from Semi_sklearn.Evaluation.Classification.Recall import Recall
+from Semi_sklearn.Evaluation.Classification.F1 import F1
+from Semi_sklearn.Evaluation.Classification.AUC import AUC
+from Semi_sklearn.Evaluation.Classification.Confusion_matrix import Confusion_matrix
+
+evaluation={
+    'accuracy':Accuracy(),
+    'top_5_accuracy':Top_k_accurary(k=5),
+    'precision':Precision(average='macro'),
+    'Recall':Recall(average='macro'),
+    'F1':F1(average='macro'),
+    'AUC':AUC(multi_class='ovo'),
+    'Confusion_matrix':Confusion_matrix(normalize='true')
+}
+```
+
+初始化Fixmatch算法，并设置好各组件和参数。
+```python
+from Semi_sklearn.Algorithm.Classifier.Fixmatch import Fixmatch
+model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
+               train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
+               train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
+               augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,evaluation=evaluation,
+               epoch=1,num_it_epoch=1,num_it_total=1,eval_it=2000,device='cpu',mu=7,
+               T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
+```
+
+对模型进行训练，并在训练的同时对模型进行验证。
+```python
+model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
+```
+
+最后对测试数据进行预测。
+```python
+model.predict(test_X)
+```
+
 ## Search Params
 
+Semi-sklearn支持sklearn中的参数搜索机制。
+首先初始化一个参数不完整的模型。
+```python
+model=Fixmatch(train_dataset=train_dataset,test_dataset=test_dataset,
+               train_dataloader=train_dataloader,test_dataloader=test_dataloader,
+               augmentation=augmentation,network=network,epoch=1,num_it_epoch=2,num_it_total=2,
+               optimizer=optimizer,scheduler=scheduler,device='cpu',eval_it=1,
+               mu=7,T=1,weight_decay=0,evaluation=evaluation,train_sampler=train_sampler,
+               test_sampler=test_sampler,train_batch_sampler=train_batchsampler,ema_decay=0.999)
+```
+
+以字典的形式设置带搜索参数。
+```python
+param_dict = {"threshold": [0.7, 1],
+              "lambda_u":[0.8, 1]
+              }
+```
+
+以随机搜索的方式进行参数搜索。
+首先进行搜索方式初始化。
+
+```python
+from sklearn.model_selection import RandomizedSearchCV
+random_search = RandomizedSearchCV(model, param_distributions=param_dict,n_iter=1, cv=4,scoring='accuracy')
+```
+
+开始参数搜索过程。
+```python
+random_search.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
+```
+
 ## Train Distributedly
+可以采用分布式训练用多个GPU同时训练模型。以Fixmatch为例。
+导入并初始化DataParallel模块。需要设置分布式训练所需的GPU。
+
+```clike
+from Semi_sklearn.Distributed.DataParallel import DataParallel
+parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
+```
+
+初始化分布式训练的Fixmatch算法。
+
+```python
+model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
+               train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
+               train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
+               augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,evaluation=evaluation,
+               epoch=1,num_it_epoch=1,num_it_total=1,eval_it=2000,device='cpu',mu=7,parallel=parallel,
+               T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
+```
+
+进行分布式训练。
+```py
+model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
+```
+
 
 ## Save and Load Model
+
+可以使用pickle保存和加载半监督学习模型。
+设置路径。
+```python
+path='../save/Fixmatch.pkl'
+```
+
+保存模型。
+```python
+with open(path, 'wb') as f:
+    pickle.dump(model, f)
+```
+
+加载模型。
+```python
+with open(path, 'rb') as f:
+    model = pickle.load(f)
+```
+
 
 # User Guide
 
@@ -304,9 +628,13 @@ ICT was proposed by Verma et al[25]. The full name of  ICT is Interpolation Cons
 
 Berthelot等[26]提出了MixMatch方法（如图2-13所示）。该方法也用了Mixup方法，但不同于ICT仅对无标注数据的样本与伪标注进行Mixup，MixMatch对有标注数据与无标注数据进行了混合，并对混合后的数据样本及其标注与伪标注进行了Mixup。MixMatch首先对无标注数据多次增广并进行多次预测，通过对多次预测结果求均值并进行锐化得到无标注数据的伪标注，对数据进行多次不同增广使模型的伪标注更加具备可靠性，对伪标注进行锐化降低了标注分布的熵，使分类界限尽可能穿过样本的低密度区域；之后MixMatch对有标注数据与无标注数据进行了结合与打乱，使无标注数据集与有标注数据集形成了一个新的混合数据集，从混合数据集中取出与原有标注数据集相同数量的数据进行Mixup作为新的有标注数据集，将混合数据中剩余数据与无标注数据集进行Mixup得到新的无标注数据集；最后MixMatch分别对新有标注数据集和新无标注数据集进行预测，用新有标注数据集的预测结果计算交叉熵作为监督损失，用新无标注数据的预测结果计算均方误差作为无监督损失，通过权重参数将二者结合起来作为模型的损失函数。不同于其他方法将有标注数据与无标注数据分别计算损失，MixMatch将有标注数据与无标注进行了结合、打乱、重新划分，这降低了因错误的伪标注导致模型性能下降的风险。在原本仅使用伪标注训练的过程中加入真实标注，有助于利用真实标注辅助无标注数据的训练，引导无标注一致性的正确训练方向，既保障了一致性正则原有的稳健性，还能使模型不会因伪标注与真实标注不符过度偏离目标。
 
+MixMatch was proposed by Berthelot et al. This method also uses Mixup method, but unlike ICT which only mixes unlabeled data samples, MixMatch mixes both labeled data and unlabeled data. MixMatch firstly augments the unlabeled data multiple times and makes multiple predictions. By averaging and sharpening the results of multiple predictions, the pseudo-labels of the unlabeled data are obtained. Multiple augmentations make the pseudo-labels more reliable. Sharpening the pseudo-labels reduces the entropy of the label distribution, allowing the classification boundaries to pass through the low-density regions of the samples as much as possible. Then MixMatch combines and shuffles the labeled data set and the unlabeled data set to form a new mixed data set. The same amount of samples as the original labeled samples are taken out from the mixed data set to form a new labeled data set by Mixup and the remaining samples in the mixed data set forms a new labeled data set by Mixup too. Finally, MixMatch predicts on the new labeled data set and the new unlabeled data set respectively. It uses the prediction results of the new labeled data set to calculate the cross entropy as the supervised loss and uses the new unlabeled data set to calculate the mean square error as the unsupervised loss. The two terms are combined by a weight parameter. Different from other methods which calculate the loss of labeled data and unlabeled data separately, MixMatch combines, shuffles, and re-partitions labeled data set and unlabeled data set, which reduces the risk of model performance degradation due to wrong pseudo-labels. MixMatch is helpful to use real labels to assist the training of unlabeled data and guide the correct training direction of unlabeled consistency which not only ensures the original robustness of the consistency regularization, but also prevents the model from excessive target deviation due to the inconsistency between pseudo-labels and real labels.
+
 ##### ReMixMatch
 
-Berthelot等[27]还提出了ReMixMatch方法（如图2-14所示）。ReMixMatch是MixMatch的改进版本，其引入了两种技术：分布对齐和增广锚定。分布对齐目的在于使模型对于无标注数据预测得到的伪标注应与有标注数据的标注有相同的边缘概率分布，在深度学习中，模型的预测经常偏向数量较多的类别，另外MixMatch对软标注使用了锐化操作减少了标注分布的熵以促使分类边界尽可能通过低密度区域，这都导致了有标注数据的标注分布与无标注数据的伪标注分布产生了差异，这反映了为无标注数据赋予伪标注存在类别间的不公平现象，分布对齐技术有效缓解了这样的问题。分布对齐技术计算有标注数据的真实标注分布，在每一批次的训练中，计算其输出的软标注分布，对于一个样本的软标注，使其与真实标注分布与当前批次软标注分布的比值相乘得到对齐后的软标注，将对齐后的软标注进行锐化得到样本的伪标注。增广锚定是为了使模型适应更强的数据增广，对于监督学习方法，在一定程度内，对数据施加更强的数据增广可以进一步提升模型的泛化能力，但这是以监督学习中无论对样本施加强增广还是弱增广，标注都不会发生变化为前提。在半监督学习中，往往由模型对无标注数据的预测结果得到伪标注，伪标注会随着数据增广的形式而变化，如果对样本施加较强的增广，容易使伪标注过度偏离真实标注，无法发挥监督学习中强数据增广的作用，这也导致了MixMatch方法不能与较强的数据增广方式相容，ReMixMatch通过引入增广锚定技术首先对无标注样本进行弱数据增广，将模型对其预测的结果作为伪标注，并将其作为“锚”固定下来，这使得后续无论对无标注数据进行何种数据增广，都不会使其伪标注发生变化。ReMixMatch方法对无标注数据进行了一次弱数据增广和多次强数据增广，并都以模型对弱增广数据的预测结果经对齐与锐化后作为伪标注，由弱增广和所有强增广后的数据集组成更大的无标注数据集。之后ReMixMatch采用与MixMatch相同的策略对有标注数据集和无标注数据集进行组合、打乱与重新划分。另外，ReMixMatch的损失函数与MixMatch由较大的不同，ReMixMatch的有监督损失与无监督损失有采用交叉熵进行计算，且不同于MixMatch的损失函数仅包含监督损失与无监督损失两项，ReMixMatch增加了两项损失，这是由于MixMatch仅对Mixup后的数据集进行损失计算，虽然Mixup使模型拥有了更好的泛化性能，但是仅使用Mixup后的数据可能会忽略Mixup前数据集的一些信息，因此ReMixMatch从多个Mixup前的强增广数据集中取出一个，用于计算Mixup前数据的无监督损失作为损失函数第三项；ReMixMatch还借鉴了S4L的自监督策略，对取出的Mixup前的强增广数据集进行随机旋转并对其旋转角度进行预测，自监督进一步促进了模型隐层的学习，将对旋转角度分类的交叉熵损失作为自监督损失，用作损失函数的第四项。ReMixMatch以一个更为复杂的框架将多种技术融为一体，不仅结合了各方法的优势，且因为其全面性而更加通用。
+Berthelot等[27]还提出了ReMixMatch方法（如图2-14所示）。ReMixMatch是MixMatch的改进版本，其引入了两种技术：分布对齐和增广锚定。分布对齐目的在于使模型对于无标注数据预测得到的伪标注应与有标注数据的标注有相同的边缘概率分布，在深度学习中，模型的预测经常偏向数量较多的类别，另外MixMatch对软标注使用了锐化操作减少了标注分布的熵以促使分类边界尽可能通过低密度区域，这都导致了有标注数据的标注分布与无标注数据的伪标注分布产生了差异，这反映了为无标注数据赋予伪标注存在类别间的不公平现象，分布对齐技术有效缓解了这样的问题。分布对齐技术计算有标注数据的真实标注分布，在每一批次的训练中，计算其输出的软标注分布，对于一个样本的软标注，使其与真实标注分布与当前批次软标注分布的比值相乘得到对齐后的软标注，将对齐后的软标注进行锐化得到样本的伪标注。增广锚定是为了使模型适应更强的数据增广，对于监督学习方法，在一定程度内，对数据施加更强的数据增广可以进一步提升模型的泛化能力，但这是以监督学习中无论对样本施加强增广还是弱增广，标注都不会发生变化为前提。在半监督学习中，往往由模型对无标注数据的预测结果得到伪标注，伪标注会随着数据增广的形式而变化，如果对样本施加较强的增广，容易使伪标注过度偏离真实标注，无法发挥监督学习中强数据增广的作用，这也导致了MixMatch方法不能与较强的数据增广方式相容，ReMixMatch通过引入增广锚定技术首先对无标注样本进行弱数据增广，将模型对其预测的结果作为伪标注，并将其作为“锚”固定下来，这使得后续无论对无标注数据进行何种数据增广，都不会使其伪标注发生变化。ReMixMatch方法对无标注数据进行了一次弱数据增广和多次强数据增广，并都以模型对弱增广数据的预测结果经对齐与锐化后作为伪标注，由弱增广和所有强增广后的数据集组成更大的无标注数据集。之后ReMixMatch采用与MixMatch相同的策略对有标注数据集和无标注数据集进行组合、打乱与重新划分。另外，ReMixMatch的损失函数与MixMatch由较大的不同，ReMixMatch的有监督损失与无监督损失均采用交叉熵进行计算，且不同于MixMatch的损失函数仅包含监督损失与无监督损失两项，ReMixMatch增加了两项损失，这是由于MixMatch仅对Mixup后的数据集进行损失计算，虽然Mixup使模型拥有了更好的泛化性能，但是仅使用Mixup后的数据可能会忽略Mixup前数据集的一些信息，因此ReMixMatch从多个Mixup前的强增广数据集中取出一个，用于计算Mixup前数据的无监督损失作为损失函数第三项；ReMixMatch还借鉴了S4L的自监督策略，对取出的Mixup前的强增广数据集进行随机旋转并对其旋转角度进行预测，自监督进一步促进了模型隐层的学习，将对旋转角度分类的交叉熵损失作为自监督损失，用作损失函数的第四项。ReMixMatch以一个更为复杂的框架将多种技术融为一体，不仅结合了各方法的优势，且因为其全面性而更加通用。
+
+ReMixMatch was proposed by Berthelot et al. ReMixMatch is an improved version of MixMatch. It introduces two techniques: distribution alignment and augmented anchoring. The purpose of distribution alignment is to make the pseudo-labels predicted by the model for unlabeled data have the same marginal probability distribution as the real labels of labeled data. In deep learning, the label distribution of the labeled data and the pseudo-label distribution of the unlabeled data are different because the model's predictions are often biased towards the categories which have more samples and the use of a sharpening operation reduces the entropy of the label distribution to force the classification boundaries to pass through low-density regions as much as possible. There is an unfair phenomenon among categories in the pseudo-labels of data and the distribution alignment technology effectively alleviates this problem. The distribution alignment technology calculates the true label distribution of the labeled data. In each batch of training, the soft label distribution is calculated. For the soft label of a sample, ReMixMatch multiplys it by the ratio of the real label distribution and the current batch soft label distribution to obtain the aligned soft label and sharpens the aligned soft label to obtain the pseudo label of the sample. Augmented anchoring is to adapt the model to stronger data augmentation. For supervised learning methods, applying stronger data augmentation to the data can further improve the generalization ability of the model because no matter whether strong or weak augmentation is applied to the sample, its label will not change. In semi-supervised learning, pseudo-labels are often obtained from the prediction results on unlabeled data by the model. The pseudo-labels will change with the form of data augmentation. If a strong augmentation is applied to the samples, it is easy to make the pseudo-labels deviate too much from the real labels. It makes MixMatch incompatible with strong data augmentation methods. By introducing augmented anchoring technology, ReMixMatch performs weak data augmentation on unlabeled samples. The model predicts for weakly augmented unlabeled samples to get pseudo-labels and fixes them as "anchors", so that no matter what kind of data augmentation is performed on the unlabeled data in the future, the pseudo-labels will not change. ReMixMatch performs one weak data augmentation and multiple strong data augmentation on the unlabeled data, and uses the model's prediction results for the weakly augmented data as pseudo-labels after alignment and sharpening. The augmented dataset composes a larger unlabeled dataset. ReMixMatch uses the same strategy as MixMatch to combine, shuffle and re-partition the labeled and unlabeled datasets. In addition, the loss function of ReMixMatch is quite different from that of MixMatch. The supervised loss and unsupervised loss of ReMixMatch are both calculated by cross entropy and different from MixMatch's loss function which only includes supervised loss and unsupervised loss, ReMixMatch adds two items. Although Mixup makes the model have better generalization performance, only using the data after Mixup may ignore some information of the data set before Mixup, so ReMixMatch takes one out of multiple augmented data sets before Mixup and uses it to calculate the unsupervised loss of pre-Mixup dataset as the third term of the loss function. ReMixMatch also draws on the self-supervised strategy of S4L. Samples from the augmented dataset are randomly rotated and their rotation angles are predicted to promote the learning of the hidden layer of the model. The cross-entropy loss for classifying the rotation angle is used as the fourth term of the loss function. ReMixMatch integrates multiple techniques in a more complex framework that not only combines the strengths of each method, but is more general because of its comprehensiveness.
 
 ##### FixMatch
 
@@ -356,11 +684,13 @@ When the raw data is a graph, since the instances are not independent but connec
 
 Wang等[32]提出了SDNE （如图2-18所示）。SDNE是一种可以在图中结点没有特征表示，仅有图结构信息的情况下学习图中结点嵌入向量的半监督图深度学习方法。该方法采用了自编码器结构，取结点在邻接矩阵中对应的行作为结点的邻接向量，将结点的邻接向量作为结点的特征输入自编码器，通过编码器得到结点的嵌入表示，通过解码器还原邻接向量，对于整个图，相当于通过自编码器还原了邻接矩阵。SDNE的损失函数主要包含三项：第一项惩罚了自编码器输入与输出的不一致性，使邻自编码器的输入与输出尽可能一致，另外与经典自编码器不同的是，SDNE的输入是邻接向量，由于邻接矩阵的稀疏性，导致输入的特征中存在大量的零值，SDNE指出应该更加关注对于非零值的还原，因此赋予了零值与非零值不同的权重；第二项为拉普拉斯正则，根据图结构信息惩罚了相邻节点间隐层表示的不一致性，并将邻接矩阵作为权重，得到了拉普拉斯正则项；第三项为L2正则，惩罚了自编码器的参数复杂度，以此来避免过拟合。在SDNE方法中，损失函数的第一项更关注结点本身的特征，而第二项更关注相邻节点间的信息，即图的结构信息，有效解决了经典半监督学习算法无法有效利用图结构信息的问题。
 
-SDNE was proposed by Wang et al. SDNE is a deep graph based semi-supervised learning method that can learn the embedding vector of nodes in the graph when there is no feature representation for the nodes in the graph and only graph structure information. This method adopts an autoencoder structure, takes the corresponding row of the node in the adjacency matrix as the adjacency vector of the node and inputs the adjacency vector of the node as the feature of the node into the self-encoder. SDNE obtains the embedded representation of the node through the encoder and restores the adjacency vector through the decoder. The loss function of SDNE mainly includes three items. The first item penalizes the inconsistency between the input and output of the autoencoder. In addition, unlike the classical autoencoder, the input of SDNE is an adjacency vector. Due to the sparseness of the adjacency matrix, there are a large number of zero values ​​in the input features. SDNE points out that more attention should be paid to the restoration of non-zero values, so zero and non-zero values ​​are given different weights; the second item For the Laplacian regularity, according to the graph structure information, the inconsistency of the hidden layer representation between adjacent nodes is punished, and the adjacency matrix is ​​used as the weight to obtain the Laplace regularity term; the third term is the L2 regularity, which penalizes the self-regularity. The parameter complexity of the encoder to avoid overfitting. In the SDNE method, the first term of the loss function pays more attention to the characteristics of the node itself, while the second term pays more attention to the information between adjacent nodes, that is, the structural information of the graph, which effectively solves the problem that the classical semi-supervised learning algorithm cannot effectively utilize the graph. Problems with structural information.
+SDNE was proposed by Wang et al. SDNE is a deep graph based semi-supervised learning method that can learn the embedding vector of nodes in the graph when there is no feature representation for the nodes in the graph and only graph structure information. This method adopts an autoencoder structure, takes the corresponding row of the node in the adjacency matrix as the adjacency vector of the node and inputs the adjacency vector of the node as the feature of the node into the self-encoder. SDNE obtains the embedded representation of the node through the encoder and restores the adjacency vector through the decoder. The loss function of SDNE mainly includes three items. The first item penalizes the inconsistency between the input and output of the autoencoder. In addition, unlike the classical autoencoder, the input of SDNE is an adjacency vector. Due to the sparseness of the adjacency matrix, there are a large number of zero values ​​in the input features. SDNE points out that more attention should be paid to the restoration of non-zero values, so zero and non-zero values ​​are given different weights. The second item is the Laplacian regularization which punishes the inconsistency of the hidden layer representation between adjacent nodes based on the graph structure information. The adjacency matrix is ​​used as the weight to obtain the Laplace regularization term. The third term is the L2 regularization, which penalizes the parameter complexity of the self-encoder to avoid overfitting. In SDNE, the first term of the loss function pays more attention to the characteristics of the node itself, while the second term pays more attention to the information between adjacent nodes which effectively solves the problem that the classical semi-supervised learning algorithm cannot effectively utilize the structural information of graphs.
 
 ##### GCN
 
-Kipf等[33]提出了GCN。与SDNE使用结点的邻接向量作为结点特征学习嵌入表示不同，GCN更适用于结点本身存在特征的情况，GCN可以同时利用结点本身的特征信息和图结构信息进行学习，显著地提升了模型的效果。在图深度学习中，图神经网络（GNN）[35]是最常用的一类方法，这类方法通常以存在结点特征的图作为输入，可以学习到结点的深层表示，并以此完成学习任务。经典的GNN方法分为两个步骤：第一个步骤为聚集（Aggregate），即通过图结构将图近邻结点的信息及逆行汇集；第二个步骤为更新（Update），即根据结点自身表示与近邻结点更新结点表示。不断重复这两个步骤，可以得到每个结点的深层表示，由于聚集操作存在传播效果，结点的深层表示中不仅涵盖了节点自身信息，还涵盖了图结构信息。经典的聚集操作为线性聚集，即将近邻节点表示的线性组合作为该节点的近邻表示，经典的更新操作为使用感知机模型，由结点自身表示与紧邻表示得到新的自身表示。经典的GNN模型存在一定的局限性，其对紧邻节点的表示进行线性组合的聚集方式使度较大的结点更大程度地影响了其他节点，而度较小的结点对整个训练过程的影响较小。GCN方法对每一结点将标准化后的近邻表示与自身表示直接相加，并将结果作感知器的输入，得到的结果作为新的自身表示，其中标准化过程将近邻结点与自身结点的表示分别除以一个标准化因子，其中近邻结点的标准化因子为自身结点的度与近邻结点的度的几何平均，自身结点的标准化因子为自身结点的度。GCN在图结构任务上有着优异的表现，并且其更新过程避免了对近邻结点线性组合权重的学习，拥有更少的参数与更高的效率。
+Kipf等[33]提出了GCN。与SDNE使用结点的邻接向量作为结点特征学习嵌入表示不同，GCN更适用于结点本身存在特征的情况，GCN可以同时利用结点本身的特征信息和图结构信息进行学习，显著地提升了模型的效果。在图深度学习中，图神经网络（GNN）[35]是最常用的一类方法，这类方法通常以存在结点特征的图作为输入，可以学习到结点的深层表示，并以此完成学习任务。经典的GNN方法分为两个步骤：第一个步骤为聚集（Aggregate），即通过图结构将近邻结点的信息进行汇集；第二个步骤为更新（Update），即根据结点自身表示与近邻结点更新结点表示。不断重复这两个步骤，可以得到每个结点的深层表示，由于聚集操作存在传播效果，结点的深层表示中不仅涵盖了节点自身信息，还涵盖了图结构信息。经典的聚集操作为线性聚集，即将近邻节点表示的线性组合作为该节点的近邻表示，经典的更新操作为使用感知机模型，由结点自身表示与近邻表示得到新的自身表示。经典的GNN模型存在一定的局限性，其对近邻节点的表示进行线性组合的聚集方式使度较大的结点更大程度地影响了其他节点，而度较小的结点对整个训练过程的影响较小。GCN方法对每一结点将标准化后的近邻表示与自身表示直接相加，并将结果作感知器的输入，得到的结果作为新的自身表示，其中标准化过程将近邻结点与自身结点的表示分别除以一个标准化因子，其中近邻结点的标准化因子为自身结点的度与近邻结点的度的几何平均，自身结点的标准化因子为自身结点的度。GCN在图结构任务上有着优异的表现，并且其更新过程避免了对近邻结点线性组合权重的学习，拥有更少的参数与更高的效率。
+
+GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of the node as the node feature to learn the embedding representation, GCN is more suitable for the situation that the node itself has features. In GCN, both the feature information and graph structure information of the node itself are available, which significantly improves the performance of the model. In graph deep learning, graph neural network(GNN) is the most commonly used class of methods. These methods usually take graphs with node features as input and can learn the deep representation of nodes to complete the learning assignment. The classical GNN method is divided into two steps: the first step is aggregation in which the information of the adjacent nodes are aggregated through the graph structure; the second step is update in which the nodes' representations are updated with their own representations and the information of their neighbors. By repeating these two steps, the deep representations of each node can be obtained. Due to the propagation effect of the aggregation operation, the deep representation of the node not only contains the information of the node itself, but also contains the information of the graph structure. The classical aggregation operation is linear aggregation which takes the linear combination of the representations of the neighbor nodes as the neighbor representation of the node. The classical update operation is to use the perceptron model to obtain new node representations from the nodes' own representations and their neighbor representations. The classical GNN model has some limitations. For examples, the aggregation method which linearly combines the representations of neighbor nodes makes nodes with larger numbers of degree have more influence while nodes with smaller numbers of degree have less influence on the entire training process. The GCN method directly adds the normalized neighbor representation to its own representation for each node and uses the result as the input of the perceptron to get a new representation. For each node, the normalization process divides the representation of its neighbor nodes and itself by the normalization factor, where the normalization factor of its neighbor nodes is the geometric mean of the degree of itself and its neighbor nodes while the normalization factor of itself is its own degree. GCN has excellent performance on graph structure tasks and its update process avoids the learning of linear combination weights of neighboring nodes so it has fewer parameters and higher efficiency.
 
 # API
 
