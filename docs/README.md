@@ -6,9 +6,11 @@ Semi-sklearn is an useful and efficient toolbox for semi-supervised learning. At
 
 
 The overall design idea of Semi-sklearn is shown in the figure. Semi-sklearn refers to the underlying implementation of sklearn. All Algorithms in Semi-sklearn have interfaces similar to that Algorithms in sklearn.The learners in sklearn all inherit the parent class Estimator. Estimator uses known data to build a model to make predictions on unknown data. There are usually two usual methods in Estimator: fit() and transform(). fit() method is an adaptation process using existing data to build a model, which corresponds to the training process in machine learning. transform() method is a transformation process using the fitted model to predict results of new instances, which corresponds to the predicting process in machine learning.
+
 <div align=center>
 <img width="500px"  src="./Imgs/Base.png" >
 </div>
+
 
 
 Learners in Semi-sklearn indirectly inherits Estimator in sklearn by inheriting the semi-supervised predictor class SemiEstimator. Data used for fit() method in sklearn usually includes samples and labels.However, in semi-supervised learning, labeled samples, labels and unlabeled samples are used in the training process of the model, so Estimator's fit() method is inconvenient directly used in semi-supervised learning algorithms. Although sklearn also implements two types of semi-supervised learning algorithms, self-training methods and graph-based methods, which also inherit the Estimator class, in order to use the interface of the fit() method, sklearn combines labeled samples and unlabeled data samples as samples input of fit() method, mark the labels corresponding to the unlabeled samples as -1 in labels input of fit() method. Although this processing method can be adapted to the Estimator interface, it also has limitations, especially in some binary classification scenario using -1 to indicate negative labels of labeled samples, which will conflict with unlabeled samples. Therefore, it is necessary to re-establish a new class SemiEstimator on the basis of Estimator for semi-supervised learning. There are three parts in the input of SemiEstimator's fit() method: labeled samples, labels and unlabeled samples, which better adapts the application scenario of semi-supervised learning. It doesn't require users combining data by themselves, and avoids the conflict between marks of unlabeled samples and labels of negative samples in binary classification. Compared with Estimator it's more convenient.
@@ -22,6 +24,7 @@ Semi-supervised learning is generally divided into inductive learning and transd
 
 
 
+
 In order to enable estimators to have corresponding functions for different tasks, sklearn has developed components (Mixin) corresponding to the scene for different usage scenarios of estimators. Estimators in sklearn often inherit both Estimator and corresponding components, so that they have the most basic fitting and prediction capabilities and also have the function of processing tasks corresponding to specific components. The key components include ClassifierMixin for classification tasks, RegressorMixin for regression tasks, ClusterMixin for clustering tasks, and TransformerMixin for data transformation, which are also used in Semi-sklearn.
 
 
@@ -32,13 +35,8 @@ In addition, different from sklearn framework commonly used in classical machine
 <img width="600px"  src="./Imgs/PytorchCoupling.png" > 
 </div>
 
+
 ## Data Management
-
-Semi-sklearn拥有强大的数据管理和数据处理功能。在Semi-sklearn中，一个半监督数据集整体可以用一个SemiDataset类进行管理，SemiDataset类可以同时管理TrainDataset、ValidDataset、TestDataset三个子数据集，分别对应了机器学习任务中的训练数据集、验证数据集和测试数据集，在最底层数据集分为LabeledDataset和UnlabeledDataset两类，分别对应了半监督学习中的有标注数据与无标注数据，训练集往往同时包含有标注数据和无标注数据，因此TrainDataset同时管理LabeledDataset和UnlabeledDataset两个数据集。
-
-Semi-sklearn针对LabeledDataset和UnlabeledDataset分别设计了LabeledDataloader和UnlabeledDataloader两种数据加载器，而用一个TrainDataloader类同时管理两种加载器用于半监督学习的训练过程，除同时包含两个加载器外，还起到调节两个加载器之间关系的作用，如调节每一批数据中有标注数据与无标注数据的比例。
-
-Semi-sklearn可以处理结构化数据、图像数据、文本数据、图数据四种现实应用中常见的数据类型，分别使用了四个与数据类型对应的组件StructuredDataMixin、VisionMixin、TextMixin、GraphMixin进行处理，对于一个数据集，可以继承与其数据类型对应的组件获得组件中的数据处理功能。
 
 Semi-sklearn has powerful data management and data processing functions. In Semi-sklearn, a semi-supervised dataset can be managed by SemiDataset class. The SemiDataset class can manage three sub-datasets: TrainDataset, ValidDataset, and TestDataset corresponding to training dataset, validation dataset and test dataset in machine learning tasks respectively. The most basic classes for data management are LabeledDataset and UnlabeledDataset, which correspond to labeled data and unlabeled data in semi-supervised learning respectively. Training datasets often contains both labeled data and unlabeled data. Therefore, TrainDataset simultaneously manage a LabeledDataset and an UnlabeledDataset. 
 
@@ -50,6 +48,7 @@ Semi-sklearn can process structured data, image data, text data, and graph data,
 <img width="600px"  src="./Imgs/Dataset.png" > 
 </div>
 
+
 ## Data Transformation
 
 使用机器学习算法利用数据学习模型和用模型对数据进行预测之前通常需要对数据进行预处理或数据增广，尤其是在半监督学习领域，部分算法本身就包含对数据进行不同程度的增广和加噪声的需求，Semi-sklearn的数据变换模块针对不同类型的数据提供了多样的数据预处理和数据增广方法，如对于结构化数据的归一化、标准化、最小最大化等，对于视觉数据的旋转、裁剪、翻转等，对于文本数据的分词、词嵌入、调整长度等，对于图数据的结点特征标准化、k近邻图构建、图扩散等。Semi-sklearn中所有数据变换方法都继承了sklearn中的TransformerMixin类，并且sklearn或pytorch都可以使用。对于依次进行的多次数据变换，sklearn的Pipeline机制和pytorch的Compose机制都可以使用。
@@ -57,6 +56,7 @@ Semi-sklearn can process structured data, image data, text data, and graph data,
 Before using data to learn models and using models to predict labels of new data, it is usually necessary to preprocess or augment data, especially in the field of semi-supervised learning. To meet the needs of adding noise, the data transformation module of Semi-sklearn provides various data preprocessing and data augmentation methods for different types of data, such as normalization, standardization, MinMaxScale for structured data, Rotation, cropping, flipping for visual data, word segmentation, word embedding, length adjustment for text data, node feature standardization, k-nearest neighbor graph construction, graph diffusion for graph data, etc. All data transformation methods inherit TransformerMixin class from sklearn. Transformation method can be called using the interface of either sklearn or pytorch. For multi transformations in turn, both Pipeline mechanism in sklearn and Compose   mechanism in pytorch can be used. 
 
 ## Algorithm Usage
+
 目前Semi-sklearn包含30种半监督学习算法，其中基于传统机器学习模型的算法13种（如图3-3所示）：半监督支持向量机类方法TSVM、LapSVM，基于图的方法Label Propagation、Label Spreading，生成式方法SSGMM，封装方法Self-Training、Co-Training、Tri-Training，集成方法SemiBoost、Assemble，半监督回归方法CoReg，半监督聚类方法Constrained K Means、Constrained Seed K Means；基于深度神经网络模型的算法17种（如图3-4所示）：一致性正则方法Ladder Network、Pi Model、Temporal Ensembling、Mean Teacher、VAT、UDA，基于伪标注的方法Pseudo Label、S4L，混合方法ICT、MixMatch、ReMixMatch、FixMatch、FlexMatch，生成式方法ImprovedGAN、SSVAE，图神经网络方法SDNE、GCN。
 
 At present, Semi-sklearn contains 30 semi-supervised learning algorithms. There are 13 algorithms based on classical machine learning models, including generative method: SSGMM; semi-supervised support vector machine methods: TSVM, LapSVM; graph-based methods: Label Propagation, Label Spreading;  wrappers methods: Self-Training, Co-Training, Tri-Training; ensemble methods: Assemble, SemiBoost; semi-supervised regression method: CoReg; semi-supervised clustering method: Constrained K Means, Constrained Seed K Means. There are 17 algorithms based on deep neural network models, including Consistency regularization methods: Ladder Network, Pi Model, Temporal Ensembling, Mean Teacher, VAT, UDA; pseudo-label-based methods: Pseudo Label, S4L; hybird methods: ICT , MixMatch, ReMixMatch, FixMatch, FlexMatch; deep generative methods: ImprovedGAN, SSVAE; deep graph based methods: SDNE, GCN.
@@ -65,9 +65,11 @@ At present, Semi-sklearn contains 30 semi-supervised learning algorithms. There 
 <img width="1000px"  src="./Imgs/ClassicalSSL.png" >
 </div>
 
+
 <div align=center> 
 <img width="1000px"  src="./Imgs/DeepSSL.png" > 
 </div>
+
 
 ## Model Evaluation
 
@@ -80,26 +82,31 @@ Semi-sklearn provides different evaluation indicators for different tasks, such 
 ## Load Data
 
 以CIFAR10数据集为例,首先CIFAR10类。
+
 ```python
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 ```
 
 实例化一个封装好的CIFAR10数据集,相当于一个数据管理器，root参数表示数据集存放地址，labeled_size参数表示有标注样本的数量或比例，stratified参数表示对数据集进行划分时是否要按类别比例划分，shuffle参数表示是否需要对数据集进行打乱，download参数表示是否需要下载数据集。
+
 ```python
 dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False)
 ```
 
 通过init_dataset方法初始化数据集的内部结构，如果使用Semi-sklearn中的数据集，不需要设置参数，如果使用自定义数据集，需要传入具体的数据。
+
 ```python
 dataset.init_dataset()
 ```
 
 之后通过init_transform方法初始化数据预处理方式，这里直接采用默认设置。
+
 ```python
 dataset.init_transform()
 ```
 
 可以通过访问封装数据集参数的方法获取数据集中的具体数据。
+
 ```python
 labeled_dataset=getattr(dataset,'labeled_dataset')
 unlabeled_dataset=getattr(dataset,'unlabeled_dataset')
@@ -115,21 +122,25 @@ test_y=getattr(dataset.test_dataset,'y')
 ## Transform Data
 
 以RandAugment数据增广为例，首先导入RandAugment类。
+
 ```python
 from Semi_sklearn.Transform.RandAugment import RandAugment
 ```
 
 对RandAugment进行实例化，参数n为进行随机增广的次数，表示增广的幅度，num_bins表示幅度划分的级别数。这里设置将增广幅度划分为10个等级，并采用第10级的增广增广2次。
+
 ```python
 augmentation=RandAugment(n=2,m=10,num_bins=10)
 ```
 
 之后输入数据完成数据增广。由两种方式：可以调用fit_transform()方法：
+
 ```python
 augmented_X=augmentation.fit_transform(X)
 ```
 
 也可以直接调用__call__()方法：
+
 ```python
 augmented_X=augmentation(X)
 ```
@@ -138,6 +149,7 @@ augmented_X=augmentation(X)
 
 Semi-sklearn支持Pipeline机制，将多种数据处理方式以流水线的形式用于数据处理。
 如在FixMatch算法中的强数据增广和弱数据增广。
+
 ```python
 from sklearn.pipeline import Pipeline
 from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
@@ -156,6 +168,7 @@ strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,r
 ```
 
 可以直接调用fit_transform()方法完成数据处理。
+
 ```python
 weakly_augmented_X=weakly_augmentation.fit_transform(X)
 strongly_augmented_X=strongly_augmentation.fit_transform(X)
@@ -165,6 +178,7 @@ strongly_augmented_X=strongly_augmentation.fit_transform(X)
 
 以Self-training算法为例。
 首先导入并初始化BreastCancer数据集。
+
 ```python
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
@@ -173,6 +187,7 @@ dataset.init_transforms()
 ```
 
 对数据进行预处理。
+
 ```python
 labeled_X=dataset.pre_transform.fit_transform(dataset.labeled_X)
 labeled_y=dataset.labeled_y
@@ -183,6 +198,7 @@ test_y=dataset.test_y
 ```
 
 调用并初始化Self-training模型，以SVM模型为基学习器。
+
 ```python
 from Semi_sklearn.Algorithm.Classifier.Self_training import Self_training
 from sklearn.svm import SVC
@@ -191,16 +207,19 @@ model=Self_training(base_estimator=SVM,threshold=0.8,criterion="threshold",max_i
 ```
 
 调用fit()方法进行模型训练。
+
 ```python
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 ```
 
 对测试数据进行预测。
+
 ```python
 result=model.predict(X=test_X)
 ```
 
 对模型效果进行评估。
+
 ```python
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Evaluation.Classification.Recall import Recall
@@ -212,6 +231,7 @@ print(Recall().scoring(test_y,result))
 
 以FixMatch算法为例。
 首先导入并初始化CIFAR10数据集。
+
 ```python
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
@@ -220,6 +240,7 @@ dataset.init_transforms()
 ```
 
 通过访问封装数据集参数的方法获取数据集中的具体数据。
+
 ```python
 labeled_dataset=getattr(dataset,'labeled_dataset')
 unlabeled_dataset=getattr(dataset,'unlabeled_dataset')
@@ -233,6 +254,7 @@ test_y=getattr(dataset.test_dataset,'y')
 ```
 
 在深度学习中，需要使用数据加载器，首先需要将具体数据进行进行封装，并确定数据加载过程中的处理方式。
+
 ```python
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset
 from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
@@ -245,6 +267,7 @@ test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 ```
 
 在初始化数据加载器之前，可以根据需求设置采样器,即sampler和batch_sampler，这里训练时采用随机采样，测试和验证时采用顺序采样。
+
 ```python
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -256,6 +279,7 @@ test_sampler=SequentialSampler()
 ```
 
 以Pipeline形式设置数据增广方法，若存在多种增广方式，可以用python字典或列表存储。
+
 ```python
 from sklearn.pipeline import Pipeline
 from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
@@ -278,24 +302,32 @@ augmentation={
 ```
 
 之后设置深度学习中的神经网络结构，这里使用WideResNet作为神经网络的基本结构。
+
 ```python
 from Semi_sklearn.Network.WideResNet import WideResNet
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
 ```
 
 设置深度学习中的优化器，这里使用SGD优化器。
+
 ```python
 from Semi_sklearn.Opitimizer.SGD import SGD
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 ```
 
+```bash
+echo "hello"
+```
+
 设置深度学习中的调度器用来在训练过程中调整学习率。
+
 ```python
 from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 ```
 
 在深度半监督学习算法中，可以用字典存储多个评估指标，直接在模型初始化时作为参数用于在训练过程中验证模型效果。
+
 ```python
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Evaluation.Classification.Top_k_accuracy import Top_k_accurary
@@ -317,6 +349,7 @@ evaluation={
 ```
 
 初始化Fixmatch算法，并设置好各组件和参数。
+
 ```python
 from Semi_sklearn.Algorithm.Classifier.Fixmatch import Fixmatch
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
@@ -328,11 +361,13 @@ model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_data
 ```
 
 对模型进行训练，并在训练的同时对模型进行验证。
+
 ```python
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 ```
 
 最后对测试数据进行预测。
+
 ```python
 model.predict(test_X)
 ```
@@ -341,6 +376,7 @@ model.predict(test_X)
 
 Semi-sklearn支持sklearn中的参数搜索机制。
 首先初始化一个参数不完整的模型。
+
 ```python
 model=Fixmatch(train_dataset=train_dataset,test_dataset=test_dataset,
                train_dataloader=train_dataloader,test_dataloader=test_dataloader,
@@ -351,6 +387,7 @@ model=Fixmatch(train_dataset=train_dataset,test_dataset=test_dataset,
 ```
 
 以字典的形式设置带搜索参数。
+    
 ```python
 param_dict = {"threshold": [0.7, 1],
               "lambda_u":[0.8, 1]
@@ -366,15 +403,17 @@ random_search = RandomizedSearchCV(model, param_distributions=param_dict,n_iter=
 ```
 
 开始参数搜索过程。
+
 ```python
 random_search.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 ```
 
 ## Train Distributedly
+
 可以采用分布式训练用多个GPU同时训练模型。以Fixmatch为例。
 导入并初始化DataParallel模块。需要设置分布式训练所需的GPU。
 
-```clike
+```python
 from Semi_sklearn.Distributed.DataParallel import DataParallel
 parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
 ```
@@ -391,31 +430,33 @@ model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_data
 ```
 
 进行分布式训练。
-```py
+
+```python
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 ```
-
 
 ## Save and Load Model
 
 可以使用pickle保存和加载半监督学习模型。
 设置路径。
+
 ```python
 path='../save/Fixmatch.pkl'
 ```
 
 保存模型。
+
 ```python
 with open(path, 'wb') as f:
     pickle.dump(model, f)
 ```
 
 加载模型。
+
 ```python
 with open(path, 'rb') as f:
     model = pickle.load(f)
 ```
-
 
 # User Guide
 
@@ -428,6 +469,7 @@ with open(path, 'rb') as f:
 生成式半监督学习方法基于生成式模型，其假设数据由一潜在的分布生成而来，生成式方法建立了样本与生成式模型参数之间的关系，而半监督生成式方法将无标注数据的标注视为模型的隐变量数据，可以采用期望-最大化（EM）算法进行极大似然估计求解。
 
 Generative semi-supervised learning methods are based on generative models, which assume that data is generated from a potential distribution. Generative methods establish the relationship between samples and generative model parameters. In semi-supervised generative methods, labels are regarded as the latent variables of the model, The expectation-maximization (EM) algorithm can be used for maximum likelihood estimation.
+
 ##### SSGMM
 
 Shahshahani等提出了SSGMM模型。SSGMM即半监督高斯混合模型，假设数据由一个高斯混合模型生成，即样本的边缘分布可以表示为若干个高斯分布混合在一起的结果，且通过混合参数为每个高斯分布赋予一个权重。SSGMM将每一个类别的样本分布对应一个高斯混合成分。对于有标注数据，其类别对应的的高斯混合成分已知，对于无标注数据，其对应的高斯混合成分用一个概率分布表示，并可以将其分类为概率最高的高斯混合成分对应的类别。SSGMM假设样本服从独立同分布，其似然函数为所有有标注数据的样本与标注联合分布与所有无标注数据样本的边缘概率分布的乘积，通过最大似然估计使似然函数最大化，得到使当前有标注数据与无标注数据共同出现概率最大的生成式模型参数，包括高斯混合模型各部分的方差、均值以及权重。由于该方法存在无标注数据的标注这一无法观测的隐变量，因此无法直接求解最大似然参数，因此SSGMM采用了EM算法解决该问题。EM算法分为两步，其中E步根据当前参数与可观测数据得到未观测数据的条件分布或期望，在SSGMM模型中，这一步利用贝叶斯公式跟据已观测样本和当前模型的参数求解了无标注数据属于每一混合成分的概率，即无标注数据类别的条件分布；M步根据当前已观测变量的值与隐变量的期望或概率分布对模型参数进行最大似然估计，即原先由于隐变量未知无法进行最大似然估计，E步之后得到了隐变量的期望或条件概率分布，最大似然估计就变得可行了，在SSGMM模型中，这一步利用已观测到的有标注样本与标注、无标注样本与E步得到的类别条件分布更新了高斯混合模型的参数。E步与M步以一种迭代的形式交替进行，直至收敛，即可实现同时利用有标注数据与无标注数据训练一个高斯混合模型，并通过贝叶斯公式即可得到基于此高斯混合模型的分类器。
@@ -694,34 +736,278 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 
 # API
 
-## Algorithm
+## Semi_sklearn.Algorithm
+
+### Semi_sklearn.Algorithm.Classifiar
+
+#### Semi_sklearn.Algorithm.Classifier.Assemble
+
+> CLASS Semi_sklearn.Algorithm.Classifier.Assemble.Assemble(base_model=SVC(probability=True),T=100,alpha=1,beta=0.9)
+>> 参数
+>> - base_model: 用于集成学习的基学习器。
+>> - T: 基学习器的数量,也是迭代的轮次。
+>> - alpha: 各样本在采样分布更新时的权重。
+>> - Beta: 用于初始化有标注数据与无标注数据的采样分布。
+
+#### Semi_sklearn.Algorithm.Classifier.Co_training
+
+> CLASS Semi_sklearn.Algorithm.Classifier.Co_training.Co_training(base_estimator, base_estimator_2=None, p=5, n=5, k=30, s=75)
+>> 参数
+>> - base_estimator: 用于协同训练的第一个学习器。
+>> - base_estimator_2: 用于协同训练的第二个学习器。
+>> - p: 每一轮每一个基学习器最多选取p个正样本赋予伪标注。
+>> - n: 每一轮每一个基学习器最多选取n个负样本赋予伪标注。
+>> - k: 迭代轮次。
+>> - s: 每一轮迭代中缓冲池的大小。
+
+#### Semi_sklearn.Algorithm.Classifier.Fixmatch
+
+> CLASS Semi_sklearn.Algorithm.Classifier.Fixmatch.Fixmatch(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=config.train_dataloader,
+                 valid_dataloader=config.valid_dataloader,
+                 test_dataloader=config.test_dataloader,
+                 augmentation=config.augmentation,
+                 network=config.network,
+                 train_sampler=config.train_sampler,
+                 train_batch_sampler=config.train_batch_sampler,
+                 valid_sampler=config.valid_sampler,
+                 valid_batch_sampler=config.valid_batch_sampler,
+                 test_sampler=config.test_sampler,
+                 test_batch_sampler=config.test_batch_sampler,
+                 labeled_dataset=config.labeled_dataset,
+                 unlabeled_dataset=config.unlabeled_dataset,
+                 labeled_dataloader=config.labeled_dataloader,
+                 unlabeled_dataloader=config.unlabeled_dataloader,
+                 labeled_sampler=config.labeled_sampler,
+                 unlabeled_sampler=config.unlabeled_sampler,
+                 labeled_batch_sampler=config.labeled_batch_sampler,
+                 unlabeled_batch_sampler=config.unlabeled_sampler,
+                 epoch=config.epoch,
+                 num_it_epoch=config.num_it_epoch,
+                 num_it_total=config.num_it_total,
+                 eval_epoch=config.eval_epoch,
+                 eval_it=config.eval_it,
+                 optimizer=config.optimizer,
+                 scheduler=config.scheduler,
+                 device=config.device,
+                 parallel=None,
+                 evaluation=config.evaluation,
+                 threshold=config.threshold,
+                 lambda_u=config.lambda_u,
+                 mu=config.mu,
+                 ema_decay=config.ema_decay,
+                 T=config.T,
+                 weight_decay=config.weight_decay)
+>> 参数
+>> - threshold: 选择样本的自信度阈值。
+>> - lambda_u: 无监督损失的权重。
+>> - ema_decay: 指数移动平滑的更新权重。
+>> - T: 标注锐化的温度。
+>> - weight_decay: 优化器的权重衰减。
 
 ## Base
 
+### Semi_sklearn.SemiDeepModelMixin.SemiDeepModelMixin
+> CLASS Semi_sklearn.Base.SemiDeepModelMixin.SemiDeepModelMixin(self, train_dataset=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=5e-4,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None)
+>> 参数
+>> - train_dataset
+>> - labeled_dataset
+>> - unlabeled_dataset
+>> - valid_dataset
+>> - test_dataset
+>> - augmentation
+>> - network
+>> - epoch
+>> - num_it_epoch
+>> - num_it_total
+>> - eval_epoch
+>> - eval_it
+>> - mu
+>> - optimizer
+>> - weight_decay
+>> - ema_decay
+>> - scheduler
+>> - device
+>> - evaluation
+>> - train_sampler
+>> - labeled_batch_sampler
+>> - unlabeled_batch_sampler
+>> - valid_sampler
+>> - valid_batch_sampler
+>> - test_sampler
+>> - test_batch_sampler
+>> - parallel
+>> - file
+
 ## Dataloader
 
+### Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader
+> CLASS Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader(batch_size= 1, shuffle: bool = False,
+                 sampler = None, batch_sampler= None,
+                 num_workers: int = 0, collate_fn= None,
+                 pin_memory: bool = False, drop_last: bool = False,
+                 timeout: float = 0, worker_init_fn = None,
+                 multiprocessing_context=None, generator=None,
+                 prefetch_factor: int = 2, persistent_workers: bool = False)
+>> 参数
+>> - batch_size
+>> - shuffle
+>> - sampler
+>> - batch_sampler
+>> - num_workers
+>> - collate_fn
+>> - pin_memory
+>> - drop_last
+>> - timeout
+>> - worker_init_fn
+>> - multiprocessing_context
+>> - generator
+>> - prefetch_factor
+>> - persistent_workers
+
 ## Dataset
+### Semi_sklearn.Dataset.LabeledDataset.LabeledDataset
+
+> CLASS Semi_sklearn.Dataset.LabeledDataset.LabeledDataset（transforms=None, transform=None, target_transform=None, pre_transform=None)
+>> 参数
+>> - transforms
+>> - transform
+>> - target_transform
+>> - pre_transform
 
 ## Distributed
+### Semi_sklearn.Distributed.DataParallel.DataParallel
+> CLASS Semi_sklearn.DataParallel.DataParallel(device_ids=None, output_device=None, dim=0)
+>> 参数
+>> - device_ids
+>> - output_device
+>> - dim
 
 ## Evaluation
+### Semi_sklearn.Evaluation.Classification
+#### Semi_sklearn.Evaluation.Classification.Accuracy
+> CLASS Semi_sklearn.Evaluation.Classification.Accuracy(normalize=True, sample_weight=None)
+>> 参数
+>> - normalize
+>> - sample_weight
+
+### Semi_sklearn.Evaluation.Regression
+#### Semi_sklearn.Evaluation.Regression.Mean_absolute_error
+> CLASS Semi_sklearn.Evaluation.Regression.Mean_absolute_error(sample_weight=None, multioutput="uniform_average")
+>> 参数
+>> - sample_weight
+>> - multioutput
 
 ## Loss
+### Semi_sklearn.LOSS.Consistency
+> CLASS Semi_sklearn.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
+>> 参数
+>> - reduction
+>> - activation_1
+>> - activation_2
 
 ## Network
+### Semi_sklearn.Network.GCN
+> CLASS Semi_sklearn.Network.GCN(num_features,num_classes,normalize=False)
+>> 参数
+>> - num_features
+>> - num_classes
+>> - normalize
 
 ## Optimizer
+### Semi_sklearn.Optimizer.Adam
+> CLASS Semi_sklearn.Optimizer.Adam(lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False)
+>> 参数
+>> - lr
+>> - betas
+>> - eps
+>> - weight_decay
+>> - amsgrad
 
 ## Sampler
+### Semi_sklearn.Sampler.RandomSampler
+> CLASS Semi_sklearn.Sampler.RandomSampler(replacement: bool = False, num_samples = None, generator=None)
+>> 参数
+>> - replacement
+>> - num_samples
+>> - generator
 
 ## Scheduler
+### Semi_sklearn.Scheduler.CosineAnnealingLR
+> CLASS Semi_sklearn.Scheduler.CosineAnnealingLR(T_max, eta_min=0, last_epoch=-1, verbose=False)
+>> 参数
+>> - T_max
+>> - eta_min
+>> - last_epoch
+>> - verbose
 
 ## Split
+### Semi_sklearn.Scheduler.Split.SemiSplit
+> Function Semi_sklearn.Scheduler.Split.SemiSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
+>> 参数
+>> - stratified
+>> - shuffle
+>> - random_state
+>> - X
+>> - y
+>> - labeled_size
 
 ## Transform
+### Semi_sklearn.Transform.Adjust_length
+> CLASS Semi_sklearn.Transform.Adjust_length(length, pad_val=None, pos=0)
+>> 参数
+>> - length
+>> - pad_val
+>> - pos
 
 ## utils
+### Semi_sklearn.utils.get_indexing_method
+> Function Semi_sklearn.utils.get_indexing_method(data)
+>> 参数
+>> - data
 
 # FAQ
+1. Semi-sklearn的接口和sklearn半监督学习模块的接口有什么不同？
+sklearn的接口的fit()方法一般有X和y两项，无标注的X对应的标注y用-1表示。但是在很多二分类任务中，-1表示负类，容易冲突，因此Semi-sklearn的fit()方法有X,y和unlabeled_X三项输入。
+2. DeepModelMixin模块如何理解？
+这一模块主要是使深度学习与经典机器学习拥有相同的接口，并且为了便于用户更换深度学习种对应的组件，DeepModelMixin对pytorch进行了解耦。
+3. 
 
 # Reference

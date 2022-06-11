@@ -1,5 +1,4 @@
 import copy
-# from Semi_sklearn.exceptions import TransformError
 from Semi_sklearn.utils import indexing
 from torch.utils.data.dataset import Dataset
 from Semi_sklearn.utils import get_len,get_indexing_method

@@ -1,6 +1,5 @@
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 import numpy as np
-from sklearn.semi_supervised._self_training import SelfTrainingClassifier
 from sklearn.base import ClassifierMixin
 import random
 import copy
@@ -72,7 +71,7 @@ class Co_training(InductiveEstimator,ClassifierMixin):
                 if y2_prob[i, 1] > 0.5:
                     p_list.append(i)
 
-            # label the samples and remove thes newly added samples from U_
+            # label the samples and remove the newly added samples from U_
 
             unlabeled_y[[pool[x] for x in p_list]] = 1
             unlabeled_y[[pool[x] for x in n_list]] = 0

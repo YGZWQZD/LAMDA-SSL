@@ -3,15 +3,13 @@ from Semi_sklearn.Sampler.SemiSampler import SemiSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 class LabeledDataLoader:
     def __init__(self,
-                 batch_size= 1,
-                 shuffle: bool = False, sampler = None,
-                 batch_sampler= None,
+                 batch_size= 1, shuffle: bool = False,
+                 sampler = None, batch_sampler= None,
                  num_workers: int = 0, collate_fn= None,
                  pin_memory: bool = False, drop_last: bool = False,
                  timeout: float = 0, worker_init_fn = None,
                  multiprocessing_context=None, generator=None,
-                 prefetch_factor: int = 2,
-                 persistent_workers: bool = False):
+                 prefetch_factor: int = 2, persistent_workers: bool = False):
         self.batch_size=batch_size
         self.shuffle=shuffle
         self.sampler=sampler
