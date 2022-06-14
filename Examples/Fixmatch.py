@@ -26,7 +26,7 @@ from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 # dataset
 dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False)
 dataset.init_dataset()
-dataset.init_transforms()
+dataset.init_transforms() # 获得默认处理方式
 
 labeled_dataset=dataset.train_dataset.get_dataset(labeled=True)
 unlabeled_dataset=dataset.train_dataset.get_dataset(labeled=False)
@@ -97,9 +97,11 @@ evaluation={
     'AUC':AUC(multi_class='ovo'),
     'Confusion_matrix':Confusion_matrix(normalize='true')
 }
+
 # parallel
 from Semi_sklearn.Distributed.DataParallel import DataParallel
 parallel=DataParallel(device_ids=['cpu','cuda:0'],output_device='cpu')
+
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
                train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
