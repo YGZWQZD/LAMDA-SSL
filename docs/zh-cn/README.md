@@ -38,7 +38,7 @@ Semi-sklearn提供了针对不同任务的不同评估指标，如针对分类�
 # 快速开始
 
 ## 数据加载
-以CIFAR10数据集为例,首先CIFAR10类。
+以CIFAR10数据集为例,首先导入CIFAR10类。
 
 ```python
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10

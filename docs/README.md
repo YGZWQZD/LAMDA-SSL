@@ -75,31 +75,31 @@ Semi-sklearn provides different evaluation indicators for different tasks, such 
 
 ## Load Data
 
-以CIFAR10数据集为例,首先CIFAR10类。
+Take CIFAR10 dataset as an example, firstly import the CIFAR10 class.
 
 ```python
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
 ```
 
-实例化一个封装好的CIFAR10数据集,相当于一个数据管理器，root参数表示数据集存放地址，labeled_size参数表示有标注样本的数量或比例，stratified参数表示对数据集进行划分时是否要按类别比例划分，shuffle参数表示是否需要对数据集进行打乱，download参数表示是否需要下载数据集。
+Instantiate a CIFAR10 dataset, which is equivalent to a data manager. The parameter 'root' indicates the storage path of the dataset. The parameter 'labeled_size' indicates the number or proportion of labeled samples. The parameter 'stratified' indicates whether to divide the dataset according to the category ratio. The parameter 'shuffle' indicates whether the dataset needs to be shuffled and The parameter 'download' indicates whether the dataset needs to be downloaded.
 
 ```python
 dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False)
 ```
 
-通过init_dataset方法初始化数据集的内部结构，如果使用Semi-sklearn中的数据集，不需要设置参数，如果使用自定义数据集，需要传入具体的数据。
+Initialize the internal structure of the dataset through the method 'init_dataset'. If you use the datasets in Semi-sklearn, you do not need to set parameters. If you use a custom dataset, you need to input specific data.
 
 ```python
 dataset.init_dataset()
 ```
 
-之后通过init_transform方法初始化数据预处理方式，这里直接采用默认设置。
+The data preprocessing method is initialized through the method 'init_transform' and the default setting is directly used here.
 
 ```python
 dataset.init_transform()
 ```
 
-可以通过访问封装数据集参数的方法获取数据集中的具体数据。
+The specific data in the dataset can be obtained by accessing the parameters of the encapsulated dataset.
 
 ```python
 labeled_dataset=getattr(dataset,'labeled_dataset')
@@ -115,25 +115,25 @@ test_y=getattr(dataset.test_dataset,'y')
 
 ## Transform Data
 
-以RandAugment数据增广为例，首先导入RandAugment类。
+Taking RandAugment data augmentation as an example. firstly import the RandAugment class.
 
 ```python
 from Semi_sklearn.Transform.RandAugment import RandAugment
 ```
 
-对RandAugment进行实例化，参数n为进行随机增广的次数，表示增广的幅度，num_bins表示幅度划分的级别数。这里设置将增广幅度划分为10个等级，并采用第10级的增广增广2次。
+Instantiate RandAugment class. The parameter 'n' is the number of random augmentation. The parameter 'm' is the magnitude of augmentation. The parameter 'num_bins' is the number of levels of magnitude division. This setting divides the augmentation magnitude into 10 levels, and uses the 10-th level augmentation augmentation twice.
 
 ```python
 augmentation=RandAugment(n=2,m=10,num_bins=10)
 ```
 
-之后输入数据完成数据增广。由两种方式：可以调用fit_transform()方法：
+Then input the data to complete the data augmentation. There are two ways: you can call the method 'fit_transform'.
 
 ```python
 augmented_X=augmentation.fit_transform(X)
 ```
 
-也可以直接调用__call__()方法：
+Or call the methed '\_\_call\_\_' directly.
 
 ```python
 augmented_X=augmentation(X)
@@ -141,8 +141,8 @@ augmented_X=augmentation(X)
 
 ## Use Pipeline Mechanism
 
-Semi-sklearn支持Pipeline机制，将多种数据处理方式以流水线的形式用于数据处理。
-如在FixMatch算法中的强数据增广和弱数据增广。
+Semi-sklearn supports Pipeline mechanism, which uses multiple data processing methods for data processing in turn.
+Such as strong data augmentation and weak data augmentation in the FixMatch algorithm.
 
 ```python
 from sklearn.pipeline import Pipeline
@@ -161,7 +161,7 @@ strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,r
                               ])
 ```
 
-可以直接调用fit_transform()方法完成数据处理。
+You can directly call the method 'fit_transform' to complete data processing.
 
 ```python
 weakly_augmented_X=weakly_augmentation.fit_transform(X)
@@ -170,8 +170,8 @@ strongly_augmented_X=strongly_augmentation.fit_transform(X)
 
 ## Train a Classical SSL Model
 
-以Self-training算法为例。
-首先导入并初始化BreastCancer数据集。
+Take the Self-training algorithm as an example.
+Firstly import and initialize the BreastCancer dataset.
 
 ```python
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
@@ -180,7 +180,7 @@ dataset.init_dataset()
 dataset.init_transforms()
 ```
 
-对数据进行预处理。
+Preprocess the data.
 
 ```python
 labeled_X=dataset.pre_transform.fit_transform(dataset.labeled_X)
@@ -191,7 +191,7 @@ test_X=dataset.pre_transform.fit_transform(dataset.test_X)
 test_y=dataset.test_y
 ```
 
-调用并初始化Self-training模型，以SVM模型为基学习器。
+Call and initialize the Self-training model using  SVM model as the base learner.
 
 ```python
 from Semi_sklearn.Algorithm.Classifier.Self_training import Self_training
@@ -200,19 +200,19 @@ SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
 model=Self_training(base_estimator=SVM,threshold=0.8,criterion="threshold",max_iter=100)
 ```
 
-调用fit()方法进行模型训练。
+Call the method 'fit' for model training.
 
 ```python
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 ```
 
-对测试数据进行预测。
+Make predictions on test data.
 
 ```python
 result=model.predict(X=test_X)
 ```
 
-对模型效果进行评估。
+Evaluate model performance.
 
 ```python
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
@@ -223,8 +223,8 @@ print(Recall().scoring(test_y,result))
 
 ## Train a Deep SSL Model
 
-以FixMatch算法为例。
-首先导入并初始化CIFAR10数据集。
+Take FixMatch algorithm as an example.
+Firstly import and initialize CIFAR10 dataset.
 
 ```python
 from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
@@ -233,7 +233,7 @@ dataset.init_dataset()
 dataset.init_transforms()
 ```
 
-通过访问封装数据集参数的方法获取数据集中的具体数据。
+Obtain the specific data in the dataset by accessing the parameters of the encapsulated dataset.
 
 ```python
 labeled_dataset=getattr(dataset,'labeled_dataset')
@@ -247,7 +247,7 @@ test_X=getattr(dataset.test_dataset,'X')
 test_y=getattr(dataset.test_dataset,'y')
 ```
 
-在深度学习中，需要使用数据加载器，首先需要将具体数据进行进行封装，并确定数据加载过程中的处理方式。
+In deep learning, dataloaders need to be used. Firstly, it is necessary to encapsulate the specific data into a data maneger and determine the processing method during the data loading process.
 
 ```python
 from Semi_sklearn.Dataset.TrainDataset import TrainDataset
@@ -260,7 +260,7 @@ valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
 test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 ```
 
-在初始化数据加载器之前，可以根据需求设置采样器,即sampler和batch_sampler，这里训练时采用随机采样，测试和验证时采用顺序采样。
+Before initializing the data loader, you can set the sampler according to your requirements. Here, random sampling is used for training and sequential sampling is used for test and Validation.
 
 ```python
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
@@ -272,7 +272,7 @@ valid_sampler=SequentialSampler()
 test_sampler=SequentialSampler()
 ```
 
-以Pipeline形式设置数据增广方法，若存在多种增广方式，可以用python字典或列表存储。
+Set the data augmentation method in the form of Pipeline. If there are multiple augmentation methods, it can be stored in a python dictionary or a list.
 
 ```python
 from sklearn.pipeline import Pipeline
@@ -295,14 +295,14 @@ augmentation={
 }
 ```
 
-之后设置深度学习中的神经网络结构，这里使用WideResNet作为神经网络的基本结构。
+Set the neural network structure in deep learning. Here, WideResNet is used as the basic structure of the neural network.
 
 ```python
 from Semi_sklearn.Network.WideResNet import WideResNet
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
 ```
 
-设置深度学习中的优化器，这里使用SGD优化器。
+Set the optimizer in deep learning, here the SGD optimizer is used.
 
 ```python
 from Semi_sklearn.Opitimizer.SGD import SGD
@@ -313,14 +313,14 @@ optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 echo "hello"
 ```
 
-设置深度学习中的调度器用来在训练过程中调整学习率。
+Set the scheduler in deep learning to adjust the learning rate during training.
 
 ```python
 from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 ```
 
-在深度半监督学习算法中，可以用字典存储多个评估指标，直接在模型初始化时作为参数用于在训练过程中验证模型效果。
+In the deep semi-supervised learning algorithms, a dictionary can be used to store multiple evaluation indicators, which are directly used as parameters during model initialization to verify the model performence during the training process.
 
 ```python
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
@@ -342,7 +342,7 @@ evaluation={
 }
 ```
 
-初始化Fixmatch算法，并设置好各组件和参数。
+Initialize Fixmatch algorithm and set components and parameters.
 
 ```python
 from Semi_sklearn.Algorithm.Classifier.Fixmatch import Fixmatch
@@ -354,13 +354,13 @@ model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_data
                T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
 ```
 
-对模型进行训练，并在训练的同时对模型进行验证。
+Train the model and validate the model while training.
 
 ```python
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 ```
 
-最后对测试数据进行预测。
+Finally, make predictions on the test data.
 
 ```python
 model.predict(test_X)
@@ -368,8 +368,8 @@ model.predict(test_X)
 
 ## Search Params
 
-Semi-sklearn支持sklearn中的参数搜索机制。
-首先初始化一个参数不完整的模型。
+Semi-sklearn supports the parameter search mechanism in sklearn.
+Firstly initialize a model with incomplete parameters.
 
 ```python
 model=Fixmatch(train_dataset=train_dataset,test_dataset=test_dataset,
@@ -380,7 +380,7 @@ model=Fixmatch(train_dataset=train_dataset,test_dataset=test_dataset,
                test_sampler=test_sampler,train_batch_sampler=train_batchsampler,ema_decay=0.999)
 ```
 
-以字典的形式设置带搜索参数。
+Set the parameters to be searched in the form of a dictionary.
     
 ```python
 param_dict = {"threshold": [0.7, 1],
@@ -388,15 +388,15 @@ param_dict = {"threshold": [0.7, 1],
               }
 ```
 
-以随机搜索的方式进行参数搜索。
-首先进行搜索方式初始化。
+Parameter search is performed in a random search manner.
+Firstly, initialize the search mode.
 
 ```python
 from sklearn.model_selection import RandomizedSearchCV
 random_search = RandomizedSearchCV(model, param_distributions=param_dict,n_iter=1, cv=4,scoring='accuracy')
 ```
 
-开始参数搜索过程。
+Start the search.
 
 ```python
 random_search.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
@@ -404,15 +404,15 @@ random_search.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 
 ## Train Distributedly
 
-可以采用分布式训练用多个GPU同时训练模型。以Fixmatch为例。
-导入并初始化DataParallel模块。需要设置分布式训练所需的GPU。
+Distributed training can be used to train models simultaneously with multiple GPUs. Take Fixmatch as an example.
+Import and initialize the DataParallel module. The GPUs required for distributed training need to be set up.
 
 ```python
 from Semi_sklearn.Distributed.DataParallel import DataParallel
 parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
 ```
 
-初始化分布式训练的Fixmatch算法。
+Initialize the Fixmatch algorithm for distributed training.
 
 ```python
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
@@ -423,7 +423,7 @@ model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_data
                T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
 ```
 
-进行分布式训练。
+Start distributed training
 
 ```python
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
@@ -431,21 +431,22 @@ model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_
 
 ## Save and Load Model
 
-可以使用pickle保存和加载半监督学习模型。
-设置路径。
+Semi-supervised learning models can be saved and loaded using pickle.
+
+Set the path.
 
 ```python
 path='../save/Fixmatch.pkl'
 ```
 
-保存模型。
+Save the model.
 
 ```python
 with open(path, 'wb') as f:
     pickle.dump(model, f)
 ```
 
-加载模型。
+Load the model.
 
 ```python
 with open(path, 'rb') as f:
@@ -833,6 +834,66 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - lambda_u: weight of unsupervised loss.
 >> - alpha: the parameter of Beta distribution in Mixup.
 
+#### Semi_sklearn.Algorithm.Classifier.ImprovedGAN
+
+> CLASS Semi_sklearn.Algorithm.Classifier.ImprovedGAN(
+                 train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 epoch=1,
+                 network=None,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=0,
+                 lambda_u=1.0,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None,
+                 dim_in=(28,28),
+                 num_class=10,
+                 dim_z=500,
+                 hidden_G=[500,500],
+                 hidden_D=[1000,500,250,250,250],
+                 noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
+                 activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus()],
+                 activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 num_labeled=None)
+
+>> Parameter
+>> - dim_in: 
+>> - num_class: weight of unsupervised loss. 
+>> - dim_z: the parameter of Beta distribution in Mixup. 
+>> - hidden_G: 
+>> - hidden_D: 
+>> - noise_level: 
+>> - activations_G: 
+>> - activations_D: 
+>> - noise_level: 
+
+
 ## Base
 
 ### Semi_sklearn.SemiDeepModelMixin.SemiDeepModelMixin
@@ -1123,3 +1184,4 @@ This module mainly makes deep learning and classical machine learning have the s
 [40]	ZAGORUYKO S, KOMODAKIS N. Wide Residual Networks[J/OL]. arXiv:1605.07146 [cs], 2017[2022-04-26]. http://arxiv.org/abs/1605.07146.
 
 [41]	CUBUK E D, ZOPH B, SHLENS J, et al. Randaugment: Practical automated data augmentation with a reduced search space[C]. IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW), 2020: 3008-3017.
+
