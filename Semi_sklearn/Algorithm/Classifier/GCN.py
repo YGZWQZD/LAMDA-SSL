@@ -8,17 +8,18 @@ import torch
 from Semi_sklearn.utils import to_device
 class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,
-                 epoch=1,
                  num_features=1433,
                  num_classes=7,
                  normalize=True,
+                 epoch=1,
                  eval_epoch=None,
                  optimizer=None,
+                 weight_decay=None,
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
-                 weight_decay=None,
                  network=None,
+                 parallel=None,
                  file=None
                  ):
         self.network=network if network is not None else GCNNET.GCN(num_features=num_features,num_classes=num_classes,
@@ -32,6 +33,7 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     device=device,
                                     eval_epoch=eval_epoch,
                                     evaluation=evaluation,
+                                    parallel=parallel,
                                     file=file
                                     )
         self._estimator_type = ClassifierMixin._estimator_type

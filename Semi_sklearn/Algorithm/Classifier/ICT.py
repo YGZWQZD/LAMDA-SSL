@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from Semi_sklearn.utils import Bn_Controller
 from Semi_sklearn.Loss.Cross_Entropy import Cross_Entropy
 import torch.nn as nn
-import  Semi_sklearn.Algorithm.ICT as Base_ICT
+import Semi_sklearn.Algorithm.ICT as Base_ICT
 
 class ICT(Base_ICT.ICT,ClassifierMixin):
     def __init__(self,train_dataset=None,
@@ -37,23 +37,23 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
                  unlabeled_sampler=None,
                  labeled_batch_sampler=None,
                  unlabeled_batch_sampler=None,
-                 epoch=1,
-                 num_it_epoch=None,
-                 num_it_total=None,
-                 warmup=None,
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
+                 weight_decay=None,
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
-                 lambda_u=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None,
-                 # num_classes=10,
-                 alpha=None
-                 ):
+                 parallel=None,
+                 file=None,
+                 warmup=None,
+                 lambda_u=None,
+                 alpha=None):
         Base_ICT.ICT.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -88,10 +88,11 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
-                                   warmup=warmup,
-                                   lambda_u=lambda_u,
-                                   # num_classes=num_classes,
-                                   alpha=alpha
+                                    warmup=warmup,
+                                    lambda_u=lambda_u,
+                                    alpha=alpha,
+                                    parallel=parallel,
+                                    file=file
                                     )
         self._estimator_type = ClassifierMixin._estimator_type
 

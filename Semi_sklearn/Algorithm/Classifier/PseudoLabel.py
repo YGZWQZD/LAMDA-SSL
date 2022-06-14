@@ -45,6 +45,8 @@ class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
+                 parallel=None,
+                 file=None,
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
@@ -84,7 +86,9 @@ class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    parallel=parallel,
+                                    file=file
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u

@@ -343,7 +343,7 @@ model=Fixmatch(train_dataset=train_dataset,test_dataset=test_dataset,
                test_sampler=test_sampler,train_batch_sampler=train_batchsampler,ema_decay=0.999)
 ```
 
-以字典的形式设置带搜索参数。
+以字典的形式设置待搜索参数。
     
 ```python
 param_dict = {"threshold": [0.7, 1],
@@ -603,6 +603,397 @@ Wang等[32]提出了SDNE （如图2-18所示）。SDNE是一种可以在图中�
 
 Kipf等[33]提出了GCN。与SDNE使用结点的邻接向量作为结点特征学习嵌入表示不同，GCN更适用于结点本身存在特征的情况，GCN可以同时利用结点本身的特征信息和图结构信息进行学习，显著地提升了模型的效果。在图深度学习中，图神经网络（GNN）[35]是最常用的一类方法，这类方法通常以存在结点特征的图作为输入，可以学习到结点的深层表示，并以此完成学习任务。经典的GNN方法分为两个步骤：第一个步骤为聚集（Aggregate），即通过图结构将近邻结点的信息进行汇集；第二个步骤为更新（Update），即根据结点自身表示与近邻结点更新结点表示。不断重复这两个步骤，可以得到每个结点的深层表示，由于聚集操作存在传播效果，结点的深层表示中不仅涵盖了节点自身信息，还涵盖了图结构信息。经典的聚集操作为线性聚集，即将近邻节点表示的线性组合作为该节点的近邻表示，经典的更新操作为使用感知机模型，由结点自身表示与近邻表示得到新的自身表示。经典的GNN模型存在一定的局限性，其对近邻节点的表示进行线性组合的聚集方式使度较大的结点更大程度地影响了其他节点，而度较小的结点对整个训练过程的影响较小。GCN方法对每一结点将标准化后的近邻表示与自身表示直接相加，并将结果作感知器的输入，得到的结果作为新的自身表示，其中标准化过程将近邻结点与自身结点的表示分别除以一个标准化因子，其中近邻结点的标准化因子为自身结点的度与近邻结点的度的几何平均，自身结点的标准化因子为自身结点的度。GCN在图结构任务上有着优异的表现，并且其更新过程避免了对近邻结点线性组合权重的学习，拥有更少的参数与更高的效率。
 
+# API
+
+## Semi_sklearn.Algorithm
+
+### Semi_sklearn.Algorithm.Classifiar
+
+#### Semi_sklearn.Algorithm.Classifier.Assemble
+
+> CLASS Semi_sklearn.Algorithm.Classifier.Assemble.Assemble(base_model=SVC(probability=True),T=100,alpha=1,beta=0.9)
+>> Parameter
+>> - base_model: 用于集成学习的基学习器。
+>> - T: 基学习器的数量,也是迭代的轮次。
+>> - alpha: 各样本在采样分布更新时的权重。
+>> - Beta: 用于初始化有标注数据与无标注数据的采样分布。
+
+#### Semi_sklearn.Algorithm.Classifier.Co_training
+
+> CLASS Semi_sklearn.Algorithm.Classifier.Co_training.Co_training(base_estimator, base_estimator_2=None, p=5, n=5, k=30, s=75)
+>> Parameter
+>> - base_estimator: 用于协同训练的第一个学习器。
+>> - base_estimator_2: 用于协同训练的第二个学习器。
+>> - p: 每一轮每一个基学习器最多选取p个正样本赋予伪标注。
+>> - n: 每一轮每一个基学习器最多选取n个负样本赋予伪标注。
+>> - k: 迭代轮次。
+>> - s: 每一轮迭代中缓冲池的大小。
+
+#### Semi_sklearn.Algorithm.Classifier.Fixmatch
+
+> CLASS Semi_sklearn.Algorithm.Classifier.Fixmatch.Fixmatch(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 parallel=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=5e-4
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 threshold=0.95,
+                 lambda_u=1.0,
+                 mu=1.0,
+                 ema_decay=0.999,
+                 T=0.5)
+                 
+>> Parameter
+>> - threshold: 选择样本的自信度阈值。
+>> - lambda_u: 无监督损失的权重。
+>> - mu: 每一批次无标注数据与有标注数据的比例。
+>> - ema_decay: 指数移动平滑的更新权重。
+>> - T: 标注锐化的温度。
+
+#### Semi_sklearn.Algorithm.Classifier.Flexmatch
+> CLASS Semi_sklearn.Algorithm.Classifier.Flexmatch.Flexmatch(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=5e-4,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 threshold=None,
+                 lambda_u=None,
+                 mu=None,
+                 ema_decay=None,
+                 T=None,
+                 num_classes=10,
+                 thresh_warmup=None,
+                 use_hard_labels=False,
+                 use_DA=False,
+                 p_target=None
+                 )
+>> Parameter
+>> - threshold: 选择样本的自信度阈值。
+>> - lambda_u: 无监督损失的权重。
+>> - ema_decay: 指数移动平滑的更新权重。
+>> - T: 标注锐化的温度。
+>> - num_classes: 分类任务的类别数。
+>> - thresh_warmup: 是否使用Threshold warm-up机制。
+>> - use_hard_labels: 是否再一致性正则中使用硬标注。
+>> - use_DA: 是否对软标注进行分布对齐。
+>> - p_target: 有标注数据的标注分布。
+
+#### Semi_sklearn.Algorithm.Classifier.GCN
+> CLASS Semi_sklearn.Algorithm.Classifier.GCN(
+                 epoch=1,
+                 eval_epoch=None,
+                 network=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 parallel=None,
+                 file=None,
+                 device='cpu',
+                 evaluation=None,
+                 num_features=1433,
+                 num_classes=7,
+                 normalize=True
+                 )
+>> Parameter
+>> - num_features: 结点特征维度。
+>> - num_classes: 类别数量。
+>> - normalize: 是否使用对称标准化.
+
+#### Semi_sklearn.Algorithm.Classifier.ICT
+> CLASS Semi_sklearn.Algorithm.Classifier.ICT(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 ema_decay=None,
+                 mu=None,
+                 parallel=None,
+                 file=None,
+                 warmup=None,
+                 lambda_u=None,
+                 alpha=None)
+>> Parameter
+>> - warmup: Node feature dimension.
+>> - lambda_u: number of classes.
+>> - alpha: whether to use symmetric normalization.
+
+## Base
+
+### Semi_sklearn.SemiDeepModelMixin.SemiDeepModelMixin
+> CLASS Semi_sklearn.Base.SemiDeepModelMixin.SemiDeepModelMixin(train_dataset=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=5e-4,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None)
+>> Parameter
+>> - train_dataset
+>> - labeled_dataset
+>> - unlabeled_dataset
+>> - valid_dataset
+>> - test_dataset
+>> - augmentation
+>> - network
+>> - epoch
+>> - num_it_epoch
+>> - num_it_total
+>> - eval_epoch
+>> - eval_it
+>> - mu
+>> - optimizer
+>> - weight_decay
+>> - ema_decay
+>> - scheduler
+>> - device
+>> - evaluation
+>> - train_sampler
+>> - labeled_batch_sampler
+>> - unlabeled_batch_sampler
+>> - valid_sampler
+>> - valid_batch_sampler
+>> - test_sampler
+>> - test_batch_sampler
+>> - parallel
+>> - file
+
+## Dataloader
+
+### Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader
+> CLASS Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader(batch_size= 1, shuffle: bool = False,
+                 sampler = None, batch_sampler= None,
+                 num_workers: int = 0, collate_fn= None,
+                 pin_memory: bool = False, drop_last: bool = False,
+                 timeout: float = 0, worker_init_fn = None,
+                 multiprocessing_context=None, generator=None,
+                 prefetch_factor: int = 2, persistent_workers: bool = False)
+>> Parameter
+>> - batch_size
+>> - shuffle
+>> - sampler
+>> - batch_sampler
+>> - num_workers
+>> - collate_fn
+>> - pin_memory
+>> - drop_last
+>> - timeout
+>> - worker_init_fn
+>> - multiprocessing_context
+>> - generator
+>> - prefetch_factor
+>> - persistent_workers
+
+## Dataset
+### Semi_sklearn.Dataset.LabeledDataset.LabeledDataset
+
+> CLASS Semi_sklearn.Dataset.LabeledDataset.LabeledDataset（transforms=None, transform=None, target_transform=None, pre_transform=None)
+>> Parameter
+>> - transforms
+>> - transform
+>> - target_transform
+>> - pre_transform
+
+## Distributed
+### Semi_sklearn.Distributed.DataParallel.DataParallel
+> CLASS Semi_sklearn.DataParallel.DataParallel(device_ids=None, output_device=None, dim=0)
+>> Parameter
+>> - device_ids
+>> - output_device
+>> - dim
+
+## Evaluation
+### Semi_sklearn.Evaluation.Classification
+#### Semi_sklearn.Evaluation.Classification.Accuracy
+> CLASS Semi_sklearn.Evaluation.Classification.Accuracy(normalize=True, sample_weight=None)
+>> Parameter
+>> - normalize
+>> - sample_weight
+
+### Semi_sklearn.Evaluation.Regression
+#### Semi_sklearn.Evaluation.Regression.Mean_absolute_error
+> CLASS Semi_sklearn.Evaluation.Regression.Mean_absolute_error(sample_weight=None, multioutput="uniform_average")
+>> Parameter
+>> - sample_weight
+>> - multioutput
+
+## Loss
+### Semi_sklearn.LOSS.Consistency
+> CLASS Semi_sklearn.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
+>> Parameter
+>> - reduction
+>> - activation_1
+>> - activation_2
+
+## Network
+### Semi_sklearn.Network.GCN
+> CLASS Semi_sklearn.Network.GCN(num_features,num_classes,normalize=False)
+>> Parameter
+>> - num_features
+>> - num_classes
+>> - normalize
+
+## Optimizer
+### Semi_sklearn.Optimizer.Adam
+> CLASS Semi_sklearn.Optimizer.Adam(lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False)
+>> Parameter
+>> - lr
+>> - betas
+>> - eps
+>> - weight_decay
+>> - amsgrad
+
+## Sampler
+### Semi_sklearn.Sampler.RandomSampler
+> CLASS Semi_sklearn.Sampler.RandomSampler(replacement: bool = False, num_samples = None, generator=None)
+>> Parameter
+>> - replacement
+>> - num_samples
+>> - generator
+
+## Scheduler
+### Semi_sklearn.Scheduler.CosineAnnealingLR
+> CLASS Semi_sklearn.Scheduler.CosineAnnealingLR(T_max, eta_min=0, last_epoch=-1, verbose=False)
+>> Parameter
+>> - T_max
+>> - eta_min
+>> - last_epoch
+>> - verbose
+
+## Split
+### Semi_sklearn.Scheduler.Split.SemiSplit
+> Function Semi_sklearn.Scheduler.Split.SemiSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
+>> Parameter
+>> - stratified
+>> - shuffle
+>> - random_state
+>> - X
+>> - y
+>> - labeled_size
+
+## Transform
+### Semi_sklearn.Transform.Adjust_length
+> CLASS Semi_sklearn.Transform.Adjust_length(length, pad_val=None, pos=0)
+>> Parameter
+>> - length
+>> - pad_val
+>> - pos
+
+## utils
+### Semi_sklearn.utils.get_indexing_method
+> Function Semi_sklearn.utils.get_indexing_method(data)
+>> Parameter
+>> - data
+
 # 参考文献
 
 [1]	VAN ENGELEN J E, HOOS H H. A survey on semi-supervised learning[J]. Machine Learning, 2020, 109(2): 373-440.
@@ -696,13 +1087,3 @@ sklearn的接口的fit()方法一般有X和y两项，无标注的X对应的标�
 2. DeepModelMixin模块如何理解？
 
 这一模块主要是使深度学习与经典机器学习拥有相同的接口，并且为了便于用户更换深度学习种对应的组件，DeepModelMixin对pytorch进行了解耦。
-
-
-
-
-
-
-
-
-
-

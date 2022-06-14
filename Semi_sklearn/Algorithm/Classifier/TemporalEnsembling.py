@@ -49,6 +49,8 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin):
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
+                 parallel=None,
+                 file=None,
                  lambda_u=None,
                  mu=None,
                  ema_weight=None,
@@ -90,7 +92,9 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    parallel=parallel,
+                                    file=file,
                                     )
         self.ema_weight=ema_weight
         self.lambda_u=lambda_u

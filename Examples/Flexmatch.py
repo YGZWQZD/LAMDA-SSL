@@ -101,7 +101,7 @@ model=Flexmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dat
                augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,evaluation=evaluation,
                epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cpu',mu=7,
                num_classes=10,T=0.5,weight_decay=0,threshold=0.95,lambda_u=1.0,
-               ema_decay=0.999,use_hard_labels=True,thresh_warmup=True)
+               ema_decay=0.999,use_hard_labels=True,threshold_warmup=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 

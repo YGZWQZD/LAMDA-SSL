@@ -8,15 +8,6 @@ from Semi_sklearn.utils import class_status
 from Semi_sklearn.utils import cross_entropy
 import torch
 
-def interleave(x, size):
-    s = list(x.shape)
-    return x.reshape([-1, size] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
-
-def de_interleave(x, size):
-    s = list(x.shape)
-    return x.reshape([size, -1] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
-
-
 class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
@@ -48,6 +39,7 @@ class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  optimizer=None,
                  scheduler=None,
                  device='cpu',
+                 file=None,
                  evaluation=None,
                  threshold=None,
                  lambda_u=None,
@@ -56,7 +48,7 @@ class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  T=None,
                  weight_decay=None,
                  num_classes=10,
-                 thresh_warmup=None,
+                 threshold_warmup=None,
                  use_hard_labels=False,
                  use_DA=False,
                  p_target=None
@@ -94,7 +86,8 @@ class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    file=file
                                     )
 
         self.lambda_u=lambda_u
@@ -103,7 +96,7 @@ class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self.num_classes=num_classes
         self.classwise_acc=None
         self.selected_label=None
-        self.thresh_warmup=thresh_warmup
+        self.threshold_warmup=threshold_warmup
         self.use_hard_labels=use_hard_labels
         self.p_model=None
         self.p_target=p_target
@@ -137,10 +130,10 @@ class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
         num_lb = w_lb_X.shape[0]
         pseudo_counter = Counter(self.selected_label.tolist())
-        print(pseudo_counter)
-        print(len(self._train_dataset.unlabeled_dataset))
-        if max(pseudo_counter.values()) < len(self._train_dataset.unlabeled_dataset):  # not all(5w) -1
-            if self.thresh_warmup:
+        # print(pseudo_counter)
+        # print(len(self._train_dataset.unlabeled_dataset))
+        if max(pseudo_counter.values()) < len(self._train_dataset.unlabeled_dataset):  # not all -1
+            if self.threshold_warmup:
                 for i in range(self.num_classes):
                     self.classwise_acc[i] = pseudo_counter[i] / max(pseudo_counter.values())
             else:

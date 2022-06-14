@@ -36,13 +36,15 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                  epoch=1,
                  num_it_epoch=None,
                  num_it_total=None,
-                 warmup=None,
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
+                 parallel=None,
+                 file=None,
+                 warmup=None,
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
@@ -85,7 +87,10 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation)
+                                    evaluation=evaluation,
+                                    parallel=parallel,
+                                    file=None,
+                                    )
         self._estimator_type = ClassifierMixin._estimator_type
 
 

@@ -26,6 +26,7 @@ class SDNE(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  evaluation=None,
                  weight_decay=None,
                  network=None,
+                 parallel=None,
                  file=None
                  ):
         if network is not None:
@@ -41,6 +42,7 @@ class SDNE(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     device=device,
                                     eval_epoch=eval_epoch,
                                     evaluation=evaluation,
+                                    parallel=parallel,
                                     file=file
                                     )
         self.alpha=alpha

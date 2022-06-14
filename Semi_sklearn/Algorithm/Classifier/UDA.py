@@ -11,14 +11,6 @@ from Semi_sklearn.utils import class_status
 from torch.nn import Softmax
 import math
 
-# def fix_bn(m,train=False):
-#     classname = m.__class__.__name__
-#     if classname.find('BatchNorm') != -1:
-#         if train:
-#             m.train()
-#         else:
-#             m.eval()
-
 class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
@@ -51,6 +43,8 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
+                 parallel=None,
+                 file=None,
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
@@ -58,7 +52,8 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  num_classes=None,
                  tsa_schedule=None,
                  weight_decay=None,
-                 T=0.4
+                 T=0.4,
+
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -93,7 +88,9 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
-                                    evaluation=evaluation
+                                    evaluation=evaluation,
+                                    parallel=parallel,
+                                    file=file
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u

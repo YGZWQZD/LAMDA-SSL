@@ -41,6 +41,8 @@ class PiModelClassifier(PiModel,ClassifierMixin):
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
+                 parallel=None,
+                 file=None,
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
@@ -81,7 +83,10 @@ class PiModelClassifier(PiModel,ClassifierMixin):
                              lambda_u=lambda_u,
                              mu=mu,
                              ema_decay=ema_decay,
-                             weight_decay=weight_decay)
+                             weight_decay=weight_decay,
+                             parallel=parallel,
+                             file=file
+                             )
         self._estimator_type = ClassifierMixin._estimator_type
 
 

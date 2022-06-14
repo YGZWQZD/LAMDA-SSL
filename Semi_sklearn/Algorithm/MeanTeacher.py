@@ -48,12 +48,15 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
                  optimizer=None,
                  scheduler=None,
                  device='cpu',
+
                  evaluation=None,
+                 parallel=None,
+                 file=None,
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
-                 weight_decay=None,
-                 file=None
+                 weight_decay=None
+
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -89,6 +92,7 @@ class MeanTeacher(InductiveEstimator,SemiDeepModelMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
+                                    parallel=parallel,
                                     file=file
                                     )
         self.ema_decay=ema_decay

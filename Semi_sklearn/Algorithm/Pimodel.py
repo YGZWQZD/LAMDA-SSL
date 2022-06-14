@@ -53,6 +53,7 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                  mu=None,
                  ema_decay=None,
                  weight_decay=None,
+                 parallel=None,
                  file=None
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
@@ -89,6 +90,7 @@ class PiModel(InductiveEstimator,SemiDeepModelMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
+                                    parallel=parallel,
                                     file=file
                                     )
         self.ema_decay=ema_decay

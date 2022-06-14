@@ -45,6 +45,7 @@ class ICT(InductiveEstimator,SemiDeepModelMixin):
                  scheduler=None,
                  device='cpu',
                  evaluation=None,
+                 parallel=None,
                  lambda_u=None,
                  mu=None,
                  ema_decay=None,
@@ -86,6 +87,7 @@ class ICT(InductiveEstimator,SemiDeepModelMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
+                                    parallel=parallel,
                                     file=file,
                                     )
         self.ema_decay=ema_decay

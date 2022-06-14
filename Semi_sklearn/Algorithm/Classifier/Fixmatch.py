@@ -7,53 +7,48 @@ import torch.nn.functional as F
 
 import torch
 
-def interleave(x, size):
-    s = list(x.shape)
-    return x.reshape([-1, size] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
 
-def de_interleave(x, size):
-    s = list(x.shape)
-    return x.reshape([size, -1] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
 
 class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
-                 train_dataloader=config.train_dataloader,
-                 valid_dataloader=config.valid_dataloader,
-                 test_dataloader=config.test_dataloader,
-                 augmentation=config.augmentation,
-                 network=config.network,
-                 train_sampler=config.train_sampler,
-                 train_batch_sampler=config.train_batch_sampler,
-                 valid_sampler=config.valid_sampler,
-                 valid_batch_sampler=config.valid_batch_sampler,
-                 test_sampler=config.test_sampler,
-                 test_batch_sampler=config.test_batch_sampler,
-                 labeled_dataset=config.labeled_dataset,
-                 unlabeled_dataset=config.unlabeled_dataset,
-                 labeled_dataloader=config.labeled_dataloader,
-                 unlabeled_dataloader=config.unlabeled_dataloader,
-                 labeled_sampler=config.labeled_sampler,
-                 unlabeled_sampler=config.unlabeled_sampler,
-                 labeled_batch_sampler=config.labeled_batch_sampler,
-                 unlabeled_batch_sampler=config.unlabeled_sampler,
-                 epoch=config.epoch,
-                 num_it_epoch=config.num_it_epoch,
-                 num_it_total=config.num_it_total,
-                 eval_epoch=config.eval_epoch,
-                 eval_it=config.eval_it,
-                 optimizer=config.optimizer,
-                 scheduler=config.scheduler,
-                 device=config.device,
-                 evaluation=config.evaluation,
-                 threshold=config.threshold,
-                 lambda_u=config.lambda_u,
-                 mu=config.mu,
-                 ema_decay=config.ema_decay,
-                 T=config.T,
-                 weight_decay=config.weight_decay,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
                  parallel=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 file=None,
+                 threshold=0.95,
+                 lambda_u=1.0,
+                 mu=1.0,
+                 ema_decay=0.999,
+                 T=0.5,
+                 weight_decay=5e-4
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -89,7 +84,8 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
-                                    parallel=parallel
+                                    parallel=parallel,
+                                    file=file
                                     )
         self.lambda_u=lambda_u
         self.threshold=threshold
@@ -109,9 +105,7 @@ class Fixmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
         batch_size = w_lb_X.shape[0]
         inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
-        inputs = interleave(inputs, 2 * self.mu + 1)
         logits = self._network(inputs)
-        logits = de_interleave(logits, 2 * self.mu + 1)
         logits_x = logits[:batch_size]
         logits_u_w, logits_u_s = logits[batch_size:].chunk(2)
         result=(logits_x,lb_y,logits_u_w,logits_u_s)
