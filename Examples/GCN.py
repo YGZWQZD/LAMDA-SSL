@@ -13,8 +13,6 @@ from Semi_sklearn.Opitimizer.Adam import Adam
 f = open("../Result/GCN.txt", "w")
 dataset=Cora(labeled_size=0.2,root='..\Semi_sklearn\Download\Cora',random_state=0)
 
-dataset.init_dataset()
-dataset.init_transforms()
 # print(dataset.data.edge_index.shape)
 #
 # print(torch.sum(dataset.data.test_mask))

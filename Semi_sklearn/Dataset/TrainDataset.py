@@ -17,7 +17,7 @@ class TrainDataset(Dataset):
                  labeled_dataset=None,
                  unlabeled_dataset=None
                  ):
-
+        self.pre_transform=pre_transform
         self.transforms=transforms
         self.transform = transform
         self.target_transform=target_transform

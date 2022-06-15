@@ -48,6 +48,8 @@ class  SST2(SemiDataset,TextMixin):
 
         if download:
             self.download()
+        self.init_dataset()
+        self.init_transforms()
 
 
 

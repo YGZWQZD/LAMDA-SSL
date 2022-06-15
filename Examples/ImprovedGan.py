@@ -33,8 +33,6 @@ import torch.nn as nn
 from Semi_sklearn.Dataset.Vision.Mnist import Mnist
 f = open("../Result/ImprovedGAN.txt", "w")
 dataset=Mnist(root='..\Semi_sklearn\Download\mnist',stratified=True,shuffle=True,download=False,random_state=0)
-dataset.init_dataset()
-dataset.init_transforms()
 
 labeled_dataset=dataset.train_dataset.get_dataset(labeled=True)
 unlabeled_dataset=dataset.train_dataset.get_dataset(labeled=False)

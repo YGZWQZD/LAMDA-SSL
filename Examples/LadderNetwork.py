@@ -31,8 +31,6 @@ dataset=Mnist(root='..\Semi_sklearn\Download\mnist',labeled_size=6000,stratified
 f = open("../Result/LadderNetwork1.txt", "w")
 import torch.nn as nn
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
-dataset.init_dataset()
-dataset.init_transforms()
 
 labeled_dataset=dataset.train_dataset.labeled_dataset
 unlabeled_dataset=dataset.train_dataset.unlabeled_dataset

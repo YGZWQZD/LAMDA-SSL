@@ -6,8 +6,6 @@ from Semi_sklearn.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallow
 from Semi_sklearn.Dataset.Table.Wine import Wine
 f = open("../Result/Constrained k means.txt", "w")
 dataset=Wine(labeled_size=0.2,stratified=True,shuffle=True,random_state=0)
-dataset.init_dataset()
-dataset.init_transforms()
 # breast_cancer = datasets.load_boston()
 # rng = np.random.RandomState(55)
 

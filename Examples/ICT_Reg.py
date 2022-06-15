@@ -18,8 +18,6 @@ from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 f = open("../Result/ICT_Reg.txt", "w")
 # dataset
 dataset=Boston(test_size=0.3,labeled_size=0.1,stratified=False,shuffle=True,random_state=0)
-dataset.init_dataset()
-dataset.init_transforms()
 
 labeled_dataset=dataset.train_dataset.get_dataset(labeled=True)
 unlabeled_dataset=dataset.train_dataset.get_dataset(labeled=False)

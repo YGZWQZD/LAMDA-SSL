@@ -1,18 +1,4 @@
-from Semi_sklearn.Transform.Normalization import Normalization
-from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from Semi_sklearn.Transform.RandomCrop import RandomCrop
-from Semi_sklearn.Transform.RandAugment import RandAugment
-from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
-from Semi_sklearn.Opitimizer.SGD import SGD
-from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
-from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
-from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Sampler.RandomSampler import RandomSampler
-from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
-from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
-from sklearn.pipeline import Pipeline
-from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
 from Semi_sklearn.Transform.RandomCrop import RandomCrop
 from Semi_sklearn.Transform.RandAugment import RandAugment
@@ -40,8 +26,6 @@ from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
 
 # dataset
 dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
-dataset.init_dataset()
-dataset.init_transforms()
 
 labeled_dataset=dataset.train_dataset.get_dataset(labeled=True)
 unlabeled_dataset=dataset.train_dataset.get_dataset(labeled=False)

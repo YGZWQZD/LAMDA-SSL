@@ -67,7 +67,8 @@ class Cora(SemiDataset,GraphMixin):
                              valid_transform=valid_transform,labeled_size=labeled_size,test_size=test_size,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
 
-
+        self.init_dataset()
+        self.init_transforms()
 
 
 

@@ -34,10 +34,6 @@ dataset=Mnist(root='..\Semi_sklearn\Download\mnist',labeled_size=3000,stratified
 # f = open("../Result/SSVAE.txt", "w")
 # dataset
 # dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
-dataset.init_dataset()
-dataset.init_transforms()
-
-
 
 labeled_dataset=dataset.train_dataset.get_dataset(labeled=True)
 unlabeled_dataset=dataset.train_dataset.get_dataset(labeled=False)

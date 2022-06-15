@@ -54,6 +54,8 @@ class  IMDB(SemiDataset,TextMixin):
         for root, dirs, files in walk:
             for item in files:
                 self.extracted_files.append(os.path.join(root, item))
+        self.init_dataset()
+        self.init_transforms()
 
 
 

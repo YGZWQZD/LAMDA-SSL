@@ -6,8 +6,6 @@ from Semi_sklearn.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallow
 from Semi_sklearn.Dataset.Table.Wine import Wine
 f = open("../Result/Constrained seed k means.txt", "w")
 dataset = Wine(labeled_size=0.2, stratified=True, shuffle=True,random_state=0)
-dataset.init_dataset()
-dataset.init_transforms()
 model = Constrained_Seed_k_means(k=3)
 labeled_X = dataset.pre_transform.fit_transform(dataset.labeled_X)
 labeled_y = dataset.labeled_y

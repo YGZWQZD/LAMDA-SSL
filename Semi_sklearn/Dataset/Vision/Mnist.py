@@ -70,6 +70,8 @@ class Mnist(SemiDataset,VisionMixin):
                              valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
         VisionMixin.__init__(self)
+        self.init_dataset()
+        self.init_transforms()
 
     def init_transforms(self):
         self.transforms=None

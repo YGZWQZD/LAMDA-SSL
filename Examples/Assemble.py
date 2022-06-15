@@ -4,8 +4,6 @@ from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
 from Semi_sklearn.Evaluation.Classification.Recall import Recall
 f = open("../Result/Assemble.txt", "w")
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
-dataset.init_dataset()
-dataset.init_transforms()
 
 labeled_X=dataset.pre_transform.fit_transform(dataset.labeled_X)
 labeled_y=dataset.labeled_y

@@ -63,6 +63,8 @@ class Boston(SemiDataset,TableMixin):
                              valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,test_size=test_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
         TableMixin.__init__(self)
+        self.init_dataset()
+        self.init_transforms()
 
     def _init_dataset(self):
         X, y = self.dataset.data, self.dataset.target.astype(np.float32)

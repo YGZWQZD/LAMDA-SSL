@@ -11,8 +11,6 @@ LR=StepLR(step_size=10,gamma=0.9)
 f = open("../Result/SDNE.txt", "w")
 dataset=Cora(labeled_size=0.2,root='..\Semi_sklearn\Download\Cora',random_state=0)
 
-dataset.init_dataset()
-dataset.init_transforms()
 data=dataset.data
 from Semi_sklearn.Algorithm.Classifier.SDNE import SDNE
 model=SDNE(

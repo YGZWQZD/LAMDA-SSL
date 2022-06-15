@@ -6,8 +6,7 @@ from Semi_sklearn.Evaluation.Classification.Recall import Recall
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
 f = open("../Result/SSGMM.txt", "w")
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
-dataset.init_dataset()
-dataset.init_transforms()
+
 # breast_cancer = datasets.load_boston()
 # rng = np.random.RandomState(55)
 
