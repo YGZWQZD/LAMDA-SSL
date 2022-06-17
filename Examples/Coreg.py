@@ -1,7 +1,7 @@
-from Semi_sklearn.Algorithm.Regressor.CoReg import CoReg
-from Semi_sklearn.Evaluation.Regression.Mean_absolute_error import Mean_absolute_error
-from Semi_sklearn.Evaluation.Regression.Mean_squared_error import MeanSquaredError
-from Semi_sklearn.Dataset.Table.Boston import Boston
+from lamda_ssl.Algorithm.Regressor.CoReg import CoReg
+from lamda_ssl.Evaluation.Regression.Mean_absolute_error import Mean_absolute_error
+from lamda_ssl.Evaluation.Regression.Mean_squared_error import MeanSquaredError
+from lamda_ssl.Dataset.Table.Boston import Boston
 
 dataset=Boston(labeled_size=0.3,test_size=0.1,stratified=False,shuffle=True,random_state=0)
 f = open("../Result/CoReg.txt", "w")

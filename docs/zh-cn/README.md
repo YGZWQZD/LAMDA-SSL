@@ -1702,34 +1702,55 @@ similarity_kernel = 'rbf',
                  parallel=None,
                  file=None)
 >> Parameter
->> - train_dataset
->> - labeled_dataset
->> - unlabeled_dataset
->> - valid_dataset
->> - test_dataset
->> - augmentation
->> - network
->> - epoch
->> - num_it_epoch
->> - num_it_total
->> - eval_epoch
->> - eval_it
->> - mu
->> - optimizer
->> - weight_decay
->> - ema_decay
->> - scheduler
->> - device
->> - evaluation
->> - train_sampler
->> - labeled_batch_sampler
->> - unlabeled_batch_sampler
->> - valid_sampler
->> - valid_batch_sampler
->> - test_sampler
->> - test_batch_sampler
->> - parallel
->> - file
+>> - train_dataset: 训练数据的数据管理器。
+>> - labeled_dataset: 有标注数据的数据管理器。
+>> - unlabeled_dataset: 无标注数据的数据管理器。
+>> - valid_dataset: 验证数据的数据管理器。
+>> - test_dataset: 测试数据的数据管理器。
+>> - augmentation: 增广方法，如果有多种增广方式，可以用字典或列表传参。
+>> - network: 使用的骨干神经网络。
+>> - epoch: 训练轮次数量。
+>> - num_it_epoch: 每一轮次的跌打的数量，即数据的批数。
+>> - num_it_total: 总batch数量。
+>> - eval_epoch: 每隔eval_epoch个epoch进行一次模型效果验证。
+>> - eval_it: 每隔eval_epoch个epoch进行一次模型效果验证。
+>> - mu: 无标注数据数量与有标注数据数量的比值。
+>> - optimizer: 训练中使用的优化器。
+>> - weight_decay: 优化器的学习率衰减参数。
+>> - ema_decay: 模型参数指数移动平滑的更新比例。
+>> - scheduler: 学习率调度器。
+>> - device: 训练设备。
+>> - evaluation: 模型评估指标，如果有多项指标，可以使用字典或列表。
+>> - train_sampler: 训练数据采样器。
+>> - labeled_sampler=None: 有标注数据采样器。
+>> - unlabeled_sampler=None: 无标注数据采样器。
+>> - train_batch_sampler=None: 训练数据批采样器。
+>> - labeled_batch_sampler: 有标注数据批采样器。
+>> - unlabeled_batch_sampler: 无标注数据批采样器。
+>> - valid_sampler: 验证数据采样器。
+>> - valid_batch_sampler: 验证数据批采样器。 
+>> - test_sampler: 测试数据采样器。
+>> - test_batch_sampler: 测试数据批采样器。
+>> - parallel: 分布式训练方式。
+>> - file: 输出文件。
+
+### Semi_sklearn.SemiEstimator.SemiEstimator
+> CLASS Semi_sklearn.Base.SemiEstimator.SemiEstimator()
+>> fit(X,y,unlabeled_X)
+>> - X: 有标注数据的样本。
+>> - y: 有标注数据的标注。
+>> - unlabeled_X: 无标注数据的样本。
+
+### Semi_sklearn.InductiveEstimator.InductiveEstimator
+> CLASS Semi_sklearn.Base.InductiveEstimator.InductiveEstimator()
+>> predict(X)
+>> - X: 待预测的样本。
+
+### Semi_sklearn.TransductiveEstimator.TransductiveEstimator
+> CLASS Semi_sklearn.Base.TransductiveEstimator.TransductiveEstimator()
+>> predict(X=None,,Transductive=True)
+>> - X: 待预测的样本，仅在Transductive为False时有效。
+>> - Transductive: 是否使用直推学习机制，直接输出fit时输入的unlabeled_X的预测结果。
 
 ## Dataloader
 
@@ -1742,20 +1763,20 @@ similarity_kernel = 'rbf',
                  multiprocessing_context=None, generator=None,
                  prefetch_factor: int = 2, persistent_workers: bool = False)
 >> Parameter
->> - batch_size
->> - shuffle
->> - sampler
->> - batch_sampler
->> - num_workers
->> - collate_fn
->> - pin_memory
->> - drop_last
->> - timeout
->> - worker_init_fn
->> - multiprocessing_context
->> - generator
->> - prefetch_factor
->> - persistent_workers
+>> - batch_size: 每一批数据的数量。
+>> - shuffle: 是否对数据进行洗牌。
+>> - sampler: 加载时使用的采样器。
+>> - batch_sampler: 加载时使用的批采样器。
+>> - num_workers: 数据加载时使用的子进程数量。
+>> - collate_fn: 
+>> - pin_memory: 
+>> - drop_last: 
+>> - timeout: 
+>> - worker_init_fn: 
+>> - multiprocessing_context: 
+>> - generator: 
+>> - prefetch_factor: 
+>> - persistent_workers: 
 
 ## Dataset
 ### Semi_sklearn.Dataset.LabeledDataset.LabeledDataset

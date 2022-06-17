@@ -1,18 +1,18 @@
-from Semi_sklearn.Dataset.Graph.Cora import Cora
-from Semi_sklearn.Evaluation.Classification.Precision import Precision
-from Semi_sklearn.Evaluation.Classification.Recall import Recall
-from Semi_sklearn.Evaluation.Classification.F1 import F1
-from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
+from lamda_ssl.Dataset.Graph.Cora import Cora
+from lamda_ssl.Evaluation.Classification.Precision import Precision
+from lamda_ssl.Evaluation.Classification.Recall import Recall
+from lamda_ssl.Evaluation.Classification.F1 import F1
+from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
 
-from Semi_sklearn.Scheduler.StepLR import StepLR
-from Semi_sklearn.Opitimizer.Adam import Adam
+from lamda_ssl.Scheduler.StepLR import StepLR
+from lamda_ssl.Opitimizer.Adam import Adam
 optimizer=Adam(lr=0.001)
 LR=StepLR(step_size=10,gamma=0.9)
 f = open("../Result/SDNE.txt", "w")
 dataset=Cora(labeled_size=0.2,root='..\Semi_sklearn\Download\Cora',random_state=0)
 
 data=dataset.data
-from Semi_sklearn.Algorithm.Classifier.SDNE import SDNE
+from lamda_ssl.Algorithm.Classifier.SDNE import SDNE
 model=SDNE(
     num_nodes=data.x.shape[0],
     input_dim=data.x.shape[1],

@@ -1,7 +1,7 @@
-from Semi_sklearn.Algorithm.Classifier.Co_training import Co_training
-from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
-from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
-from Semi_sklearn.Evaluation.Classification.Recall import Recall
+from lamda_ssl.Algorithm.Classifier.Co_training import Co_training
+from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
+from lamda_ssl.Dataset.Table.BreastCancer import BreastCancer
+from lamda_ssl.Evaluation.Classification.Recall import Recall
 f = open("../Result/Co-Training.txt", "w")
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
 # breast_cancer = datasets.load_boston()

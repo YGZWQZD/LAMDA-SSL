@@ -1,15 +1,15 @@
-from Semi_sklearn.Dataset.Graph.Cora import Cora
+from lamda_ssl.Dataset.Graph.Cora import Cora
 #
 import numpy as np
 import torch
-from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
-from Semi_sklearn.Evaluation.Classification.Top_k_accuracy import Top_k_accurary
-from Semi_sklearn.Evaluation.Classification.Precision import Precision
-from Semi_sklearn.Evaluation.Classification.Recall import Recall
-from Semi_sklearn.Evaluation.Classification.F1 import F1
-from Semi_sklearn.Evaluation.Classification.AUC import AUC
-from Semi_sklearn.Evaluation.Classification.Confusion_matrix import Confusion_matrix
-from Semi_sklearn.Opitimizer.Adam import Adam
+from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
+from lamda_ssl.Evaluation.Classification.Top_k_accuracy import Top_k_accurary
+from lamda_ssl.Evaluation.Classification.Precision import Precision
+from lamda_ssl.Evaluation.Classification.Recall import Recall
+from lamda_ssl.Evaluation.Classification.F1 import F1
+from lamda_ssl.Evaluation.Classification.AUC import AUC
+from lamda_ssl.Evaluation.Classification.Confusion_matrix import Confusion_matrix
+from lamda_ssl.Opitimizer.Adam import Adam
 f = open("../Result/GCN.txt", "w")
 dataset=Cora(labeled_size=0.2,root='..\Semi_sklearn\Download\Cora',random_state=0)
 
@@ -30,7 +30,7 @@ evaluation={
     'Confusion_matrix':Confusion_matrix(normalize='true')
 }
 data=dataset.data
-from Semi_sklearn.Algorithm.Classifier.GCN import GCN
+from lamda_ssl.Algorithm.Classifier.GCN import GCN
 optimizer=Adam(lr=0.02)
 
 model=GCN(

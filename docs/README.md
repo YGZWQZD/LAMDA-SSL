@@ -70,7 +70,7 @@ Semi-sklearn provides different evaluation indicators for different tasks, such 
 Take CIFAR10 dataset as an example, firstly import the CIFAR10 class.
 
 ```python
-from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
+from lamda_ssl.Dataset.Vision.cifar10 import CIFAR10
 ```
 
 Instantiate a CIFAR10 dataset, which is equivalent to a data manager. The parameter 'root' indicates the storage path of the dataset. The parameter 'labeled_size' indicates the number or proportion of labeled samples. The parameter 'stratified' indicates whether to divide the dataset according to the category ratio. The parameter 'shuffle' indicates whether the dataset needs to be shuffled and The parameter 'download' indicates whether the dataset needs to be downloaded.
@@ -110,7 +110,7 @@ test_y=getattr(dataset.test_dataset,'y')
 Taking RandAugment data augmentation as an example. firstly import the RandAugment class.
 
 ```python
-from Semi_sklearn.Transform.RandAugment import RandAugment
+from lamda_ssl.Transform.RandAugment import RandAugment
 ```
 
 Instantiate RandAugment class. The parameter 'n' is the number of random augmentation. The parameter 'm' is the magnitude of augmentation. The parameter 'num_bins' is the number of levels of magnitude division. This setting divides the augmentation magnitude into 10 levels, and uses the 10-th level augmentation augmentation twice.
@@ -138,10 +138,10 @@ Such as strong data augmentation and weak data augmentation in the FixMatch algo
 
 ```python
 from sklearn.pipeline import Pipeline
-from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from Semi_sklearn.Transform.RandomCrop import RandomCrop
-from Semi_sklearn.Transform.RandAugment import RandAugment
-from Semi_sklearn.Transform.Cutout import Cutout
+from lamda_ssl.Transform.RandomHorizontalFlip import RandomHorizontalFlip
+from lamda_ssl.Transform.RandomCrop import RandomCrop
+from lamda_ssl.Transform.RandAugment import RandAugment
+from lamda_ssl.Transform.Cutout import Cutout
 weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
@@ -166,7 +166,7 @@ Take the Self-training algorithm as an example.
 Firstly import and initialize the BreastCancer dataset.
 
 ```python
-from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
+from lamda_ssl.Dataset.Table.BreastCancer import BreastCancer
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
 dataset.init_dataset()
 dataset.init_transforms()
@@ -186,7 +186,7 @@ test_y=dataset.test_y
 Call and initialize the Self-training model using  SVM model as the base learner.
 
 ```python
-from Semi_sklearn.Algorithm.Classifier.Self_training import Self_training
+from lamda_ssl.Algorithm.Classifier.Self_training import Self_training
 from sklearn.svm import SVC
 SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
 model=Self_training(base_estimator=SVM,threshold=0.8,criterion="threshold",max_iter=100)
@@ -207,8 +207,8 @@ result=model.predict(X=test_X)
 Evaluate model performance.
 
 ```python
-from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
-from Semi_sklearn.Evaluation.Classification.Recall import Recall
+from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
+from lamda_ssl.Evaluation.Classification.Recall import Recall
 print(Accuracy().scoring(test_y,result))
 print(Recall().scoring(test_y,result))
 ```
@@ -219,7 +219,7 @@ Take FixMatch algorithm as an example.
 Firstly import and initialize CIFAR10 dataset.
 
 ```python
-from Semi_sklearn.Dataset.Vision.cifar10 import CIFAR10
+from lamda_ssl.Dataset.Vision.cifar10 import CIFAR10
 dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
 dataset.init_transforms()
@@ -242,8 +242,8 @@ test_y=getattr(dataset.test_dataset,'y')
 In deep learning, dataloaders need to be used. Firstly, it is necessary to encapsulate the specific data into a data maneger and determine the processing method during the data loading process.
 
 ```python
-from Semi_sklearn.Dataset.TrainDataset import TrainDataset
-from Semi_sklearn.Dataset.UnlabeledDataset import UnlabeledDataset
+from lamda_ssl.Dataset.TrainDataset import TrainDataset
+from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
 train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
@@ -255,9 +255,9 @@ test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 Before initializing the data loader, you can set the sampler according to your requirements. Here, random sampling is used for training and sequential sampling is used for test and Validation.
 
 ```python
-from Semi_sklearn.Sampler.RandomSampler import RandomSampler
-from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
-from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
+from lamda_ssl.Sampler.RandomSampler import RandomSampler
+from lamda_ssl.Sampler.SequentialSampler import SequentialSampler
+from lamda_ssl.Sampler.BatchSampler import SemiBatchSampler
 train_sampler=RandomSampler(replacement=True,num_samples=64*(2**20))
 train_batch_sampler=SemiBatchSampler(batch_size=64,drop_last=True)
 valid_sampler=SequentialSampler()
@@ -268,10 +268,10 @@ Set the data augmentation method in the form of Pipeline. If there are multiple 
 
 ```python
 from sklearn.pipeline import Pipeline
-from Semi_sklearn.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from Semi_sklearn.Transform.RandomCrop import RandomCrop
-from Semi_sklearn.Transform.RandAugment import RandAugment
-from Semi_sklearn.Transform.Cutout import Cutout
+from lamda_ssl.Transform.RandomHorizontalFlip import RandomHorizontalFlip
+from lamda_ssl.Transform.RandomCrop import RandomCrop
+from lamda_ssl.Transform.RandAugment import RandAugment
+from lamda_ssl.Transform.Cutout import Cutout
 weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
@@ -290,33 +290,33 @@ augmentation={
 Set the neural network structure in deep learning. Here, WideResNet is used as the basic structure of the neural network.
 
 ```python
-from Semi_sklearn.Network.WideResNet import WideResNet
+from lamda_ssl.Network.WideResNet import WideResNet
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
 ```
 
 Set the optimizer in deep learning, here the SGD optimizer is used.
 
 ```python
-from Semi_sklearn.Opitimizer.SGD import SGD
+from lamda_ssl.Opitimizer.SGD import SGD
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 ```
 Set the scheduler in deep learning to adjust the learning rate during training.
 
 ```python
-from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
+from lamda_ssl.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 ```
 
 In the deep semi-supervised learning algorithms, a dictionary can be used to store multiple evaluation indicators, which are directly used as parameters during model initialization to verify the model performence during the training process.
 
 ```python
-from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
-from Semi_sklearn.Evaluation.Classification.Top_k_accuracy import Top_k_accurary
-from Semi_sklearn.Evaluation.Classification.Precision import Precision
-from Semi_sklearn.Evaluation.Classification.Recall import Recall
-from Semi_sklearn.Evaluation.Classification.F1 import F1
-from Semi_sklearn.Evaluation.Classification.AUC import AUC
-from Semi_sklearn.Evaluation.Classification.Confusion_matrix import Confusion_matrix
+from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
+from lamda_ssl.Evaluation.Classification.Top_k_accuracy import Top_k_accurary
+from lamda_ssl.Evaluation.Classification.Precision import Precision
+from lamda_ssl.Evaluation.Classification.Recall import Recall
+from lamda_ssl.Evaluation.Classification.F1 import F1
+from lamda_ssl.Evaluation.Classification.AUC import AUC
+from lamda_ssl.Evaluation.Classification.Confusion_matrix import Confusion_matrix
 
 evaluation={
     'accuracy':Accuracy(),
@@ -332,7 +332,7 @@ evaluation={
 Initialize Fixmatch algorithm and set components and parameters.
 
 ```python
-from Semi_sklearn.Algorithm.Classifier.Fixmatch import Fixmatch
+from lamda_ssl.Algorithm.Classifier.Fixmatch import Fixmatch
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
                train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
@@ -395,7 +395,7 @@ Distributed training can be used to train models simultaneously with multiple GP
 Import and initialize the DataParallel module. The GPUs required for distributed training need to be set up.
 
 ```python
-from Semi_sklearn.Distributed.DataParallel import DataParallel
+from lamda_ssl.Distributed.DataParallel import DataParallel
 parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
 ```
 

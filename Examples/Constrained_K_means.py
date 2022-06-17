@@ -1,9 +1,9 @@
-from Semi_sklearn.Algorithm.Cluster.Constrained_k_means import Constrained_k_means
+from lamda_ssl.Algorithm.Cluster.Constrained_k_means import Constrained_k_means
 import numpy as np
 from sklearn import datasets
-from Semi_sklearn.Evaluation.Cluster.Davies_Bouldin_Score import Davies_Bouldin_Score
-from Semi_sklearn.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallows_Score
-from Semi_sklearn.Dataset.Table.Wine import Wine
+from lamda_ssl.Evaluation.Cluster.Davies_Bouldin_Score import Davies_Bouldin_Score
+from lamda_ssl.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallows_Score
+from lamda_ssl.Dataset.Table.Wine import Wine
 f = open("../Result/Constrained k means.txt", "w")
 dataset=Wine(labeled_size=0.2,stratified=True,shuffle=True,random_state=0)
 # breast_cancer = datasets.load_boston()
