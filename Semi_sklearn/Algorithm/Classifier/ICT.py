@@ -1,20 +1,17 @@
-import copy
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
 from sklearn.base import ClassifierMixin
-import torch
+
 from Semi_sklearn.utils import cross_entropy
 import numpy as np
-from Semi_sklearn.utils import class_status
-from Semi_sklearn.utils import one_hot
-from Semi_sklearn.Transform.Mixup import Mixup
-import torch.nn.functional as F
+
 from Semi_sklearn.utils import Bn_Controller
 from Semi_sklearn.Loss.Cross_Entropy import Cross_Entropy
 import torch.nn as nn
-import Semi_sklearn.Algorithm.ICT as Base_ICT
+import torch
+from Semi_sklearn.Transform.Mixup import Mixup
 
-class ICT(Base_ICT.ICT,ClassifierMixin):
+class ICT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -54,7 +51,7 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
                  warmup=None,
                  lambda_u=None,
                  alpha=None):
-        Base_ICT.ICT.__init__(self,train_dataset=train_dataset,
+        SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
@@ -88,23 +85,54 @@ class ICT(Base_ICT.ICT,ClassifierMixin):
                                     scheduler=scheduler,
                                     device=device,
                                     evaluation=evaluation,
-                                    warmup=warmup,
-                                    lambda_u=lambda_u,
-                                    alpha=alpha,
                                     parallel=parallel,
-                                    file=file
+                                    file=file,
                                     )
+        self.ema_decay=ema_decay
+        self.lambda_u=lambda_u
+        self.weight_decay=weight_decay
+        self.warmup=warmup
+        self.alpha=alpha
+        self.bn_controller=Bn_Controller()
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def init_transform(self):
+        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+
+    def start_fit(self):
+        self.it_total = 0
+        self._network.zero_grad()
+        self._network.train()
+
+    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+        lb_x = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
+        lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
+        ulb_x_1 = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
+        logits_x_lb = self._network(lb_x)
+        index = torch.randperm(ulb_x_1.size(0)).to(self.device)
+        ulb_x_2=ulb_x_1[index]
+        mixup=Mixup(self.alpha)
+
+        if self.ema is not None:
+            self.ema.apply_shadow()
+        with torch.no_grad():
+            logits_x_ulb_1 = self._network(ulb_x_1)
+        if self.ema is not None:
+            self.ema.restore()
+        logits_x_ulb_2=logits_x_ulb_1[index]
+        mixed_x= mixup.fit(ulb_x_1).transform(ulb_x_2)
+        lam=mixup.lam
+        self.bn_controller.freeze_bn(self._network)
+        logits_x_ulb_mix = self._network(mixed_x)
+        self.bn_controller.unfreeze_bn(self._network)
+        return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam=train_result
         sup_loss = cross_entropy(logits_x_lb, lb_y).mean()  # CE_loss for labeled data
-        # unsup_loss = lam*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_1)) +\
-        #              (1.0 - lam)*Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_ulb_mix,nn.Softmax(dim=-1)(logits_x_ulb_2))
         unsup_loss = Cross_Entropy(use_hard_labels=False, reduction='mean')(logits_x_ulb_mix,lam * nn.Softmax(dim=-1)(logits_x_ulb_1)+(1-lam)*
                                                                             nn.Softmax(dim=-1)(logits_x_ulb_2))
-        # unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
         loss = sup_loss + self.lambda_u * _warmup * unsup_loss
         return loss

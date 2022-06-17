@@ -17,7 +17,7 @@ from Semi_sklearn.utils import EMA
 class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,GeneratorMixin):
     def __init__(self,
                  dim_in=(28,28),
-                 num_class=10,
+                 num_classes=10,
                  dim_z=500,
                  hidden_G=[500,500],
                  hidden_D=[1000,500,250,250,250],
@@ -64,7 +64,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                                    hidden_D=hidden_D,activations_D=activations_D,
                                    activations_G=activations_G,
                                    noise_level=noise_level,
-                                   output_dim = num_class,z_dim=dim_z,device=device) if network is None else network
+                                   output_dim = num_classes,z_dim=dim_z,device=device) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -102,7 +102,7 @@ class ImprovedGan(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin,Generato
                                     )
         self.dim_z=dim_z
         self.dim_in=dim_in
-        self.num_class=num_class
+        self.num_classes=num_classes
         self.lambda_u=lambda_u
         self.num_labeled=num_labeled
         self._estimator_type = [GeneratorMixin._estimator_type,ClassifierMixin._estimator_type]

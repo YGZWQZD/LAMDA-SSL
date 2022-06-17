@@ -12,7 +12,7 @@ from Semi_sklearn.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from Semi_sklearn.Network.WideResNet import WideResNet
 from Semi_sklearn.Dataloader.TrainDataloader import TrainDataLoader
 from Semi_sklearn.Dataloader.LabeledDataloader import LabeledDataLoader
-from Semi_sklearn.Algorithm.Classifier.MeanTeacher import MeanTeacherClassifier
+from Semi_sklearn.Algorithm.Classifier.MeanTeacher import MeanTeacher
 from Semi_sklearn.Sampler.RandomSampler import RandomSampler
 from Semi_sklearn.Sampler.BatchSampler import SemiBatchSampler
 from Semi_sklearn.Sampler.SequentialSampler import SequentialSampler
@@ -104,7 +104,7 @@ evaluation={
 }
 
 
-model=ImprovedGan(dim_in=(28,28),num_class=10,dim_z=100,hidden_G=[500,500],
+model=ImprovedGan(dim_in=(28,28),num_classes=10,dim_z=100,hidden_G=[500,500],
                      hidden_D=[1000,500,250,250,250],
                      noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
                      activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus()],
@@ -121,7 +121,7 @@ model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_
 
 X=model.generate(100)
 # print(X.shape)
-X=X.detach().numpy()
+X=X.detach().cpu().numpy()
 for _ in range(100):
     img=ToImage()(X[_])
     import matplotlib.pyplot as plt

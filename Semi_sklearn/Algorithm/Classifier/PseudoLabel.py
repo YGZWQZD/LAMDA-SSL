@@ -42,15 +42,15 @@ class PseudoLabel(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
+                 weight_decay=None,
                  scheduler=None,
                  device='cpu',
+                 mu=None,
+                 ema_decay=None,
                  evaluation=None,
                  parallel=None,
                  file=None,
                  lambda_u=None,
-                 mu=None,
-                 ema_decay=None,
-                 weight_decay=None,
                  threshold=0.95
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,

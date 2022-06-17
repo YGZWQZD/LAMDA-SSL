@@ -17,7 +17,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
     def __init__(self,
                  alpha,
                  dim_in,
-                 num_class=10,
+                 num_classes=10,
                  dim_z=50,
                  dim_hidden_de=[ 500,500],
                  dim_hidden_en_y=[ 500,500], dim_hidden_en_z=[ 500,500],
@@ -59,7 +59,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
                  test_batch_sampler=None,
                  parallel=None,
                  file=None):
-        network=VAE.SSVAE( dim_in=dim_in,num_class=num_class,dim_z=dim_z,
+        network=VAE.SSVAE( dim_in=dim_in,num_classes=num_classes,dim_z=dim_z,
                            dim_hidden_de=dim_hidden_de,activations_de=activations_de,
                            dim_hidden_en_y=dim_hidden_en_y, activations_en_y=activations_en_y,
                            dim_hidden_en_z=dim_hidden_en_z, activations_en_z=activations_en_z,
@@ -102,7 +102,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
         # self.dim_hidden=dim_hidden
         self.dim_z=dim_z
         self.dim_in=dim_in
-        self.num_class=num_class
+        self.num_classes=num_classes
         self.alpha=alpha
         self.num_labeled=num_labeled
         self._estimator_type = [GeneratorMixin._estimator_type,ClassifierMixin._estimator_type]
@@ -128,7 +128,7 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
         lb_q_y = self._network.encode_y(lb_X)
         ulb_q_y = self._network.encode_y(ulb_X)
 
-        lb_y = one_hot(lb_y, self.num_class,self.device).to(self.device)
+        lb_y = one_hot(lb_y, self.num_classes,self.device).to(self.device)
 
         lb_q_z_xy = self._network.encode_z(lb_X, lb_y)
 
@@ -204,13 +204,13 @@ class SSVAE(InductiveEstimator,SemiDeepModelMixin,GeneratorMixin,ClassifierMixin
 
     def generate(self,num,z=None,x=None,y=None):
         if y is not None:
-            y = one_hot(y,self.num_class,self.device).to(self.device)
+            y = one_hot(y,self.num_classes,self.device).to(self.device)
         if x is not None and y is None:
             y=self._network.encode_y(x)
         if x is not None and y is not None and z is None:
             z = self._network.encode_z(x,y)
         z = Variable(torch.randn(num, self.dim_z).to(self.device)) if z is None else z
-        y = one_hot(Variable(torch.LongTensor([random.randrange(self.num_class) for _ in range(num)]).to(self.device)),nClass=self.num_class,device=self.device)
+        y = one_hot(Variable(torch.LongTensor([random.randrange(self.num_classes) for _ in range(num)]).to(self.device)),nClass=self.num_classes,device=self.device)
         result=self._network.decode(z,y).probs
         result = result.view(tuple([result.shape[0]]) + tuple(self.dim_in))
         return result

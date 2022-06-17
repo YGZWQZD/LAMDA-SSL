@@ -10,12 +10,6 @@ import torch.nn as nn
 from Semi_sklearn.Opitimizer.SemiOptimizer import SemiOptimizer
 class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,
-                 dim_in,
-                 num_class,
-                 noise_std=0.2,
-                 lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
-                 encoder_sizes=[1000, 500, 250, 250, 250],
-                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -49,9 +43,16 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  test_sampler=None,
                  test_batch_sampler=None,
                  parallel=None,
-                 file=None):
+                 file=None,
+                 dim_in=(28,28),
+                 num_classes=10,
+                 noise_std=0.2,
+                 lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
+                 encoder_sizes=[1000, 500, 250, 250, 250],
+                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()]
+                 ):
         network=Ladder(encoder_sizes=encoder_sizes, encoder_activations=encoder_activations,
-                  noise_std=noise_std,dim_in=dim_in,n_class=num_class,device=device) if network is None else network
+                  noise_std=noise_std,dim_in=dim_in,num_classes=num_classes,device=device) if network is None else network
         SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

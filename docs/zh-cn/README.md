@@ -751,7 +751,7 @@ Kipf等[33]提出了GCN。与SDNE使用结点的邻接向量作为结点特征�
 >> Parameter
 >> - num_features: 结点特征维度。
 >> - num_classes: 类别数量。
->> - normalize: 是否使用对称标准化.
+>> - normalize: 是否使用对称标准化。
 
 #### Semi_sklearn.Algorithm.Classifier.ICT
 > CLASS Semi_sklearn.Algorithm.Classifier.ICT(train_dataset=None,
@@ -794,9 +794,873 @@ Kipf等[33]提出了GCN。与SDNE使用结点的邻接向量作为结点特征�
                  lambda_u=None,
                  alpha=None)
 >> Parameter
->> - warmup: Node feature dimension.
->> - lambda_u: number of classes.
->> - alpha: whether to use symmetric normalization.
+>> - warmup: warmup的结束位置。例如num_it_total为100，warmup为0.4，则在前40次迭代中进行warmup。
+>> - lambda_u: 无监督损失的比例。
+>> - alpha: Mixup中Beta分布的参数。
+
+#### Semi_sklearn.Algorithm.Classifier.ImprovedGAN
+> CLASS Semi_sklearn.Algorithm.Classifier.ImprovedGAN(
+                 train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 epoch=1,
+                 network=None,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=0,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None,
+                 dim_in=(28,28),
+                 num_class=10,
+                 dim_z=500,
+                 hidden_G=[500,500],
+                 hidden_D=[1000,500,250,250,250],
+                 noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
+                 activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus()],
+                 activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 lambda_u=1.0,
+                 num_labeled=None)
+>> Parameter
+>> - dim_in: 输入数据中单个实例的维度.
+>> - num_class: 类别数量。
+>> - dim_z: 用于生成数据的隐变量的维度。
+>> - hidden_G: 作为生成器的神经网络的隐层维度，如果有多个隐层，用列表表示。
+>> - hidden_D: 作为判别器的神经网络的隐层维度，如果有多个隐层，用列表表示。
+>> - noise_level: 判别器每一层的噪声水平。
+>> - activations_G: 生成器每一层的激活函数。
+>> - activations_D: 判别器每一层的激活函数。
+>> - lambda_u: 无监督损失的权重。
+>> - num_labeled: 有标注样本的数量。
+
+#### Semi_sklearn.Algorithm.Classifier.LabelPropagation
+> CLASS Semi_sklearn.Algorithm.Classifier.LabelPropagation(kernel="rbf",
+        gamma=20,
+        n_neighbors=7,
+        max_iter=30,
+        tol=1e-3,
+        n_jobs=None,
+    )
+>> Parameter
+>> - kernel: 核函数，可输入字符串'rbf'或'knn'，或以函数形式输入。
+>> - gamma: 当核函数为rbf核时有效。
+>> - n_neighbors: 当核函数为n_neighbors核时有效。
+>> - max_iter: 最大迭代次数。
+>> - tol: 收敛的容忍度。
+>> - n_jobs: 并行的作业数量。
+
+#### Semi_sklearn.Algorithm.Classifier.LabelSpreading
+> CLASS Semi_sklearn.Algorithm.Classifier.LabelSpreading(
+        kernel="rbf",
+        gamma=10,
+        n_neighbors=7,
+        alpha=0.2,
+        max_iter=30,
+        tol=1e-3,
+        n_jobs=None,
+    )
+>> Parameter
+>> - kernel: 核函数，可输入字符串'rbf'或'knn'，或以函数形式输入。
+>> - gamma: 当核函数为rbf核时有效。
+>> - n_neighbors: 当核函数为n_neighbors核时有效。
+>> - alpha: 每一轮迭代中的标注更新的比重。
+>> - max_iter: 最大迭代次数。
+>> - tol: 收敛的容忍度。
+>> - n_jobs: 并行的作业数量。
+
+
+#### Semi_sklearn.Algorithm.Classifier.LadderNetwork
+> CLASS Semi_sklearn.Algorithm.Classifier.LadderNetwork(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 epoch=1,
+                 network=None,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=5e-4,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None,
+                 dim_in=(28,28),
+                 num_classes=10,
+                 noise_std=0.2,
+                 lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
+                 encoder_sizes=[1000, 500, 250, 250, 250],
+                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()]
+                 )
+>> Parameter
+>> - dim_in: 输入数据每一个实例的维度。
+>> - num_classes: 类别数量。
+>> - noise_std: 噪声程度。
+>> - lambda_u: LadderNetwork每一层一致性损失的比重。
+>> - encoder_sizes: 编码器每一层的维度。
+>> - encoder_activations: 编码器每一层的激活函数。
+
+#### Semi_sklearn.Algorithm.Classifier.LapSVM
+> CLASS Semi_sklearn.Algorithm.Classifier.LapSVM(
+distance_function = rbf_kernel,
+           gamma_d=0.01,
+           neighbor_mode =None,
+           n_neighbor= 5,
+           kernel_function= rbf_kernel,
+           gamma_k=0.01,
+           gamma_A= 0.03125,
+           gamma_I= 0)
+>> Parameter
+>> - distance_function: 用于构图的距离函数，当neighbor_mode为None时有效。
+>> - gamma_d: 与distance_function相关的核参数。
+>> - neighbor_mode: k近邻构图后的边权，有'connectivity'和'distance'两个选项，'connectivity'返回0-1矩阵，'distance'返回距离矩阵。
+>> - n_neighbor: k紧邻中k的值。
+>> - kernel_function: SVM对应的核函数。
+>> - gamma_k: 与kernel_function对应的gamma参数。
+>> - gamma_A: 对函数复杂度的惩罚权重。
+>> - gamma_I: 对数据分布平滑性的惩罚权重。
+
+#### Semi_sklearn.Algorithm.Classifier.MeanTeacher
+> CLASS Semi_sklearn.Algorithm.Classifier.MeanTeacher(
+train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 mu=None,
+                 parallel=None,
+                 file=None,
+                 ema_decay=None,
+                 warmup=None,
+                 lambda_u=None)
+>> Parameter
+>> - ema_decay: 指数移动平均的更新权重。
+>> - warmup: warmup的结束位置。例如num_it_total为100，warmup为0.4，则在前40次迭代中进行warmup。
+>> - lambda_u: 无监督损失的权重。
+
+#### Semi_sklearn.Algorithm.Classifier.Mixmatch
+> CLASS Semi_sklearn.Algorithm.Classifier.Mixmatch(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 warmup=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 mu=None,
+                 ema_decay=None,
+                 device='cpu',
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 T=None,
+                 num_classes=10,
+                 alpha=None
+                 )
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - T: 软标注的锐化温度。
+>> - num_classes: 类别数量。
+>> - alpha: Mixup中Beta分布的参数。
+
+#### Semi_sklearn.Algorithm.Classifier.PiModel
+> CLASS Semi_sklearn.Algorithm.Classifier.PiModel(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 ema_decay=None,
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 warmup=0.4,
+                 lambda_u=None,
+                 )
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - warmup: warmup的结束位置。例如num_it_total为100，warmup为0.4，则在前40次迭代中进行warmup。
+
+#### Semi_sklearn.Algorithm.Classifier.PseudoLabel
+> CLASS Semi_sklearn.Algorithm.Classifier.PseudoLabel(self,train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 warmup=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 ema_decay=None,
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 threshold=0.95
+                 )
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - threshold: 选择样本的自信度阈值。
+
+#### Semi_sklearn.Algorithm.Classifier.ReMixmatch
+> CLASS Semi_sklearn.Algorithm.Classifier.ReMixmatch（train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 warmup=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 mu=None,
+                 ema_decay=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 T=None,
+                 num_classes=10,
+                 alpha=None,
+                 p_target=None,
+                 lambda_s=None,
+                 lambda_rot=None,
+                 rotate_v_list=None
+                 )
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - T: 锐化温度。
+>> - num_classes: 类别数量。
+>> - alpha: Mixup中的Beta分布的参数。
+>> - p_target: 有标注数据的标注分布。
+>> - lambda_s: 基于Mixup前的数据计算的无监督损失的权重。
+>> - lambda_rot: 旋转角度分类损失的权重。
+>> - rotate_v_list: 旋转角度列表。
+
+#### Semi_sklearn.Algorithm.Classifier.ReMixmatch
+> CLASS Semi_sklearn.Algorithm.Classifier.ReMixmatch（train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 warmup=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 mu=None,
+                 ema_decay=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 T=None,
+                 num_classes=10,
+                 alpha=None,
+                 p_target=None,
+                 lambda_s=None,
+                 lambda_rot=None,
+                 rotate_v_list=None
+                 )
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - T: 锐化温度。
+>> - num_classes: 类别数量。
+>> - alpha: Mixup中的Beta分布的参数。
+>> - p_target: 有标注数据的标注分布。
+>> - lambda_s: 基于Mixup前的数据计算的无监督损失的权重。
+>> - lambda_rot: 旋转角度分类损失的权重。
+>> - rotate_v_list: 旋转角度列表。
+
+#### Semi_sklearn.Algorithm.Classifier.S3VM
+> CLASS Semi_sklearn.Algorithm.Classifier.S3VM（Cl=1.0,
+            Cu=0.001,
+            kernel=rbf_kernel,
+            degree=3,
+            gamma="scale",
+            shrinking=True,
+            probability=False,
+            tol=1e-3,
+            cache_size=200,
+            class_weight=None,
+            verbose=False,
+            max_iter=-1,
+            decision_function_shape="ovr",
+            break_ties=False,
+            random_state=None)
+>> Parameter
+>> - Cl: 有标注样本权重。
+>> - Cu: 无标注样本初始权重。
+>> - kernel: 核函数，支持字符串'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'或函数。
+>> - degree: 'poly'核对应的多项式阶数。
+>> - gamma: kernel对应的gamma参数，对于‘rbf’,‘poly’ 和‘sigmoid’有效。
+>> - coef0: 核函数的常数项。对于‘poly’和 ‘sigmoid’有用。
+>> - shrinking: 是否使用shrinking heuristic方法。
+>> - probability: 旋转角度分类损失的权重。
+>> - tol: 停止训练的容忍度大小，默认为1e-3。
+>> - cache_size: 核函数cache缓存大小。
+>> - class_weight: 类别的权重。
+>> - verbose: 是否允许冗余输出。
+>> - max_iter: 最大迭代次数。-1为无限制。
+>> - decision_function_shape: 二分类时忽视，多分类时若为'ovo'，表示1对1分类，各类别两两之间完成分类；若为'ovr'，表示1对多分类，各类别与其他所有类别完成分类。
+>> - break_ties: 发生平局时是否通过计算自信度选择类别。
+>> - random_state: 数据打乱的随机种子。
+
+#### Semi_sklearn.Algorithm.Classifier.S4L
+> CLASS Semi_sklearn.Algorithm.Classifier.S4L(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 ema_decay=None,
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 num_classes=10,
+                 p_target=None,
+                 rotate_v_list=None,
+                 labeled_usp=True,
+                 all_rot=True)
+>> Parameter
+>> - lambda_u: 无监督损失的比重。
+>> - num_classes: 类别数量。
+>> - p_target: 有标注样本的类别分布。
+>> - rotate_v_list: 旋转角度列表。
+>> - labeled_usp: 是否在计算无监督损失时使用有标注数据。
+>> - all_rot: 是否对样本进行rotate_v_list中的所有角度的旋转。
+
+#### Semi_sklearn.Algorithm.Classifier.SDNE
+> CLASS Semi_sklearn.Algorithm.Classifier.SDNE(epoch=1,
+                 eval_epoch=None,
+                 optimizer=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 weight_decay=None,
+                 network=None,
+                 parallel=None,
+                 file=None,
+                 xeqs=True,
+                 input_dim=None,
+                 num_nodes=None,
+                 hidden_layers=[250, 250],
+                 alpha=1e-2,
+                 gamma=0.9,
+                 beta=5,
+                 base_estimator=None)
+>> Parameter
+>> - xeqs: 是否将邻接矩阵作为结点的特征矩阵。
+>> - input_dim: 结点特征维度，xeqs为False时有效。
+>> - num_nodes: 图中结点数量。
+>> - hidden_layers: 编码器隐层维度。
+>> - alpha: 拉普拉斯正则的权重。
+>> - gamma: L2正则的权重。
+>> - beta: 自编码器输入与输出的一致性损失中，图中不为0的边占的权重。
+>> - base_estimator: 用编码器得到的结点特征进行分类的学习器。
+
+#### Semi_sklearn.Algorithm.Classifier.Self_training
+> CLASS Semi_sklearn.Algorithm.Classifier.Self_training(base_estimator,
+                threshold=0.75,
+                criterion="threshold",
+                k_best=10,
+                max_iter=10,
+                verbose=False)
+>> Parameter
+>> - base_estimator: Self_training算法中使用的基监督学习器。
+>> - criterion: 有'threshold'和'k_best'两种形式，前者根据阈值选择样本，后者根据排名选择样本。
+>> - threshold: criterion为'threshold'时，自训练中选择样本使用的阈值。
+>> - k_best: criterion为'k_best'时，自训练中选择自信度前k的样本。
+>> - max_iter: 迭代次数上界。
+>> - verbose: 是否允许冗余输出。
+
+#### Semi_sklearn.Algorithm.Classifier.SemiBoost
+> CLASS Semi_sklearn.Algorithm.Classifier.SemiBoost(base_estimator =SVC(),
+similarity_kernel = 'rbf',
+                        n_neighbors=4, 
+                        gamma=0.1, 
+                        max_models = 300,
+                        sample_percent = 0.01,
+                        sigma_percentile = 90,
+                        n_jobs = 1
+                        )
+>> Parameter
+>> - base_estimator: 算法中使用的基监督学习器。
+>> - similarity_kernel: 算法中使用的核函数，可选'rbf'、'knn'或函数。
+>> - n_neighbors: 核函数为'knn'时有效，表示k近邻中k的值。
+>> - n_jobs: 核函数为'knn'时有效，表示并行作业数量。
+>> - gamma: 核函数为'rbf'时有效，表示rbf核的gamma值。
+>> - max_models: 集成中做大模型数量。
+>> - sample_percent: 每次迭代采样的样本数量占剩余无标注样本的比例。
+>> - sigma_percentile: 'rbf'核中使用的比例参数。
+
+#### Semi_sklearn.Algorithm.Classifier.SSGMM
+> CLASS Semi_sklearn.Algorithm.Classifier.SSGMM(num_classes, tolerance=1e-8, max_iterations=300)
+>> Parameter
+>> - num_classes: 类别数量。
+>> - tolerance: 迭代阶数的容忍度。
+>> - max_iterations: 最大迭代次数。
+
+#### Semi_sklearn.Algorithm.Classifier.SSVAE
+> CLASS Semi_sklearn.Algorithm.Classifier.SSVAE(
+                 alpha,
+                 dim_in,
+                 num_classes=10,
+                 dim_z=50,
+                 dim_hidden_de=[ 500,500],
+                 dim_hidden_en_y=[ 500,500], dim_hidden_en_z=[ 500,500],
+                 activations_de=[nn.Softplus(), nn.Softplus()],
+                 activations_en_y=[nn.Softplus(), nn.Softplus()],
+                 activations_en_z=[nn.Softplus(), nn.Softplus()],
+                 num_labeled=None,
+                 train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 epoch=1,
+                 network=None,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=0,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None)
+>> Parameter
+>> - alpha: 分类损失的权重。
+>> - dim_in: 输入样本的维度。
+>> - num_classes: 类别数量。
+>> - dim_z: 隐变量z的维度。
+>> - dim_hidden_de: 解码器隐层维度。
+>> - dim_hidden_en_y: 对于y的编码器的隐层维度。
+>> - dim_hidden_en_z: 对于z的编码器的隐层维度。
+>> - activations_de: 解码器的激活函数。
+>> - activations_en_y: 对于y的编码器的激活函数。
+>> - activations_en_z: 对于z的编码器的激活函数。
+>> - num_labeled: 有标注样本的数量。
+
+#### Semi_sklearn.Algorithm.Classifier.TemporalEnsembling
+> CLASS Semi_sklearn.Algorithm.Classifier.TemporalEnsembling(valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 mu=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 ema_decay=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 warmup=None,
+                 ema_weight=None,
+                 num_classes=None,
+                 num_samples=None
+                 )
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - warmup: warmup的结束位置。例如num_it_total为100，warmup为0.4，则在前40次迭代中进行warmup。
+>> - ema_weight: 指数移动平滑伪标记的更新权重。
+>> - num_classes: 类别数量。
+>> - num_samples: 训练过程中使用的无标注数据数量。
+
+#### Semi_sklearn.Algorithm.Classifier.TriTraining
+> CLASS Semi_sklearn.Algorithm.Classifier.TriTraining(base_estimator,base_estimator_2=None,base_estimator_3=None)
+>> Parameter
+>> - base_estimator: TriTraining中的第一个基学习器。
+>> - base_estimator_2: TriTraining中的第二个基学习器。
+>> - base_estimator_3: TriTraining中的第三个基学习器。
+
+
+#### Semi_sklearn.Algorithm.Classifier.UDA
+> CLASS Semi_sklearn.Algorithm.Classifier.UDA(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 evaluation=None,
+                 ema_decay=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 threshold=0.95,
+                 num_classes=None,
+                 tsa_schedule=None,
+                 T=0.4)
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - threshold: 选择样本的自信度阈值。
+>> - num_classes: 类别数量。
+>> - tsa_schedule: 阈值调整策略，可选'linear'、'exp'或'log'。
+>> - T: 软标注的锐化温度。
+
+#### Semi_sklearn.Algorithm.Classifier.VAT
+> CLASS Semi_sklearn.Algorithm.Classifier.VAT(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 mu=None,
+                 ema_decay=None,
+                 device='cpu',
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 num_classes=None,
+                 tsa_schedule=None,
+                 eps=6,
+                 warmup=None,
+                 it_vat=1,
+                 xi=1e-6,
+                 lambda_entmin=0.06)
+>> Parameter
+>> - lambda_u: 无监督损失的权重。
+>> - num_classes: 类别数量。
+>> - tsa_schedule: 阈值调整策略，可选'linear'、'exp'或'log'。
+>> - eps: 噪声程度。
+>> - warmup: warmup的结束位置。例如num_it_total为100，warmup为0.4，则在前40次迭代中进行warmup。
+>> - it_vat: 幂迭代的迭代次数。
+>> - xi: 初始化扰动变量r时使用的比例参数，$r=\xi d$，d是随机单位向量 。
+>> - lambda_entmin: 熵最小化损失的权重。
+
+### Semi_sklearn.Algorithm.Regressor
+
+#### Semi_sklearn.Algorithm.Regressor.CoReg
+> CLASS Semi_sklearn.Algorithm.Regressor.CoReg(k1=3, k2=3, p1=2, p2=5, max_iters=100, pool_size=100)
+>> Parameter
+>> - k1: 第一个基学习器中k近邻的k值。
+>> - k2: 第二个基学习器中k近邻的k值。
+>> - p1: 第一个基学习器中计算距离的阶数。
+>> - p2: 第二个基学习器中计算距离的阶数。
+>> - max_iters: 最大迭代次数。
+>> - pool_size: 缓冲池大小。
+
+### Semi_sklearn.Algorithm
+#### Semi_sklearn.Algorithm.Cluster.Constrained_k_means
+> CLASS Semi_sklearn.Algorithm.Cluster.Constrained_k_means(k, tolerance=1e-7, max_iterations=300)
+>> Parameter
+>> - k: k-means聚类算法的k值。
+>> - tolerance: 迭代结束的容忍度。
+>> - max_iterations: 最大迭代次数。
+
+#### Semi_sklearn.Algorithm.Cluster.Constrained_Seed_k_means
+> CLASS Semi_sklearn.Algorithm.Cluster.Constrained_Seed_k_means(k, tolerance=0.00001, max_iterations=300)
+>> Parameter
+>> - k: k-means聚类算法的k值。
+>> - tolerance: 迭代结束的容忍度。
+>> - max_iterations: 最大迭代次数。
 
 ## Base
 

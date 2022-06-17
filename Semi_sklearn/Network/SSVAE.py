@@ -49,7 +49,7 @@ class SSVAE(nn.Module):
         q(y|x) = Cat(y|pi_phi(x))
         q(z|x,y) = Normal(z|mu_phi(x,y), diag(sigma2_phi(x)))
     """
-    def __init__(self, dim_in,num_class,dim_z,dim_hidden_de=[500,500],
+    def __init__(self, dim_in,num_classes,dim_z,dim_hidden_de=[500,500],
                  dim_hidden_en_y=[500,500],dim_hidden_en_z=[500,500],
                  activations_de=[nn.Softplus(),nn.Softplus()],
                  activations_en_y=[nn.Softplus(),nn.Softplus()],
@@ -67,7 +67,7 @@ class SSVAE(nn.Module):
         # p model -- SSL paper generative semi supervised model M2
         # --------------------
 
-        self.p_y = DT.OneHotCategorical(probs=1 / num_class * torch.ones(1,num_class, device=device))
+        self.p_y = DT.OneHotCategorical(probs=1 / num_classes * torch.ones(1,num_classes, device=device))
         self.p_z = DT.Normal(torch.tensor(0., device=device), torch.tensor(1., device=device))
 
         # parametrized data likelihood p(x|y,z)
@@ -76,7 +76,7 @@ class SSVAE(nn.Module):
         self.decoder = nn.Sequential()
         for _ in range(num_hidden):
             if _==0:
-                in_dim=dim_z + num_class
+                in_dim=dim_z + num_classes
             else:
                 in_dim=dim_hidden_de[_-1]
             out_dim=dim_hidden_de[_]
@@ -118,7 +118,7 @@ class SSVAE(nn.Module):
             self.encoder_y.add_module(name=name,module=activations_en_y[_])
         name = "Linear_" + str(num_hidden)
         in_dim = dim_hidden_en_y[num_hidden- 1]
-        out_dim=num_class
+        out_dim=num_classes
         self.encoder_y.add_module(name=name, module=nn.Linear(in_dim,out_dim))
         # nn.Linear(input_dim, dim_hidden),
         # nn.Softplus(),
@@ -141,7 +141,7 @@ class SSVAE(nn.Module):
         num_hidden = len(dim_hidden_en_z)
         for _ in range(num_hidden):
             if _==0:
-                in_dim=input_dim + num_class
+                in_dim=input_dim + num_classes
             else:
                 in_dim=dim_hidden_en_z[_-1]
             out_dim=dim_hidden_en_z[_]

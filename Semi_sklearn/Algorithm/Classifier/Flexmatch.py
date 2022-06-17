@@ -112,7 +112,7 @@ class Flexmatch(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def start_fit(self):
         # print(self._train_dataset.labeled_dataset.y)
         self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labeled_dataset.y).num_class
+            class_status(self._train_dataset.labeled_dataset.y).num_classes
         if self.p_target is None:
             class_counts=torch.Tensor(class_status(self._train_dataset.labeled_dataset.y).class_counts).to(self.device)
             self.p_target = (class_counts / class_counts.sum(dim=-1, keepdim=True))

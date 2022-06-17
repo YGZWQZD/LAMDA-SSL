@@ -63,10 +63,11 @@ class S3VM(InductiveEstimator,ClassifierMixin):
         self.rev_class_dict=None
 
     def fit(self,X,y,unlabeled_X):
+        Cu=self.Cu
         L=len(X)
         N = len(X) + len(unlabeled_X)
         sample_weight = np.ones(N)
-        sample_weight[len(X):] = 1.0*self.Cu/self.Cl
+        sample_weight[len(X):] = 1.0*Cu/self.Cl
         classes, y_indices = np.unique(y, return_inverse=True)
         # for i in range(len(y)):
         #     if y[i]==0:
@@ -94,7 +95,7 @@ class S3VM(InductiveEstimator,ClassifierMixin):
         _y = np.hstack([y, unlabeled_y])
 
 
-        while self.Cu < self.Cl:
+        while Cu < self.Cl:
             # print(self.Cu)
             self.clf.fit(_X, _y, sample_weight=sample_weight)
             while True:
@@ -115,8 +116,8 @@ class S3VM(InductiveEstimator,ClassifierMixin):
                     self.clf.fit(_X, _y, sample_weight=sample_weight)
                 else:
                     break
-            self.Cu = min(2*self.Cu, self.Cl)
-            sample_weight[len(X):] = 1.0*self.Cu/self.Cl
+            Cu = min(2*Cu, self.Cl)
+            sample_weight[len(X):] = 1.0 * Cu/self.Cl
         self.unlabeled_X = unlabeled_X
         self.unlabeled_y = unlabeled_y
         return self

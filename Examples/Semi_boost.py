@@ -1,4 +1,4 @@
-from Semi_sklearn.Algorithm.Classifier.SemiBoost import SemiBoostClassifier
+from Semi_sklearn.Algorithm.Classifier.SemiBoost import SemiBoost
 from Semi_sklearn.Evaluation.Classification.Accuracy import Accuracy
 from Semi_sklearn.Dataset.Table.BreastCancer import BreastCancer
 from Semi_sklearn.Evaluation.Classification.Recall import Recall
@@ -20,7 +20,7 @@ test_y=dataset.test_y
 # print(breast_cancer.target)
 from sklearn.svm import SVC
 SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
-model=SemiBoostClassifier(sample_percent=0.01,gamma=0.001)
+model=SemiBoost(sample_percent=0.01,gamma=0.001)
 # print(labeled_X.shape)
 # print(unlabeled_X.shape)
 

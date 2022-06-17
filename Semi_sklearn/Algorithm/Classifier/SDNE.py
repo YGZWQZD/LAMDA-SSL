@@ -11,14 +11,6 @@ from sklearn.linear_model import LogisticRegression
 class SDNE(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,
                  epoch=1,
-                 input_dim=None,
-                 num_nodes=None,
-                 hidden_layers=[250,250],
-                 alpha=1e-2,
-                 beta=5,
-                 gamma=0.9,
-                 base_estimator=None,
-                 xeqs=True,
                  eval_epoch=None,
                  optimizer=None,
                  scheduler=None,
@@ -27,7 +19,15 @@ class SDNE(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  weight_decay=None,
                  network=None,
                  parallel=None,
-                 file=None
+                 file=None,
+                 xeqs=True,
+                 input_dim=None,
+                 num_nodes=None,
+                 hidden_layers=[250, 250],
+                 alpha=1e-2,
+                 beta=5,
+                 gamma=0.9,
+                 base_estimator=None
                  ):
         if network is not None:
             self.network=network

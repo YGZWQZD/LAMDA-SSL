@@ -1,12 +1,14 @@
 from Semi_sklearn.Base.SemiDeepModelMixin import SemiDeepModelMixin
-
+from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
+from Semi_sklearn.utils import Bn_Controller
 from sklearn.base import ClassifierMixin
 from Semi_sklearn.utils import cross_entropy,consistency_loss
 import numpy as np
+import torch
+import copy
 
-from Semi_sklearn.Algorithm.MeanTeacher import MeanTeacher
 
-class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
+class MeanTeacher(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -50,14 +52,12 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                  ema_decay=None,
                  weight_decay=None
                  ):
-        MeanTeacher.__init__(self,train_dataset=train_dataset,
+        SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
-
                                     train_dataloader=train_dataloader,
                                     valid_dataloader=valid_dataloader,
                                     test_dataloader=test_dataloader,
-
                                     augmentation=augmentation,
                                     network=network,
                                     train_sampler=train_sampler,
@@ -77,10 +77,8 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                                     epoch=epoch,
                                     num_it_epoch=num_it_epoch,
                                     num_it_total=num_it_total,
-                                    warmup=warmup,
                                     eval_epoch=eval_epoch,
                                     eval_it=eval_it,
-                                    lambda_u=lambda_u,
                                     mu=mu,
                                     weight_decay=weight_decay,
                                     ema_decay=ema_decay,
@@ -89,10 +87,36 @@ class MeanTeacherClassifier(MeanTeacher,ClassifierMixin):
                                     device=device,
                                     evaluation=evaluation,
                                     parallel=parallel,
-                                    file=None,
+                                    file=file
                                     )
+        self.ema_decay=ema_decay
+        self.lambda_u=lambda_u
+        self.weight_decay=weight_decay
+        self.warmup=warmup
+        self.bn_controller=Bn_Controller()
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def init_transform(self):
+        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
+        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=1,y=0)
+
+    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
+        lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
+        lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
+        ulb_X_1,ulb_X_2=ulb_X[0],ulb_X[1]
+        logits_x_lb = self._network(lb_X)
+        self.bn_controller.freeze_bn(self._network)
+        logits_x_ulb_2 = self._network(ulb_X_2)
+        self.bn_controller.unfreeze_bn(self._network)
+        if self.ema is not None:
+            self.ema.apply_shadow()
+        with torch.no_grad():
+            logits_x_ulb_1 = self._network(ulb_X_1)
+        if self.ema is not None:
+            self.ema.restore()
+        return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result

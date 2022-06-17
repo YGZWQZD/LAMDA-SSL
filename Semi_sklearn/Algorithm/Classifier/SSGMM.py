@@ -17,8 +17,8 @@ def normfun(x, mu, sigma):
     return pdf
 
 class SSGMM(InductiveEstimator,ClassifierMixin):
-    def __init__(self,n_class, tolerance=1e-8, max_iterations=300):
-        self.n_class=n_class
+    def __init__(self,num_classes, tolerance=1e-8, max_iterations=300):
+        self.num_classes=num_classes
         self.tolerance=tolerance
         self.max_iterations=max_iterations
         self._estimator_type = ClassifierMixin._estimator_type
@@ -30,7 +30,7 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         m=L+U
         labele_set={}
 
-        for _ in range(self.n_class):
+        for _ in range(self.num_classes):
             labele_set[_]=set()
         for _ in range(L):
             labele_set[y[_]].add(_)
@@ -55,12 +55,12 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
 
         # self.mu=np.array(self.mu)
         # self.alpha=np.array(self.alpha)
-        self.gamma=np.empty((U,self.n_class))
-        self.alpha = np.random.rand(self.n_class)
+        self.gamma=np.empty((U,self.num_classes))
+        self.alpha = np.random.rand(self.num_classes)
         self.alpha = self.alpha / self.alpha.sum()
-        self.mu = np.random.rand(self.n_class, X.shape[1])
-        self.sigma = np.empty((self.n_class, X.shape[1], X.shape[1]))
-        for i in range(self.n_class):
+        self.mu = np.random.rand(self.num_classes, X.shape[1])
+        self.sigma = np.empty((self.num_classes, X.shape[1], X.shape[1]))
+        for i in range(self.num_classes):
             self.sigma[i] = np.eye(X.shape[1])
 
         for _ in range(self.max_iterations):
@@ -70,15 +70,15 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
 
             for j in range(U):
                 _sum=0
-                for i in range(self.n_class):
+                for i in range(self.num_classes):
                     _sum+=self.alpha[i]*normfun(unlabeled_X[j],self.mu[i],self.sigma[i])
-                for i in range(self.n_class):
+                for i in range(self.num_classes):
                     self.gamma[j][i]=self.alpha[i]*normfun(unlabeled_X[j],self.mu[i],self.sigma[i])/_sum
                     # print(self.gamma[j][i])
 
 
             # M step
-            for i in range(self.n_class):
+            for i in range(self.num_classes):
                 _sum_mu=0
                 _sum_sigma=np.zeros((X.shape[1],X.shape[1]))
                 _norm=0
@@ -107,7 +107,7 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
                 self.sigma[i]=_sum_sigma/_norm
 
             isOptimal = True
-            for i in range(self.n_class):
+            for i in range(self.num_classes):
                 if abs((self.alpha[i] - pre[i])/pre[i])>self.tolerance:
                     isOptimal=False
 
@@ -117,12 +117,12 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         return self
 
     def predict_proba(self,X):
-        proba=np.empty((len(X),self.n_class))
+        proba=np.empty((len(X),self.num_classes))
         for i in range(len(X)):
             _sum=0
-            for j in range(self.n_class):
+            for j in range(self.num_classes):
                 _sum+=normfun(X[i],self.mu[j],self.sigma[j])
-            for j in range(self.n_class):
+            for j in range(self.num_classes):
                 proba[i][j]=normfun(X[i],self.mu[j],self.sigma[j])/_sum
         return proba
 

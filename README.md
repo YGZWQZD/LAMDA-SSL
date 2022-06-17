@@ -204,19 +204,3 @@ Semi-sklearn is An useful and efficient toolbox for semi-supervised learning.
 
 ####  ICT (√)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

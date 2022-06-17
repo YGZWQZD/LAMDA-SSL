@@ -11,10 +11,7 @@ The overall design idea of Semi-sklearn is shown in the figure. Semi-sklearn ref
 <img width="500px"  src="./Imgs/Base.png" >
 </div>
 
-
-
 Learners in Semi-sklearn indirectly inherits Estimator in sklearn by inheriting the semi-supervised predictor class SemiEstimator. Data used for fit() method in sklearn usually includes samples and labels.However, in semi-supervised learning, labeled samples, labels and unlabeled samples are used in the training process of the model, so Estimator's fit() method is inconvenient directly used in semi-supervised learning algorithms. Although sklearn also implements two types of semi-supervised learning algorithms, self-training methods and graph-based methods, which also inherit the Estimator class, in order to use the interface of the fit() method, sklearn combines labeled samples and unlabeled data samples as samples input of fit() method, mark the labels corresponding to the unlabeled samples as -1 in labels input of fit() method. Although this processing method can be adapted to the Estimator interface, it also has limitations, especially in some binary classification scenario using -1 to indicate negative labels of labeled samples, which will conflict with unlabeled samples. Therefore, it is necessary to re-establish a new class SemiEstimator on the basis of Estimator for semi-supervised learning. There are three parts in the input of SemiEstimator's fit() method: labeled samples, labels and unlabeled samples, which better adapts the application scenario of semi-supervised learning. It doesn't require users combining data by themselves, and avoids the conflict between marks of unlabeled samples and labels of negative samples in binary classification. Compared with Estimator it's more convenient.
-
 
 Semi-supervised learning is generally divided into inductive learning and transductive learning. The difference is whether the samples to be predicted is directly used as the unlabeled samples in the training process. Semi-sklearn uses two classes InductiveEstimator and TransductiveEstimator, which correspond to two types of semi-supervised learning methods: inductive learning and transductive learning respectively. InductiveEstimator and TransductiveEstimator both inherit SemiEstimator.
 
@@ -22,12 +19,7 @@ Semi-supervised learning is generally divided into inductive learning and transd
 <img width="500px"  src="./Imgs/LearningPattern.png" > 
 </div>
 
-
-
-
 In order to enable estimators to have corresponding functions for different tasks, sklearn has developed components (Mixin) corresponding to the scene for different usage scenarios of estimators. Estimators in sklearn often inherit both Estimator and corresponding components, so that they have the most basic fitting and prediction capabilities and also have the function of processing tasks corresponding to specific components. The key components include ClassifierMixin for classification tasks, RegressorMixin for regression tasks, ClusterMixin for clustering tasks, and TransformerMixin for data transformation, which are also used in Semi-sklearn.
-
-
 
 In addition, different from sklearn framework commonly used in classical machine learning, deep learning often uses pytorch framework. There are lots of dependencies between the components of pytorch such as Dataset coupling with Dataloader, Optimizer coupling with Scheduler, Sampler coupling with BatchSampler, etc. In pytorch, there is no simple logic and interfaces like sklearn which causes great difficulty in integrating both classical machine learning methods and deep learning methods into a same toolkit. In order to solve this problem Semi-sklearn uses DeepModelMixin component to enable deep semi-supervised models developed based on pytorch to have the same interface and usage as classical machine learning methods. Deep semi-supervised learning algorithms in Semi-sklearn all inherit this component. DeepModelMixin decouples each module of pytorch, which is convenient for users to independently replace data loader, network structure, optimizer and other modules in deep learning without considering the impact of replacement on other modules. Deep semi-supervised learning algorithms can be called as easily as classical semi-supervised learning algorithms in Semi-sklearn.
 
@@ -308,11 +300,6 @@ Set the optimizer in deep learning, here the SGD optimizer is used.
 from Semi_sklearn.Opitimizer.SGD import SGD
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 ```
-
-```bash
-echo "hello"
-```
-
 Set the scheduler in deep learning to adjust the learning rate during training.
 
 ```python

@@ -40,8 +40,6 @@ test_y=getattr(dataset.test_dataset,'y')
 train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
-
-
 valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
 
 test_dataset=UnlabeledDataset(transform=dataset.test_transform)
@@ -73,7 +71,6 @@ augmentation={
     'strongly_augmentation':strongly_augmentation
 }
 
-
 # network
 # network=CifarResNeXt(cardinality=4,depth=28,base_width=4,num_classes=10)
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
@@ -98,7 +95,7 @@ evaluation={
 
 # parallel
 from Semi_sklearn.Distributed.DataParallel import DataParallel
-parallel=DataParallel(device_ids=['cpu','cuda:0'],output_device='cpu')
+parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
 
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
                train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
@@ -108,7 +105,6 @@ model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_data
                T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
-
 
 
 # from sklearn.model_selection import RandomizedSearchCV

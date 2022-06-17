@@ -14,14 +14,6 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from Semi_sklearn.utils import Bn_Controller
 
-# def fix_bn(m,train=False):
-#     classname = m.__class__.__name__
-#     if classname.find('BatchNorm') != -1:
-#         if train:
-#             m.train()
-#         else:
-#             m.eval()
-
 class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def __init__(self,train_dataset=None,
                  valid_dataset=None,
@@ -66,8 +58,7 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  warmup=None,
                  it_vat=1,
                  xi=1e-6,
-                 lambda_entmin=0.06
-                 ):
+                 lambda_entmin=0.06):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
@@ -121,7 +112,7 @@ class VAT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labeled_dataset.y).num_class
+            class_status(self._train_dataset.labeled_dataset.y).num_classes
         self._network.zero_grad()
         self._network.train()
 

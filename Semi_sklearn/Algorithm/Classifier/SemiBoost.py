@@ -9,16 +9,16 @@ from sklearn.metrics.pairwise import rbf_kernel
 from Semi_sklearn.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 
-class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
+class SemiBoost(InductiveEstimator,ClassifierMixin):
 
-    def __init__(self, base_model =SVC(),
+    def __init__(self, base_estimator =SVC(),
                         n_neighbors=4, n_jobs = 1,
                         max_models = 300,
                         sample_percent = 0.01,
                         sigma_percentile = 90,
                         similarity_kernel = 'rbf',gamma=0.1):
 
-        self.BaseModel = base_model
+        self.BaseModel = base_estimator
         self.n_neighbors=n_neighbors
         self.n_jobs=n_jobs
         self.max_models=max_models
@@ -80,7 +80,6 @@ class SemiBoostClassifier(InductiveEstimator,ClassifierMixin):
             # print(sigma_2)
             self.S = np.power(self.S, sigma_2)
             # Matrix to sparse
-            # 压缩
             self.S = sparse.csr_matrix(self.S)
 
 

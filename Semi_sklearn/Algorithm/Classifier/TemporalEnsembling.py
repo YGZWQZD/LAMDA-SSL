@@ -109,7 +109,7 @@ class TemporalEnsembling(InductiveEstimator,SemiDeepModelMixin):
 
     def start_fit(self):
         n_classes = self.num_classes if self.num_classes is not None else \
-                        class_status(self._train_dataset.labeled_dataset.y).num_class
+                        class_status(self._train_dataset.labeled_dataset.y).num_classes
 
         n_samples = self.num_samples if self.num_samples is not None else \
                         self._train_dataset.unlabeled_dataset.__len__()

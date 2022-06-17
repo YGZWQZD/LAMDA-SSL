@@ -8,7 +8,7 @@ class Self_training(InductiveEstimator,ClassifierMixin):
                 criterion="threshold",
                 k_best=10,
                 max_iter=10,
-                verbose=False,):
+                verbose=False):
         self.base_estimator=base_estimator
         self.threshold=threshold
         self.criterion=criterion

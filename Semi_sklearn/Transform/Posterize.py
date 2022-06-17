@@ -13,7 +13,7 @@ class Posterize(Transformer):
         self.magnitude=magnitude
         self.magnitudes=self.max_v - (torch.arange(self.num_bins) / ((self.num_bins - 1) / self.min_v)).round().int()
         self.v=self.magnitudes[self.magnitude-1].item()if v is None else v
-        self.v = max(1, self.v)
+        self.v = int(max(1, self.v))
 
 
     def transform(self,X):

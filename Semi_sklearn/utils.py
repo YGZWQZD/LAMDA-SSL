@@ -1,4 +1,4 @@
-# pylint: disable=unused-argument
+# pylint: disable=Unused-argument
 import copy
 from copy import deepcopy
 from distutils.version import LooseVersion
@@ -390,7 +390,7 @@ class class_status:
         return y_indices
 
     @property
-    def num_class(self):
+    def num_classes(self):
         classes, y_indices = np.unique(self.y_arr, return_inverse=True)
         num_class = classes.shape[0]
         return num_class

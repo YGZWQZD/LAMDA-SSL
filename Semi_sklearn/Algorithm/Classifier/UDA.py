@@ -40,20 +40,19 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
+                 weight_decay=None,
                  scheduler=None,
                  device='cpu',
+                 mu=None,
                  evaluation=None,
                  parallel=None,
                  file=None,
                  lambda_u=None,
-                 mu=None,
                  ema_decay=None,
                  threshold=0.95,
                  num_classes=None,
                  tsa_schedule=None,
-                 weight_decay=None,
                  T=0.4,
-
                  ):
         SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
@@ -125,7 +124,7 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labeled_dataset.y).num_class
+            class_status(self._train_dataset.labeled_dataset.y).num_classes
         self._network.zero_grad()
         self._network.train()
 

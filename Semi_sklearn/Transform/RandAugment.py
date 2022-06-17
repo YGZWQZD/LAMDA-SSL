@@ -40,6 +40,7 @@ class RandAugment(Transformer):
         self.n = n
         self.m = m
         self.num_bins=num_bins
+        self.random=random
         self.augment_list = [(AutoContrast, None, None),
             (Brightness, 0.0, 0.9),
             (Color, 0.0, 0.9),
@@ -62,7 +63,7 @@ class RandAugment(Transformer):
             if min_v is None and max_v is None:
                 aug=op()
             else:
-                if random:
+                if self.random:
                     m=random.choice(range(1,self.m+1))
                 else:
                     m=self.m

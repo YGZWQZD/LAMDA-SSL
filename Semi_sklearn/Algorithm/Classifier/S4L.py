@@ -49,15 +49,15 @@ class S4L(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                  eval_epoch=None,
                  eval_it=None,
                  optimizer=None,
+                 weight_decay=None,
                  scheduler=None,
                  device='cpu',
+                 mu=None,
+                 ema_decay=None,
                  evaluation=None,
                  parallel=None,
                  file=None,
                  lambda_u=None,
-                 mu=None,
-                 ema_decay=None,
-                 weight_decay=None,
                  num_classes=10,
                  p_target=None,
                  rotate_v_list=None,
@@ -118,7 +118,7 @@ class S4L(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
     def start_fit(self):
         self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labeled_dataset.y).num_class
+            class_status(self._train_dataset.labeled_dataset.y).num_classes
         self._network.zero_grad()
         self._network.train()
 
