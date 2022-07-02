@@ -68,14 +68,15 @@ class NetworkBlock(nn.Module):
 
 
 class WideResNet(nn.Module):
-    def __init__(self,  num_classes, depth=28, widen_factor=2, drop_rate=0.0):
+    def __init__(self,  num_classes=10, depth=28, widen_factor=2, drop_rate=0.0, channel_in=3):
         super(WideResNet, self).__init__()
+        self.channels=channel_in
         channels = [16, 16 * widen_factor, 32 * widen_factor, 64 * widen_factor]
         assert ((depth - 4) % 6 == 0)
         n = (depth - 4) / 6
         block = BasicBlock
         # 1st conv before any network block
-        self.conv1 = nn.Conv2d(3, channels[0], kernel_size=3, stride=1,
+        self.conv1 = nn.Conv2d(channel_in, channels[0], kernel_size=3, stride=1,
                                padding=1, bias=True)
         # 1st block
         self.block1 = NetworkBlock(
@@ -109,6 +110,8 @@ class WideResNet(nn.Module):
                 m.bias.data.zero_()
 
     def forward(self, x):
+        if len(x.shape)==3  and self.channels==1:
+            x=torch.unsqueeze(x,dim=1)
         out = self.conv1(x)
         out = self.block1(out)
         out = self.block2(out)
@@ -119,8 +122,6 @@ class WideResNet(nn.Module):
         if isinstance(self.fc, ModuleList):
             output = []
             for c in self.fc:
-                # print(out.device)
-                # print(c.device)
                 output.append(c(out))
         else:
             output = self.fc(out)

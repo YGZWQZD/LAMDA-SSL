@@ -13,6 +13,8 @@ class ToImage(Transformer):
     def transform(self,X):
         if isinstance(X,torch.Tensor):
             X=X.numpy()
+        if len(X.shape)==3 and X.shape[0]<=3:
+            X=X.transpose((1,2,0))
         if isinstance(X, np.ndarray):
             X = PIL.Image.fromarray(X)
         return X

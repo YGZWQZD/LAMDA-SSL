@@ -15,7 +15,7 @@ class Tokenizer(Transformer):
             corresponding library.
         language: Default en
     '''
-    def __init__(self,tokenizer,language='en'):
+    def __init__(self,tokenizer='basic_english',language='en'):
         super(Tokenizer, self).__init__()
         self.tokenizer=tokenizer
         self.language=language

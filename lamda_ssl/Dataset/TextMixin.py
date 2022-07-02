@@ -20,7 +20,7 @@ class TextMixin:
         self.specials=[self.unk_token,self.pad_token]
         self.default_index=default_index
 
-    def init_transforms(self):
+    def init_default_transforms(self):
 
         if self.vectors is not None:
             self.vocab=Vocab(vectors=self.vectors.vec)

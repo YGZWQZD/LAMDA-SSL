@@ -228,8 +228,6 @@ def to_image(X):
         return X
     else:
         X=to_numpy(X)
-        # print(type(X))
-        # print(X.shape)
         X=Image.fromarray(X)
         return X
 

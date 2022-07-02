@@ -1,8 +1,8 @@
 import torch
-from lamda_ssl.Opitimizer.SemiOptimizer import SemiOptimizer
+from lamda_ssl.Opitimizer.BaseOptimizer import BaseOptimizer
 from torch.optim import  sgd
 
-class SGD(SemiOptimizer):
+class SGD(BaseOptimizer):
     def __init__(self, lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False):
         self.lr=lr
         self.momentum=momentum

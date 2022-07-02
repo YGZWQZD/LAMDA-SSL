@@ -2,7 +2,7 @@ from lamda_ssl.Transform.Transformer import Transformer
 import numpy as np
 
 class Mixup(Transformer):
-    def __init__(self, alpha):
+    def __init__(self, alpha=0.5):
         super().__init__()
         self.alpha = alpha
         self.lam=None

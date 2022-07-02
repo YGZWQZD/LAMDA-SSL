@@ -1,5 +1,5 @@
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
-from lamda_ssl.Base.SemiDeepModelMixin import SemiDeepModelMixin
+from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 
 from lamda_ssl.utils import cross_entropy
@@ -10,48 +10,52 @@ from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
 import torch.nn as nn
 import torch
 from lamda_ssl.Transform.Mixup import Mixup
+import lamda_ssl.Config.ICT as config
+from lamda_ssl.utils import class_status
 
-class ICT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
-    def __init__(self,train_dataset=None,
-                 valid_dataset=None,
-                 test_dataset=None,
-                 train_dataloader=None,
-                 valid_dataloader=None,
-                 test_dataloader=None,
-                 augmentation=None,
-                 network=None,
-                 train_sampler=None,
-                 train_batch_sampler=None,
-                 valid_sampler=None,
-                 valid_batch_sampler=None,
-                 test_sampler=None,
-                 test_batch_sampler=None,
-                 labeled_dataset=None,
-                 unlabeled_dataset=None,
-                 labeled_dataloader=None,
-                 unlabeled_dataloader=None,
-                 labeled_sampler=None,
-                 unlabeled_sampler=None,
-                 labeled_batch_sampler=None,
-                 unlabeled_batch_sampler=None,
-                 eval_epoch=None,
-                 eval_it=None,
-                 optimizer=None,
-                 weight_decay=None,
-                 scheduler=None,
-                 device='cpu',
-                 evaluation=None,
-                 epoch=1,
-                 num_it_epoch=None,
-                 num_it_total=None,
-                 mu=None,
-                 ema_decay=None,
-                 parallel=None,
-                 file=None,
-                 warmup=None,
-                 lambda_u=None,
-                 alpha=None):
-        SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
+class ICT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
+    def __init__(self,
+                 lambda_u=config.lambda_u,
+                 alpha=config.alpha,
+                 warmup=config.warmup,
+                 mu=config.mu,
+                 weight_decay=config.weight_decay,
+                 ema_decay=config.ema_decay,
+                 epoch=config.epoch,
+                 num_it_epoch=config.num_it_epoch,
+                 num_it_total=config.num_it_total,
+                 eval_epoch=config.eval_epoch,
+                 eval_it=config.eval_it,
+                 device=config.device,
+                 train_dataset=config.train_dataset,
+                 labeled_dataset=config.labeled_dataset,
+                 unlabeled_dataset=config.unlabeled_dataset,
+                 valid_dataset=config.valid_dataset,
+                 test_dataset=config.test_dataset,
+                 train_dataloader=config.train_dataloader,
+                 labeled_dataloader=config.labeled_dataloader,
+                 unlabeled_dataloader=config.unlabeled_dataloader,
+                 valid_dataloader=config.valid_dataloader,
+                 test_dataloader=config.test_dataloader,
+                 train_sampler=config.train_sampler,
+                 train_batch_sampler=config.train_batch_sampler,
+                 unlabeled_sampler=config.unlabeled_sampler,
+                 labeled_batch_sampler=config.labeled_batch_sampler,
+                 unlabeled_batch_sampler=config.unlabeled_batch_sampler,
+                 valid_sampler=config.valid_sampler,
+                 valid_batch_sampler=config.valid_batch_sampler,
+                 test_sampler=config.test_sampler,
+                 test_batch_sampler=config.test_batch_sampler,
+                 labeled_sampler=config.labeled_sampler,
+                 augmentation=config.augmentation,
+                 network=config.network,
+                 optimizer=config.network,
+                 scheduler=config.scheduler,
+                 parallel=config.parallel,
+                 evaluation=config.evaluation,
+                 file=config.file,
+                 verbose=config.verbose):
+        DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
@@ -87,6 +91,7 @@ class ICT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     evaluation=evaluation,
                                     parallel=parallel,
                                     file=file,
+                                    verbose=verbose
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
@@ -101,7 +106,8 @@ class ICT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
 
     def start_fit(self):
-        self.it_total = 0
+        self.num_classes = self.num_classes if self.num_classes is not None else \
+            class_status(self._train_dataset.labeled_dataset.y).num_classes
         self._network.zero_grad()
         self._network.train()
 
@@ -113,7 +119,6 @@ class ICT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         index = torch.randperm(ulb_x_1.size(0)).to(self.device)
         ulb_x_2=ulb_x_1[index]
         mixup=Mixup(self.alpha)
-
         if self.ema is not None:
             self.ema.apply_shadow()
         with torch.no_grad():
@@ -138,7 +143,7 @@ class ICT(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         return loss
 
     def predict(self,X=None,valid=None):
-        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+        return DeepModelMixin.predict(self,X=X,valid=valid)
 
 
 

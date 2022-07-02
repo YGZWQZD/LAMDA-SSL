@@ -1,103 +1,124 @@
 import copy
 
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
-from lamda_ssl.Base.SemiDeepModelMixin import SemiDeepModelMixin
+from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from lamda_ssl.Network.Ladder import Ladder
 from torch.autograd import Variable
 from sklearn.base import ClassifierMixin
 import torch
 import torch.nn as nn
-from lamda_ssl.Opitimizer.SemiOptimizer import SemiOptimizer
-class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+from lamda_ssl.Opitimizer.BaseOptimizer import BaseOptimizer
+import lamda_ssl.Config.LadderNetwork as config
+from lamda_ssl.utils import class_status
+
+class Ladder_Network(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
-                 train_dataset=None,
-                 valid_dataset=None,
-                 test_dataset=None,
-                 train_dataloader=None,
-                 labeled_dataloader=None,
-                 unlabeled_dataloader=None,
-                 valid_dataloader=None,
-                 test_dataloader=None,
-                 augmentation=None,
-                 epoch=1,
-                 network=None,
-                 num_it_epoch=None,
-                 num_it_total=None,
-                 eval_epoch=None,
-                 eval_it=None,
-                 mu=None,
-                 optimizer=None,
-                 weight_decay=5e-4,
-                 ema_decay=None,
-                 scheduler=None,
-                 device=None,
-                 evaluation=None,
-                 train_sampler=None,
-                 labeled_sampler=None,
-                 unlabeled_sampler=None,
-                 train_batch_sampler=None,
-                 labeled_batch_sampler=None,
-                 unlabeled_batch_sampler=None,
-                 valid_sampler=None,
-                 valid_batch_sampler=None,
-                 test_sampler=None,
-                 test_batch_sampler=None,
-                 parallel=None,
-                 file=None,
-                 dim_in=(28,28),
-                 num_classes=10,
-                 noise_std=0.2,
-                 lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
-                 encoder_sizes=[1000, 500, 250, 250, 250],
-                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()]
+                 dim_in=config.dim_in,
+                 num_classes=config.num_classes,
+                 noise_std=config.noise_std,
+                 lambda_u=config.lambda_u,
+                 dim_encoder=config.dim_encoder,
+                 encoder_activations=config.encoder_activations,
+                 epoch=config.epoch,
+                 num_it_epoch=config.num_it_epoch,
+                 num_it_total=config.num_it_total,
+                 eval_epoch=config.eval_epoch,
+                 eval_it=config.eval_it,
+                 mu=config.mu,
+                 weight_decay=config.weight_decay,
+                 ema_decay=config.ema_decay,
+                 train_dataset=config.train_dataset,
+                 labeled_dataset=config.labeled_dataset,
+                 unlabeled_dataset=config.unlabeled_dataset,
+                 valid_dataset=config.valid_dataset,
+                 test_dataset=config.test_dataset,
+                 train_dataloader=config.train_dataloader,
+                 labeled_dataloader=config.labeled_dataloader,
+                 unlabeled_dataloader=config.unlabeled_dataloader,
+                 valid_dataloader=config.valid_dataloader,
+                 test_dataloader=config.test_dataloader,
+                 network=config.network,
+                 optimizer=config.optimizer,
+                 scheduler=config.scheduler,
+                 device=config.device,
+                 evaluation=config.evaluation,
+                 train_sampler=config.train_sampler,
+                 labeled_sampler=config.labeled_sampler,
+                 unlabeled_sampler=config.unlabeled_sampler,
+                 train_batch_sampler=config.train_batch_sampler,
+                 labeled_batch_sampler=config.train_batch_sampler,
+                 unlabeled_batch_sampler=config.unlabeled_batch_sampler,
+                 valid_sampler=config.valid_sampler,
+                 valid_batch_sampler=config.valid_batch_sampler,
+                 test_sampler=config.test_sampler,
+                 test_batch_sampler=config.test_batch_sampler,
+                 parallel=config.parallel,
+                 file=config.file,
+                 verbose=config.verbose,
                  ):
-        network=Ladder(encoder_sizes=encoder_sizes, encoder_activations=encoder_activations,
-                  noise_std=noise_std,dim_in=dim_in,num_classes=num_classes,device=device) if network is None else network
-        SemiDeepModelMixin.__init__(self, train_dataset=train_dataset,
-                                    valid_dataset=valid_dataset,
-                                    test_dataset=test_dataset,
-                                    train_dataloader=train_dataloader,
-                                    labeled_dataloader=labeled_dataloader,
-                                    unlabeled_dataloader=unlabeled_dataloader,
-                                    valid_dataloader=valid_dataloader,
-                                    test_dataloader=test_dataloader,
-                                    augmentation=augmentation,
-                                    network=network,
-                                    train_sampler=train_sampler,
-                                    labeled_sampler=labeled_sampler,
-                                    unlabeled_sampler=unlabeled_sampler,
-                                    train_batch_sampler=train_batch_sampler,
-                                    labeled_batch_sampler=labeled_batch_sampler,
-                                    unlabeled_batch_sampler=unlabeled_batch_sampler,
-                                    valid_sampler=valid_sampler,
-                                    valid_batch_sampler=valid_batch_sampler,
-                                    test_sampler=test_sampler,
-                                    test_batch_sampler=test_batch_sampler,
-                                    epoch=epoch,
-                                    num_it_epoch=num_it_epoch,
-                                    num_it_total=num_it_total,
-                                    eval_epoch=eval_epoch,
-                                    eval_it=eval_it,
-                                    mu=mu,
-                                    weight_decay=weight_decay,
-                                    ema_decay=ema_decay,
-                                    optimizer=optimizer,
-                                    scheduler=scheduler,
-                                    device=device,
-                                    evaluation=evaluation,
-                                    parallel=parallel,
-                                    file=file
-                                    )
+
+        DeepModelMixin.__init__(self, train_dataset=train_dataset,
+                                labeled_dataset=labeled_dataset,
+                                unlabeled_dataset=unlabeled_dataset,
+                                valid_dataset=valid_dataset,
+                                test_dataset=test_dataset,
+                                train_dataloader=train_dataloader,
+                                labeled_dataloader=labeled_dataloader,
+                                unlabeled_dataloader=unlabeled_dataloader,
+                                valid_dataloader=valid_dataloader,
+                                test_dataloader=test_dataloader,
+                                network=network,
+                                train_sampler=train_sampler,
+                                labeled_sampler=labeled_sampler,
+                                unlabeled_sampler=unlabeled_sampler,
+                                train_batch_sampler=train_batch_sampler,
+                                labeled_batch_sampler=labeled_batch_sampler,
+                                unlabeled_batch_sampler=unlabeled_batch_sampler,
+                                valid_sampler=valid_sampler,
+                                valid_batch_sampler=valid_batch_sampler,
+                                test_sampler=test_sampler,
+                                test_batch_sampler=test_batch_sampler,
+                                epoch=epoch,
+                                num_it_epoch=num_it_epoch,
+                                num_it_total=num_it_total,
+                                eval_epoch=eval_epoch,
+                                eval_it=eval_it,
+                                mu=mu,
+                                weight_decay=weight_decay,
+                                ema_decay=ema_decay,
+                                optimizer=optimizer,
+                                scheduler=scheduler,
+                                device=device,
+                                evaluation=evaluation,
+                                parallel=parallel,
+                                file=file,
+                                verbose=verbose)
         self.dim_in=dim_in
-        self.num_class=num_class
+        self.num_classes=num_classes
         self.noise_std = noise_std
         self.lambda_u = lambda_u
-        self.encoder_sizes = encoder_sizes
+        self.dim_encoder = dim_encoder
         self.encoder_activations = encoder_activations
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def start_fit(self):
+        self.num_classes = self.num_classes if self.num_classes is not None else \
+            class_status(self._train_dataset.labeled_dataset.y).num_classes
+        self.dim_in=self.dim_in if self.dim_in is not None else \
+            self._train_dataset.labeled_dataset.X.shape[1:]
+        if self.network is None:
+            self.network=Ladder(dim_encoder=self.dim_encoder, encoder_activations=self.encoder_activations,
+                      noise_std=self.noise_std,dim_in=self.dim_in,num_classes=self.num_classes,device=self.device)
+            self._network=copy.deepcopy(self.network)
+            self.init_model()
+            self.init_ema()
+            self.init_optimizer()
+            self.init_scheduler()
+        self._network.zero_grad()
+        self._network.train()
+
     def init_optimizer(self):
-        if isinstance(self._optimizer,SemiOptimizer):
+        if isinstance(self._optimizer,BaseOptimizer):
             self._optimizer=self._optimizer.init_optimizer(params=self._network.parameters())
 
     def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
@@ -163,10 +184,9 @@ class Ladder_Network(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
-        # X=X*1/255.
         _X=X.view(X.shape[0],-1)
         outputs = self._network(_X)
         return outputs
 
     def predict(self,X=None,valid=None):
-        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+        return DeepModelMixin.predict(self,X=X,valid=valid)

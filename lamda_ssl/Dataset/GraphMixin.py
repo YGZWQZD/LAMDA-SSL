@@ -5,7 +5,7 @@ class GraphMixin:
     def __init__(self):
         pass
 
-    def init_transforms(self):
+    def init_default_transforms(self):
         self.transforms=None
         self.target_transform=None
         self.transform=Pipeline([('NormalizeFeatures',NormalizeFeatures())

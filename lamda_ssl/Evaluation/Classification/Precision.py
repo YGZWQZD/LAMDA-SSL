@@ -6,7 +6,7 @@ class Precision(EvaluationClassification):
                 pos_label=1,
                 average="binary",
                 sample_weight=None,
-                zero_division="warn",):
+                zero_division="warn"):
         super().__init__()
         self.labels=labels
         self.pos_label=pos_label

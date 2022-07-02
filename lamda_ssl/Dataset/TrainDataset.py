@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 from .LabeledDataset import LabeledDataset
 from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
-from ..Split.Split import SemiSplit
+from ..Split.Data_Split import Data_Split
 
 class TrainDataset(Dataset):
     def __init__(self,
@@ -17,11 +17,11 @@ class TrainDataset(Dataset):
                  labeled_dataset=None,
                  unlabeled_dataset=None
                  ):
-        self.pre_transform=pre_transform
-        self.transforms=transforms
-        self.transform = transform
-        self.target_transform=target_transform
-        self.unlabeled_transform = unlabeled_transform
+        # self.pre_transform=pre_transform
+        # self.transforms=transforms
+        # self.transform = transform
+        # self.target_transform=target_transform
+        # self.unlabeled_transform = unlabeled_transform
 
         self.labeled_size=labeled_size
         self.stratified=stratified
@@ -34,9 +34,14 @@ class TrainDataset(Dataset):
         self.unlabeled_y=None
         self.len_labeled=None
         self.len_unlabeled=None
-        self.labeled_dataset=LabeledDataset(transforms=self.transforms,transform=self.unlabeled_transform,
-                                          target_transform=self.target_transform) if labeled_dataset is None else labeled_dataset
-        self.unlabeled_dataset=UnlabeledDataset(transform=self.unlabeled_transform)if unlabeled_dataset is None else unlabeled_dataset
+        self.labeled_dataset=LabeledDataset(pre_transform=pre_transform,transforms=transforms,transform=transform,
+                                          target_transform=target_transform) if labeled_dataset is None else labeled_dataset
+        self.unlabeled_dataset=UnlabeledDataset(pre_transform=pre_transform,transform=unlabeled_transform)if unlabeled_dataset is None else unlabeled_dataset
+        self.pre_transform=self.labeled_dataset.pre_transform
+        self.transforms=self.labeled_dataset.transforms
+        self.transform = self.labeled_dataset.transform
+        self.target_transform=self.labeled_dataset.target_transform
+        self.unlabeled_transform = self.unlabeled_dataset.transform
         self.data_initialized=False
 
 
@@ -49,8 +54,8 @@ class TrainDataset(Dataset):
                     unlabeled_y=None,labeled_dataset=None,unlabeled_dataset=None):
         if labeled_X is not None:
             if unlabeled_X is None and self.labeled_size is not None:
-                labeled_X,labeled_y,unlabeled_X,unlabeled_y=SemiSplit(X=labeled_X,y=labeled_y,
-                                                                labeled_size=self.labeled_size,
+                labeled_X,labeled_y,unlabeled_X,unlabeled_y=Data_Split(X=labeled_X,y=labeled_y,
+                                                                size_split=self.labeled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
                                                                 random_state=self.random_state
@@ -65,8 +70,8 @@ class TrainDataset(Dataset):
             elif self.labeled_size is not None:
                 labeled_X=getattr(labeled_dataset,'X')
                 labeled_y=getattr(labeled_dataset,'y')
-                labeled_X,labeled_y,unlabeled_X,unlabeled_y=SemiSplit(X=labeled_X,y=labeled_y,
-                                                                labeled_size=self.labeled_size,
+                labeled_X,labeled_y,unlabeled_X,unlabeled_y=Data_Split(X=labeled_X,y=labeled_y,
+                                                                size_split=self.labeled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
                                                                 random_state=self.random_state,

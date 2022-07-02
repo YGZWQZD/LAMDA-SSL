@@ -2,7 +2,7 @@ from torchtext import vocab
 from lamda_ssl.Transform.Transformer import Transformer
 import torch
 class Vectors(Transformer):
-    def __init__(self,name, cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True,
+    def __init__(self,name='840B', cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True,
                  pad_token='<pad>',unk_token='<unk>'):
         super(Vectors, self).__init__()
         self.vec=vocab.Vectors(name,cache,url,unk_init,max_vectors)
@@ -21,7 +21,7 @@ class Vectors(Transformer):
             X=list(X)
         if isinstance(X,list):
             if isinstance(X[0],str):
-                return self.vec.get_vecs_by_tokens(X,lower_case_backup=True)
+                return self.vec.get_vecs_by_tokens(X,lower_case_backup=self.lower_case_backup)
             else:
                 indices = [self.vec.vectors[idx] for idx in X]
                 return torch.stack(indices)

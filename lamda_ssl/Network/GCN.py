@@ -8,8 +8,6 @@ class GCN(torch.nn.Module):
                              normalize=normalize)
         self.conv2 = GCNConv(16, num_classes, cached=True,
                              normalize=normalize)
-        # self.conv1 = ChebConv(data.num_features, 16, K=2)
-        # self.conv2 = ChebConv(16, data.num_features, K=2)
 
     def forward(self,data):
         x, edge_index, edge_weight = data.x, data.edge_index, data.edge_attr

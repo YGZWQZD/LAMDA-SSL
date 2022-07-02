@@ -6,7 +6,7 @@ from lamda_ssl.Transform.Transformer import Transformer
 import numpy as np
 
 class Noise(Transformer):
-    def __init__(self,noise_level):
+    def __init__(self,noise_level=0.1):
         super().__init__()
         self.noise_level=noise_level
 

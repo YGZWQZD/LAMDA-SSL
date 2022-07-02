@@ -137,10 +137,12 @@ class LabeledDataset(Dataset):
         return X
 
     def apply_transform(self,X,y):
+        # print(self.pre_transform)
         if self.pre_transform is not None:
             if isinstance(self.pre_transform,(tuple,list)):
                 list_X=[]
                 for item in self.pre_transform:
+                    # print(item)
                     _X=self._transform(X,item)
                     list_X.append(_X)
                 X=list_X
@@ -148,6 +150,7 @@ class LabeledDataset(Dataset):
             elif isinstance(self.pre_transform,dict):
                 dict_X={}
                 for key, val in self.pre_transform.items():
+
                     _X=self._transform(X,val)
                     dict_X[key]=_X
                 X = dict_X

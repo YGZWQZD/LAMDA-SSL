@@ -26,8 +26,6 @@ class TFIDF_replacement(Transformer):
 
         self.idf={k: math.log((self.len_text+1)/(v+1)) for k,v in idf_counter.items()}
         self.tf={k:1.0*v/self.len_tot for k,v in tot_counter.items()}
-        print(len(self.idf))
-        print(len(self.tf))
         self.tf_idf_keys = []
         self.tf_idf_values = []
         self.tfidf={}

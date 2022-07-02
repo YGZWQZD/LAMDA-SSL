@@ -1,6 +1,6 @@
 from lamda_ssl.Transform.Transformer import Transformer
 class Pad_sequence(Transformer):
-    def __init__(self,length,pad_val=None):
+    def __init__(self,length=300,pad_val=None):
         super(Pad_sequence, self).__init__()
         self.pad_val=pad_val
         self.length=length

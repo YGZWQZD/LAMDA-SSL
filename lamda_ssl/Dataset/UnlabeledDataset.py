@@ -52,8 +52,6 @@ class UnlabeledDataset(Dataset):
         return l
 
     def add_transform(self,transform,dim=1,x=0,y=0):
-        # print('111')
-        # print(self.transform)
         if transform is None and dim == 1:
             return
         if transform is None and dim == 0 and x==0:
@@ -66,7 +64,7 @@ class UnlabeledDataset(Dataset):
             if not isinstance(self.transform, (dict, tuple, list)):
                 self.transform=[self.transform]
             self.transform[x]=self.insert(self.transform[x],y,transform)
-        # print(self.transform)
+
     def add_pre_transform(self,transform,dim=1,x=0,y=0):
         if transform is None and dim == 1:
             return
@@ -118,9 +116,11 @@ class UnlabeledDataset(Dataset):
                 X=self._transform(X,self.pre_transform)
 
         if self.transform is not None:
+
             if isinstance(self.transform, (tuple, list)):
                 list_X = []
                 for item in self.transform:
+                    # print(item)
                     _X = self._transform(X, item)
                     list_X.append(_X)
                 X = list_X

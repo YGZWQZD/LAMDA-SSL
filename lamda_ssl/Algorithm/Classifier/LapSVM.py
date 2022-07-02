@@ -7,26 +7,35 @@ from sklearn.base import ClassifierMixin
 from sklearn.metrics.pairwise import rbf_kernel
 import copy
 import inspect
-
+from torch.utils.data.dataset import Dataset
+import lamda_ssl.Config.LapSVM as config
 class LapSVM(InductiveEstimator,ClassifierMixin):
+    # Binary
     def __init__(self,
-           distance_function= rbf_kernel,
-           gamma_d=0.01,
-           neighbor_mode =None,
-           n_neighbor= 5,
-           kernel_function= rbf_kernel,
-           gamma_k=0.01,
-           gamma_A= 0.03125,
-           gamma_I= 0):
+           distance_function= config.distance_function,
+           gamma_d=config.gamma_d,
+           neighbor_mode =config.neighbor_mode,
+           t=config.t,
+           n_neighbor= config.n_neighbor,
+           kernel_function= config.kernel_function,
+           gamma_k=config.gamma_k,
+           gamma_A= config.gamma_A,
+           gamma_I= config.gamma_I,evaluation=config.evaluation,
+           verbose=config.verbose,file=config.file):
         self.distance_function=distance_function
         self.neighbor_mode=neighbor_mode
         self.n_neighbor=n_neighbor
-        # self.t=t
+        self.t=t
         self.kernel_function=kernel_function
         self.gamma_k=gamma_k
         self.gamma_d=gamma_d
         self.gamma_A=gamma_A
         self.gamma_I=gamma_I
+        self.evaluation = evaluation
+        self.verbose=verbose
+        self.file=file
+        self.y_pred=None
+        self.y_score=None
         self._estimator_type = ClassifierMixin._estimator_type
 
 
@@ -34,7 +43,6 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         classes, y_indices = np.unique(y, return_inverse=True)
         if len(classes)!=2:
             raise ValueError('TSVM can only be used in binary classification.')
-        # print(classes)
 
         self.class_dict={classes[0]:-1,classes[1]:1}
         self.rev_class_dict = {-1:classes[0] ,  1:classes[1]}
@@ -43,52 +51,45 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
             y[_]=self.class_dict[y[_]]
 
 
-        #construct graph
+        # Construct Graph
 
         self.X=np.vstack([X,unlabeled_X])
         Y=np.diag(y)
-        if self.neighbor_mode=='connectivity':
-            W = kneighbors_graph(self.X, self.n_neighbor, mode='connectivity',include_self=False)
-            W = (((W + W.T) > 0) * 1)
-            # print(W.shape)
-            # print(type(W))
-            # print(W.sum(0).shape)
-            # L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
-        elif self.neighbor_mode=='distance':
-            W = kneighbors_graph(self.X, self.n_neighbor, mode='distance',include_self=False)
-            W = W.maximum(W.T)
-            W = sparse.csr_matrix((np.exp(-W.data**2/4/self.t),W.indices,W.indptr),shape=(self.X.shape[0],self.X.shape[0]))
-            # print(W.shape)
-            # print(type(W))
-            # print(W.sum(0).shape)
-            # L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
+        if self.distance_function == 'knn':
+            if self.neighbor_mode=='connectivity':
+                W = kneighbors_graph(self.X, self.n_neighbor, mode='connectivity',include_self=False)
+                W = (((W + W.T) > 0) * 1)
+
+            elif self.neighbor_mode=='distance':
+                W = kneighbors_graph(self.X, self.n_neighbor, mode='distance',include_self=False)
+                W = W.maximum(W.T)
+                W = sparse.csr_matrix((np.exp(-W.data**2/4/self.t),W.indices,W.indptr),shape=(self.X.shape[0],self.X.shape[0]))
+
+        elif self.distance_function =='rbf':
+            W=rbf_kernel(self.X,self.X,self.gamma_d)
+            W = sparse.csr_matrix(W)
         elif self.distance_function is not None:
             if 'gamma' in inspect.getfullargspec(self.distance_function).args:
                 W=self.distance_function(self.X,self.X,self.gamma_d)
             else:
                 W = self.distance_function(self.X, self.X)
             W=sparse.csr_matrix(W)
-            # print(W.shape)
-            # print(type(W))
-            # print(W.sum(0).shape)
-
-
         else:
             raise Exception()
 
         # Computing Graph Laplacian
-        # print(W.sum(0).shape)
         L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
-        # L=np.array(W.sum(0))[0]
-        # print(L)
-        # L=sparse.diags(L)
-        # L=L.tocsr()
-        # L=L-W
+
         # Computing K with k(i,j) = kernel(i, j)
-        if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
-            K = self.kernel_function(self.X,self.X,self.gamma_k)
+        if self.kernel_function == 'rbf':
+            K = rbf_kernel(self.X,self.X,self.gamma_k)
+        elif self.kernel_function is not None:
+            if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
+                K = self.kernel_function(self.X,self.X,self.gamma_k)
+            else:
+                K = self.kernel_function(self.X, self.X)
         else:
-            K = self.kernel_function(self.X, self.X)
+            K = rbf_kernel(self.X, self.X, self.gamma_k)
         l=X.shape[0]
         u=unlabeled_X.shape[0]
         # Creating matrix J [I (l x l), 0 (l x (l+u))]
@@ -107,18 +108,16 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         e = np.ones(l)
         q = -e
 
-        # ===== Objectives =====
+        # Objectives
         def objective_func(beta):
             return (1 / 2) * beta.dot(Q).dot(beta) + q.dot(beta)
 
         def objective_grad(beta):
             return np.squeeze(np.array(beta.T.dot(Q) + q))
 
-        # =====Constraint(1)=====
         #   0 <= beta_i <= 1 / l
         bounds = [(0, 1 / l) for _ in range(l)]
 
-        # =====Constraint(2)=====
         #  Y.dot(beta) = 0
         def constraint_func(beta):
             return beta.dot(np.diag(Y))
@@ -128,7 +127,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
 
         cons = {'type': 'eq', 'fun': constraint_func, 'jac': constraint_grad}
 
-        # ===== Solving =====
+        # Solving
         x0 = np.zeros(l)
 
         beta_hat = minimize(objective_func, x0, jac=objective_grad, constraints=cons, bounds=bounds)['x']
@@ -139,7 +138,15 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         del almost_alpha, Q
 
         # Finding optimal decision boundary b using labeled data
-        new_K = self.kernel_function(self.X,X,self.gamma_k)
+        if self.kernel_function == 'rbf':
+            new_K = rbf_kernel(self.X,X,self.gamma_k)
+        elif self.kernel_function is not None:
+            if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
+                new_K = self.kernel_function(self.X,X,self.gamma_k)
+            else:
+                new_K = self.kernel_function(self.X,X)
+        else:
+            new_K = rbf_kernel(self.X, X, self.gamma_k)
         f = np.squeeze(np.array(self.alpha)).dot(new_K)
 
         self.sv_ind=np.nonzero((beta_hat>1e-7)*(beta_hat<(1/l-1e-7)))[0]
@@ -150,14 +157,65 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
 
 
     def decision_function(self,X):
-        new_K = self.kernel_function(self.X, X, self.gamma_k)
+        if self.kernel_function == 'rbf':
+            new_K = rbf_kernel(self.X,X,self.gamma_k)
+        elif self.kernel_function is not None:
+            if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
+                new_K = self.kernel_function(self.X,X,self.gamma_k)
+            else:
+                new_K = self.kernel_function(self.X,X)
+        else:
+            new_K = rbf_kernel(self.X, X, self.gamma_k)
         f = np.squeeze(np.array(self.alpha)).dot(new_K)
         return f+self.b
+    def predict_proba(self,X):
+        Y_ = self.decision_function(X)
+        y_proba = np.full((X.shape[0], 2), 0, np.float)
+        y_proba[:,0]=1/(1+np.exp(Y_))
+        y_proba[:, 1] =1- y_proba[:,0]
+        return y_proba
 
     def predict(self,X):
         Y_ = self.decision_function(X)
-        Y_pre = np.ones(X.shape[0])
-        Y_pre[Y_ < 0] = -1
+        y_pred = np.ones(X.shape[0])
+        y_pred[Y_ < 0] = -1
         for _ in range(X.shape[0]):
-            Y_pre[_]=self.rev_class_dict[Y_pre[_]]
-        return Y_pre
+            y_pred[_]=self.rev_class_dict[y_pred[_]]
+        return y_pred
+
+    def evaluate(self,X,y=None):
+
+        if isinstance(X,Dataset) and y is None:
+            y=getattr(X,'y')
+
+        self.y_score = self.predict_proba(X)
+        self.y_pred=self.predict(X)
+
+
+        if self.evaluation is None:
+            return None
+        elif isinstance(self.evaluation,(list,tuple)):
+            result=[]
+            for eval in self.evaluation:
+                score=eval.scoring(y,self.y_pred,self.y_score)
+                if self.verbose:
+                    print(score, file=self.file)
+                result.append(score)
+            self.result = result
+            return result
+        elif isinstance(self.evaluation,dict):
+            result={}
+            for key,val in self.evaluation.items():
+
+                result[key]=val.scoring(y,self.y_pred,self.y_score)
+
+                if self.verbose:
+                    print(key,' ',result[key],file=self.file)
+                self.result = result
+            return result
+        else:
+            result=self.evaluation.scoring(y,self.y_pred,self.y_score)
+            if self.verbose:
+                print(result, file=self.file)
+            self.result=result
+            return result

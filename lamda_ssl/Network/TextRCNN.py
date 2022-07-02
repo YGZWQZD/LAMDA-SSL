@@ -6,7 +6,7 @@ import torch
 class TextRCNN(nn.Module):
 
     def __init__(self, n_vocab,embedding_dim=300,len_seq=300, padding_idx=None, hidden_size=256, num_layers=1,
-                 dropout=0.0, pretrained_embeddings=None,num_class=2):
+                 dropout=0.0, pretrained_embeddings=None,num_classes=2):
         super(TextRCNN, self).__init__()
 
         if pretrained_embeddings is not None:
@@ -17,7 +17,7 @@ class TextRCNN(nn.Module):
                             bidirectional=True, batch_first=True, dropout=dropout)
         self.fc = nn.Linear(hidden_size * 2 +embedding_dim, hidden_size * 2)
         self.maxpool = nn.MaxPool1d(len_seq)
-        self.classfier = nn.Linear(hidden_size * 2, num_class)
+        self.classfier = nn.Linear(hidden_size * 2, num_classes)
         self.dropout = nn.Dropout(dropout)
 
 

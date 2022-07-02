@@ -2,25 +2,41 @@ import numpy as np
 from sklearn.base import ClusterMixin
 from lamda_ssl.Base.TransductiveEstimator import TransductiveEstimator
 import random
+from torch.utils.data.dataset import Dataset
+import lamda_ssl.Config.Constrained_k_means as config
+
 class Constrained_k_means(TransductiveEstimator,ClusterMixin):
-    def __init__(self,k, tolerance=1e-7, max_iterations=300):
+    def __init__(self,k=config.k, tolerance=config.tolerance, max_iterations=config.max_iterations,
+                 evaluation=config.evaluation,verbose=config.verbose,file=config.file):
         self.k=k
         self.tolerance=tolerance
         self.max_iterations=max_iterations
         self.y=None
+        self.evaluation = evaluation
+        self.verbose = verbose
+        self.file = file
+        self.X=None
+        self.y_pred=None
+        self._estimator_type = ClusterMixin._estimator_type
 
     def fit(self,X,y=None,unlabeled_X=None,cl=None,ml=None):
-
-        index_list = list(range(len(X)))
-        random.shuffle(index_list)
-        c= X[index_list[:self.k]]
+        if unlabeled_X is not None:
+            ml = []
+            cl = []
+            for i in range(X.shape[0]):
+                for j in range(i + 1, X.shape[0]):
+                    if y[i] == y[j]:
+                        ml.append({i, j})
+                    else:
+                        cl.append({i, j})
+            X = np.vstack((X, unlabeled_X))
+        self.X=X
 
         self.ml={}
         self.cl={}
         for _ in range(len(X)):
             self.ml[_]=set()
             self.cl[_]=set()
-
         constrain=np.ones((len(X),len(X)))*-1
 
         for _ in range(len(cl)):
@@ -63,64 +79,75 @@ class Constrained_k_means(TransductiveEstimator,ClusterMixin):
                 if constrain[i][j]==1:
                     self.ml[i].add(j)
 
-        for _ in range(self.max_iterations):
+        while True:
+            Find_answer=True
+            index_list = list(range(len(X)))
 
-            self.is_clustered = np.array([-1]*len(X))
+            random.shuffle(index_list)
 
-            self.clusters = {}
-            for i in range(self.k):
-                self.clusters[i] = set()
+            c = X[index_list[:self.k]]
 
-            for x_index in range(len(X)):
 
-                # print(self.ml[x_index])
-                # print(self.cl[x_index])
-                distances = {center_index: np.linalg.norm(X[x_index] - c[center_index])for center_index in range(len(c))}
+            for _ in range(self.max_iterations):
 
-                sorted_distances = sorted(distances.items(), key=lambda kv: kv[1])
-                # print(sorted_distances)
-                empty_flag = True
+                self.is_clustered = np.array([-1]*len(X))
 
-                for center_index,dis_value in sorted_distances:
-                    # print(center_index,dis_value)
-                    vc_result = self.violate_constraints(x_index, center_index, self.ml, self.cl)
+                self.clusters = {}
+                for i in range(self.k):
+                    self.clusters[i] = set()
 
-                    if not vc_result:
-                        self.clusters[center_index].add(x_index)
-                        self.is_clustered[x_index] = center_index
-                        for j in self.ml[x_index]:
-                            self.is_clustered[j] = center_index
-                        empty_flag = False
+                for x_index in range(len(X)):
+
+                    distances = {center_index: np.linalg.norm(X[x_index] - c[center_index])for center_index in range(len(c))}
+
+                    sorted_distances = sorted(distances.items(), key=lambda kv: kv[1])
+
+                    empty_flag = True
+
+                    for center_index,dis_value in sorted_distances:
+
+                        vc_result = self.violate_constraints(x_index, center_index, self.ml, self.cl)
+
+                        if not vc_result:
+                            self.clusters[center_index].add(x_index)
+                            self.is_clustered[x_index] = center_index
+                            for j in self.ml[x_index]:
+                                self.is_clustered[j] = center_index
+                            empty_flag = False
+                            break
+
+                    if empty_flag:
+                        Find_answer=False
                         break
+                        # raise Exception("Clustering Not Found Exception")
+                if Find_answer is False:
+                    break
+                previous = c
 
-                if empty_flag:
-                    raise Exception("Clustering Not Found Exception")
+                for _center in self.clusters:
+                    lst = []
+                    for index_value in self.clusters[_center]:
+                        lst.append(X[index_value])
+                    avgArr = np.array(lst)
 
-            previous = c
+                    if len(lst) != 0:
+                        c[_center] = np.average(avgArr, axis = 0)
 
-            for _center in self.clusters:
-                lst = []
-                for index_value in self.clusters[_center]:
-                    lst.append(X[index_value])
-                avgArr = np.array(lst)
-
-                if len(lst) != 0:
-                    c[_center] = np.average(avgArr, axis = 0)
-
-            isOptimal = True
-            for centroid in range(len(c)):
-                original_centroid = previous[centroid]
-                curr = c[centroid]
-                if np.sum((curr - original_centroid)/original_centroid) > self.tolerance:
-                    isOptimal = False
-            if isOptimal:
+                isOptimal = True
+                for centroid in range(len(c)):
+                    original_centroid = previous[centroid]
+                    curr = c[centroid]
+                    if np.sum((curr - original_centroid)/original_centroid) > self.tolerance:
+                        isOptimal = False
+                if isOptimal:
+                    break
+            if Find_answer:
                 break
-
         self.center=c
         self.y=self.is_clustered
-        # print(self.is_clustered)
-        # print(self.y)
+
         return self
+
 
     def violate_constraints(self, data_index, cluster_index, ml, cl):
         # print(self.clusters)
@@ -144,3 +171,41 @@ class Constrained_k_means(TransductiveEstimator,ClusterMixin):
                 distances = np.array([np.linalg.norm(X[_] - self.center[centroid]) for centroid in range(len(self.center))])
                 result = np.hstack([result,np.array([np.argmin(distances)])])
         return  result
+
+    def evaluate(self,X=None,y=None,Transductive=True):
+
+        if isinstance(X,Dataset) and y is None:
+            y=getattr(X,'y')
+
+        self.y_pred=self.predict(X,Transductive=Transductive)
+
+        if Transductive:
+            X=self.X
+
+        if self.evaluation is None:
+            return None
+        elif isinstance(self.evaluation,(list,tuple)):
+            result=[]
+            for eval in self.evaluation:
+                score=eval.scoring(y,self.y_pred,X)
+                if self.verbose:
+                    print(score, file=self.file)
+                result.append(score)
+            self.result = result
+            return result
+        elif isinstance(self.evaluation,dict):
+            result={}
+            for key,val in self.evaluation.items():
+
+                result[key]=val.scoring(y,self.y_pred,X)
+
+                if self.verbose:
+                    print(key,' ',result[key],file=self.file)
+                self.result = result
+            return result
+        else:
+            result=self.evaluation.scoring(y,self.y_pred,X)
+            if self.verbose:
+                print(result, file=self.file)
+            self.result=result
+            return result

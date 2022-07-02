@@ -17,6 +17,6 @@ class CharNGram(Transformer):
         if isinstance(X,tuple):
             X=list(X)
         if isinstance(X,list):
-            return self.vec.get_vecs_by_tokens(X)
+            return self.vec.get_vecs_by_tokens(X,lower_case_backup=self.lower_case_backup)
         else:
             return self.vec[X]

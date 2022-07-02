@@ -1,17 +1,21 @@
 from lamda_ssl.Base.TransductiveEstimator import TransductiveEstimator
 from sklearn.base import ClassifierMixin
 import numpy as np
-from sklearn.semi_supervised._label_propagation import LabelSpreading
-class Label_spreading(TransductiveEstimator,ClassifierMixin):
+import sklearn.semi_supervised._label_propagation as sklp
+from torch.utils.data.dataset import Dataset
+import lamda_ssl.Config.LabelSpreading as config
+
+class LabelSpreading(TransductiveEstimator,ClassifierMixin):
     def __init__(
         self,
-        kernel="rbf",
-        gamma=10,
-        n_neighbors=7,
-        alpha=0.2,
-        max_iter=30,
-        tol=1e-3,
-        n_jobs=None,
+        kernel=config.kernel,
+        gamma=config.gamma,
+        n_neighbors=config.n_neighbors,
+        alpha=config.alpha,
+        max_iter=config.max_iter,
+        tol=config.tol,
+        n_jobs=config.n_jobs,evaluation=config.evaluation,
+        verbose=config.verbose,file=config.file
     ):
 
         self.max_iter = max_iter
@@ -27,14 +31,17 @@ class Label_spreading(TransductiveEstimator,ClassifierMixin):
 
         self.n_jobs = n_jobs
 
-        self.model=LabelSpreading(kernel=self.kernel,gamma=self.gamma,n_neighbors=self.n_neighbors,
+        self.model=sklp.LabelSpreading(kernel=self.kernel,gamma=self.gamma,n_neighbors=self.n_neighbors,
                                   alpha=self.alpha,max_iter=self.max_iter,tol=self.tol,n_jobs=n_jobs)
-
+        self.evaluation = evaluation
+        self.verbose=verbose
+        self.file=file
+        self.y_pred=None
+        self.y_score=None
         self._estimator_type=ClassifierMixin._estimator_type
 
     def fit(self,X,y,unlabeled_X=None):
         U=len(unlabeled_X)
-        N = len(X) + len(unlabeled_X)
         _X = np.vstack([X, unlabeled_X])
         unlabeled_y = np.ones(U)*-1
         _y = np.hstack([y, unlabeled_y])
@@ -47,18 +54,54 @@ class Label_spreading(TransductiveEstimator,ClassifierMixin):
 
     def predict(self,X=None,Transductive=True):
         if Transductive:
-            result=self.unlabeled_y
+            y_pred=self.unlabeled_y
         else:
-            result= self.model.predict(X)
-        return result
+            y_proba= self.predict_proba(X,Transductive=Transductive)
+            y_pred=np.argmax(y_proba, axis=1)
+        return y_pred
 
     def predict_proba(self,X=None,Transductive=True):
         if Transductive:
-            result=self.unlabeled_y_proba
+            y_proba=self.unlabeled_y_proba
         else:
-            result= self.model.predict_proba(X)
-        return result
+            y_proba= self.model.predict_proba(X)
+        return y_proba
 
 
+    def evaluate(self,X=None,y=None,Transductive=True):
 
+        if isinstance(X,Dataset) and y is None:
+            y=getattr(X,'y')
+
+        self.y_score = self.predict_proba(X,Transductive=Transductive)
+        self.y_pred=self.predict(X,Transductive=Transductive)
+
+
+        if self.evaluation is None:
+            return None
+        elif isinstance(self.evaluation,(list,tuple)):
+            result=[]
+            for eval in self.evaluation:
+                score=eval.scoring(y,self.y_pred,self.y_score)
+                if self.verbose:
+                    print(score, file=self.file)
+                result.append(score)
+            self.result = result
+            return result
+        elif isinstance(self.evaluation,dict):
+            result={}
+            for key,val in self.evaluation.items():
+
+                result[key]=val.scoring(y,self.y_pred,self.y_score)
+
+                if self.verbose:
+                    print(key,' ',result[key],file=self.file)
+                self.result = result
+            return result
+        else:
+            result=self.evaluation.scoring(y,self.y_pred,self.y_score)
+            if self.verbose:
+                print(result, file=self.file)
+            self.result=result
+            return result
 

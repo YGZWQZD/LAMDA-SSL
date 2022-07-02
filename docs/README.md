@@ -186,10 +186,11 @@ test_y=dataset.test_y
 Call and initialize the Self-training model using  SVM model as the base learner.
 
 ```python
-from lamda_ssl.Algorithm.Classifier.Self_training import Self_training
+from lamda_ssl.Algorithm.Classifier.Self_Training import Self_training
 from sklearn.svm import SVC
-SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
-model=Self_training(base_estimator=SVM,threshold=0.8,criterion="threshold",max_iter=100)
+
+SVM = SVC(C=1.0, kernel='linear', probability=True, gamma='auto')
+model = Self_training(base_estimator=SVM, threshold=0.8, criterion="threshold", max_iter=100)
 ```
 
 Call the method 'fit' for model training.
@@ -311,34 +312,37 @@ In the deep semi-supervised learning algorithms, a dictionary can be used to sto
 
 ```python
 from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
-from lamda_ssl.Evaluation.Classification.Top_k_accuracy import Top_k_accurary
+from lamda_ssl.Evaluation.Classification.Top_k_Accuracy import Top_k_accurary
 from lamda_ssl.Evaluation.Classification.Precision import Precision
 from lamda_ssl.Evaluation.Classification.Recall import Recall
 from lamda_ssl.Evaluation.Classification.F1 import F1
 from lamda_ssl.Evaluation.Classification.AUC import AUC
-from lamda_ssl.Evaluation.Classification.Confusion_matrix import Confusion_matrix
+from lamda_ssl.Evaluation.Classification.Confusion_Matrix import Confusion_matrix
 
-evaluation={
-    'accuracy':Accuracy(),
-    'top_5_accuracy':Top_k_accurary(k=5),
-    'precision':Precision(average='macro'),
-    'Recall':Recall(average='macro'),
-    'F1':F1(average='macro'),
-    'AUC':AUC(multi_class='ovo'),
-    'Confusion_matrix':Confusion_matrix(normalize='true')
+evaluation = {
+    'accuracy': Accuracy(),
+    'top_5_accuracy': Top_k_accurary(k=5),
+    'precision': Precision(average='macro'),
+    'Recall': Recall(average='macro'),
+    'F1': F1(average='macro'),
+    'AUC': AUC(multi_class='ovo'),
+    'Confusion_matrix': Confusion_matrix(normalize='true')
 }
 ```
 
 Initialize Fixmatch algorithm and set components and parameters.
 
 ```python
-from lamda_ssl.Algorithm.Classifier.Fixmatch import Fixmatch
-model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
-               train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
-               train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-               augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,evaluation=evaluation,
-               epoch=1,num_it_epoch=1,num_it_total=1,eval_it=2000,device='cpu',mu=7,
-               T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
+from lamda_ssl.Algorithm.Classifier.FixMatch import Fixmatch
+
+model = Fixmatch(train_dataset=train_dataset, valid_dataset=valid_dataset, test_dataset=test_dataset,
+                 train_sampler=train_sampler, valid_sampler=valid_sampler, test_sampler=test_sampler,
+                 train_batch_sampler=train_batch_sampler,
+                 train_dataloader=train_dataloader, valid_dataloader=valid_dataloader, test_dataloader=test_dataloader,
+                 augmentation=augmentation, network=network, optimizer=optimizer, scheduler=scheduler,
+                 evaluation=evaluation,
+                 epoch=1, num_it_epoch=1, num_it_total=1, eval_it=2000, device='cpu', mu=7,
+                 T=1, weight_decay=0, threshold=0.95, lambda_u=1.0, ema_decay=0.999)
 ```
 
 Train the model and validate the model while training.
@@ -637,7 +641,7 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 #### Semi_sklearn.Algorithm.Classifier.Assemble
 
 > CLASS Semi_sklearn.Algorithm.Classifier.Assemble.Assemble(base_model=SVC(probability=True),T=100,alpha=1,beta=0.9)
->> Parameter
+>> Parameter:
 >> - base_model: A base learner for ensemble learning.
 >> - T: the number of base learners. It is also the number of iterations.
 >> - alpha: the weight of each sample when the sampling distribution is updated.
@@ -646,7 +650,7 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 #### Semi_sklearn.Algorithm.Classifier.Co_training
 
 > CLASS Semi_sklearn.Algorithm.Classifier.Co_training.Co_training(base_estimator, base_estimator_2=None, p=5, n=5, k=30, s=75)
->> Parameter
+>> Parameter:
 >> - base_estimator: the first learner for co-training.
 >> - base_estimator_2: the second learner for co-training.
 >> - p: In each round, each base learner selects at most p positive samples to assign pseudo-labels.
@@ -696,9 +700,9 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  threshold=0.95,
                  lambda_u=1.0,
                  T=0.5)
->> Parameter
+>> Parameter:
 >> - threshold: choose the confidence threshold for the sample.
->> - lambda_u: Weight of unsupervised loss.
+>> - lambda_u: The weight of unsupervised loss.
 >> - T: the sharpening temperature.
 
 #### Semi_sklearn.Algorithm.Classifier.Flexmatch
@@ -746,9 +750,9 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  use_hard_labels=False,
                  use_DA=False,
                  p_target=None)
->> Parameter
+>> Parameter:
 >> - threshold: The confidence threshold for choosing samples.
->> - lambda_u: Weight of unsupervised loss.
+>> - lambda_u: The weight of unsupervised loss.
 >> - T: Sharpening temperature.
 >> - num_classes: The number of classes for the classification task.
 >> - thresh_warmup: Whether to use threshold warm-up mechanism.
@@ -771,10 +775,10 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  num_features=1433,
                  num_classes=7,
                  normalize=True)
->> Parameter
+>> Parameter:
 >> - num_features: Node feature dimension.
->> - num_classes: number of classes.
->> - normalize: whether to use symmetric normalization.
+>> - num_classes: Number of classes.
+>> - normalize: Whether to use symmetric normalization.
 
 #### Semi_sklearn.Algorithm.Classifier.ICT
 > CLASS Semi_sklearn.Algorithm.Classifier.ICT(train_dataset=None,
@@ -816,13 +820,12 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  warmup=None,
                  lambda_u=None,
                  alpha=None)
->> Parameter
+>> Parameter:
 >> - warmup: Warm up ratio for unsupervised loss.
->> - lambda_u: weight of unsupervised loss.
+>> - lambda_u: The weight of unsupervised loss.
 >> - alpha: the parameter of Beta distribution in Mixup.
 
 #### Semi_sklearn.Algorithm.Classifier.ImprovedGAN
-
 > CLASS Semi_sklearn.Algorithm.Classifier.ImprovedGAN(
                  train_dataset=None,
                  valid_dataset=None,
@@ -842,7 +845,6 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  mu=None,
                  optimizer=None,
                  weight_decay=0,
-                 lambda_u=1.0,
                  ema_decay=None,
                  scheduler=None,
                  device=None,
@@ -860,32 +862,781 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  parallel=None,
                  file=None,
                  dim_in=(28,28),
-                 num_class=10,
+                 num_classes=10,
                  dim_z=500,
                  hidden_G=[500,500],
                  hidden_D=[1000,500,250,250,250],
                  noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
                  activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus()],
                  activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 lambda_u=1.0,
                  num_labeled=None)
+>> Parameter:
+>> - dim_in: The dimension of a single instance.
+>> - num_classes: The number of classes.
+>> - dim_z: The dimension of the latent variables used to generate the data.
+>> - hidden_G: The hidden layer dimension of the neural network as the generator. If there are multiple hidden layers, it is represented by a list.
+>> - hidden_D: The hidden layer dimension of the neural network as the discriminator. If there are multiple hidden layers, it is represented by a list.。
+>> - noise_level: The noise level of each layer of the discriminator.
+>> - activations_G: The activation function of each layer of the generator.
+>> - activations_D: The activation function of each layer of the discriminator.
+>> - lambda_u: The weight of unsupervised loss.
+>> - num_labeled: The number of labeled samples.
 
+#### Semi_sklearn.Algorithm.Classifier.LabelPropagation
+> CLASS Semi_sklearn.Algorithm.Classifier.LabelPropagation(kernel="rbf",
+        gamma=20,
+        n_neighbors=7,
+        max_iter=30,
+        tol=1e-3,
+        n_jobs=None,
+    )
+>> Parameter:
+>> - kernel: The kernel function which can be inputted as a string 'rbf' or 'knn' or as a callable function.
+>> - gamma: The gamma value when the kernel function is rbf kernel.
+>> - n_neighbors: The n value when the kernel function is n_neighbors kernel.
+>> - max_iter: The maximum number of iterations.
+>> - tol: Convergence tolerance.
+>> - n_jobs: The number of parallel jobs.
+
+#### Semi_sklearn.Algorithm.Classifier.LabelSpreading
+> CLASS Semi_sklearn.Algorithm.Classifier.LabelSpreading(
+        kernel="rbf",
+        gamma=10,
+        n_neighbors=7,
+        alpha=0.2,
+        max_iter=30,
+        tol=1e-3,
+        n_jobs=None,
+    )
+>> Parameter:
+>> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
+>> - gamma: The gamma value when the kernel function is rbf kernel.
+>> - n_neighbors: The n value when the kernel function is n_neighbors kernel.
+>> - alpha: The proportion of labels updates in each iteration.
+>> - max_iter: The maximum number of iterations.
+>> - tol: Convergence tolerance.
+>> - n_jobs: The number of parallel jobs.
+
+
+#### Semi_sklearn.Algorithm.Classifier.LadderNetwork
+> CLASS Semi_sklearn.Algorithm.Classifier.LadderNetwork(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 epoch=1,
+                 network=None,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=5e-4,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None,
+                 dim_in=(28,28),
+                 num_classes=10,
+                 noise_std=0.2,
+                 lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
+                 encoder_sizes=[1000, 500, 250, 250, 250],
+                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()]
+                 )
+>> Parameter:
+>> - dim_in: The dimension of a single instance.
+>> - num_classes: The number of classes.
+>> - noise_std: The noise level of each layer of the discriminator.
+>> - lambda_u: The proportion of consistency loss of each layer in LadderNetwork.
+>> - encoder_sizes: The dimension of each layer of the encoder.
+>> - encoder_activations: The activation function of each layer of the encoder.
+
+#### Semi_sklearn.Algorithm.Classifier.TSVM
+> CLASS Semi_sklearn.Algorithm.Classifier.TSVM（Cl=1.0,
+            Cu=0.001,
+            kernel=rbf_kernel,
+            degree=3,
+            gamma="scale",
+            shrinking=True,
+            probability=False,
+            tol=1e-3,
+            cache_size=200,
+            class_weight=None,
+            verbose=False,
+            max_iter=-1,
+            decision_function_shape="ovr",
+            break_ties=False,
+            random_state=None)
+>> Parameter:
+>> - Cl: The weight of labeled samples.
+>> - Cu: The weight of unlabeled samples.
+>> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
+>> - degree: The polynomial order corresponding to the 'poly' kernel.
+>> - gamma: The gamma parameter corresponding to the kernel. It is valid when kernel is 'rbf', 'poly' or 'sigmoid'.
+>> - coef0: The constant term of the kernel function. It is valid when kernel is 'poly' or 'sigmoid'.
+>> - shrinking: Whether to use the shrinking heuristic method.
+>> - probability: Weights for rotation angle classification loss.
+>> - tol: Tolerance to stop training, default is 1e-3.
+>> - cache_size: The cache size of the Kernel function.
+>> - class_weight: The weights of different classes. 
+>> - verbose: Whether to allow redundant output.
+>> - max_iter: The maximum number of iterations. -1 for unlimited.
+>> - decision_function_shape: {'ovo', 'ovr'}, default='ovr'. Whether to return a one-vs-rest ('ovr') decision function of shape(n_samples, n_classes) as all other classifiers, or the original one-vs-one ('ovo') decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). However, one-vs-one ('ovo') is always used as multi-class strategy. The parameter is ignored for binary classification.
+>> - break_ties: Whether to classify by calculating confidence in the event of a tie.
+>> - random_state: A random seed for data shuffling.
+
+#### Semi_sklearn.Algorithm.Classifier.LapSVM
+> CLASS Semi_sklearn.Algorithm.Classifier.LapSVM(
+distance_function = rbf_kernel,
+           gamma_d=0.01,
+           neighbor_mode =None,
+           n_neighbor= 5,
+           kernel_function= rbf_kernel,
+           gamma_k=0.01,
+           gamma_A= 0.03125,
+           gamma_I= 0)
+>> Parameter:
+>> - distance_function: The distance function for building the graph. This Pamater is valid when neighbor_mode is None.
+>> - gamma_d: Kernel parameters related to distance_function.
+>> - neighbor_mode: The edge weight after constructing the graph model by k-nearest neighbors. There are two options 'connectivity' and 'distance', 'connectivity' returns a 0-1 matrix, and 'distance' returns a distance matrix.
+>> - n_neighbor: k value of k-nearest neighbors.
+>> - kernel_function: The kernel function corresponding to SVM.
+>> - gamma_k: The gamma parameter corresponding to kernel_function.
+>> - gamma_A: Penalty weight for function complexity.
+>> - gamma_I: Penalty weight for smoothness of data distribution.
+
+#### Semi_sklearn.Algorithm.Classifier.MeanTeacher
+> CLASS Semi_sklearn.Algorithm.Classifier.MeanTeacher(
+train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 mu=None,
+                 parallel=None,
+                 file=None,
+                 ema_decay=None,
+                 warmup=None,
+                 lambda_u=None)
+>> Parameter:
+>> - ema_decay: Update weights for the exponential moving average.
+>> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+>> - lambda_u: The weight of unsupervised loss.
+
+#### Semi_sklearn.Algorithm.Classifier.Mixmatch
+> CLASS Semi_sklearn.Algorithm.Classifier.Mixmatch(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 warmup=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 mu=None,
+                 ema_decay=None,
+                 device='cpu',
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 T=None,
+                 num_classes=10,
+                 alpha=None
+                 )
+>> Parameter:
+>> - lambda_u: The weight of unsupervised loss.
+>> - T: Sharpening temperature for soft labels.
+>> - num_classes: The number of classes.
+>> - alpha: The parameter of the beta distribution in Mixup.
+
+#### Semi_sklearn.Algorithm.Classifier.PiModel
+> CLASS Semi_sklearn.Algorithm.Classifier.PiModel(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 ema_decay=None,
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 warmup=0.4,
+                 lambda_u=None,
+                 )
+>> Parameter:
+>> - lambda_u: The weight of unsupervised loss.
+>> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+
+#### Semi_sklearn.Algorithm.Classifier.PseudoLabel
+> CLASS Semi_sklearn.Algorithm.Classifier.PseudoLabel(self,train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 warmup=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 ema_decay=None,
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 threshold=0.95
+                 )
+>> Parameter:
+>> - lambda_u: The weight of unsupervised loss.
+>> - threshold: Confidence threshold for selecting samples.
+
+#### Semi_sklearn.Algorithm.Classifier.ReMixmatch
+> CLASS Semi_sklearn.Algorithm.Classifier.ReMixmatch（train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 warmup=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 mu=None,
+                 ema_decay=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 T=None,
+                 num_classes=10,
+                 alpha=None,
+                 p_target=None,
+                 lambda_s=None,
+                 lambda_rot=None,
+                 rotate_v_list=None
+                 )
+>> Parameter:
+>> - lambda_u: The weight of unsupervised loss.
+>> - T: Sharpening temperature for soft labels.
+>> - num_classes: The number of classes.
+>> - alpha: The parameter of the beta distribution in Mixup.
+>> - p_target: The target distribution of labeled data.
+>> - lambda_s: The weight for unsupervised loss computed based on pre-mixup data.
+>> - lambda_rot: The weight of rotation angle classification loss.
+>> - rotate_v_list: A list of rotation angles.
+
+
+
+#### Semi_sklearn.Algorithm.Classifier.S4L
+> CLASS Semi_sklearn.Algorithm.Classifier.S4L(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 ema_decay=None,
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 num_classes=10,
+                 p_target=None,
+                 rotate_v_list=None,
+                 labeled_usp=True,
+                 all_rot=True)
+>> Parameter:
+>> - lambda_u: The weight of unsupervised loss.
+>> - num_classes: The number of classes.
+>> - p_target: The target distribution of labeled data.
+>> - rotate_v_list: A list of rotation angles.
+>> - labeled_usp: Whether to use labeled data when computing the unsupervised loss.
+>> - all_rot: Whether to rotate samples by all angles in rotate_v_list.
+
+#### Semi_sklearn.Algorithm.Classifier.SDNE
+> CLASS Semi_sklearn.Algorithm.Classifier.SDNE(epoch=1,
+                 eval_epoch=None,
+                 optimizer=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 weight_decay=None,
+                 network=None,
+                 parallel=None,
+                 file=None,
+                 xeqs=True,
+                 input_dim=None,
+                 num_nodes=None,
+                 hidden_layers=[250, 250],
+                 alpha=1e-2,
+                 gamma=0.9,
+                 beta=5,
+                 base_estimator=None)
+>> Parameter:
+>> - xeqs: Whether to use the adjacency matrix as the feature matrix of the node.
+>> - input_dim: The dimension of node features. It is valid when xeqs is False.
+>> - num_nodes: The number of nodes.
+>> - hidden_layers: Encoder hidden layer dimension.
+>> - alpha: The weight of Laplacian regularization.
+>> - gamma: The weight of L2 regularation.
+>> - beta: The weight of the edges in the graph that are not 0 in the loss of consistency between the input and output of the autoencoder.
+>> - base_estimator: A supervised learner that classifies using the node features obtained by the encoder.
+
+#### Semi_sklearn.Algorithm.Classifier.Self_training
+> CLASS Semi_sklearn.Algorithm.Classifier.Self_training(base_estimator,
+                threshold=0.75,
+                criterion="threshold",
+                k_best=10,
+                max_iter=10,
+                verbose=False)
+>> Parameter:
+>> - base_estimator: The base supervised learner used in the Self_training algorithm.
+>> - criterion: There are two forms: 'threshold' and 'k_best', the former selects samples according to the threshold, and the latter selects samples according to the ranking.
+>> - threshold: When criterion is 'threshold', the threshold used for selecting samples during training.
+>> - k_best: When criterion is 'k_best', select the top k samples of confidence from training.
+>> - max_iter: The maximum number of iterations.
+>> - verbose: Whether to allow redundant output.
+
+#### Semi_sklearn.Algorithm.Classifier.SemiBoost
+> CLASS Semi_sklearn.Algorithm.Classifier.SemiBoost(base_estimator =SVC(),
+similarity_kernel = 'rbf',
+                        n_neighbors=4, 
+                        gamma=0.1, 
+                        max_models = 300,
+                        sample_percent = 0.01,
+                        sigma_percentile = 90,
+                        n_jobs = 1
+                        )
+>> Parameter:
+>> - base_estimator: The base supervised learner used in the algorithm.
+>> - similarity_kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
+>> - n_neighbors: It is valid when the kernel function is 'knn', indicating the value of k in the k nearest neighbors.
+>> - n_jobs: It is valid when the kernel function is 'knn', indicating the number of parallel jobs.
+>> - gamma: It is valid when the kernel function is 'rbf', indicating the gamma value of the rbf kernel.
+>> - max_models: The most number of models in the ensemble.
+>> - sample_percent: The number of samples sampled at each iteration as a proportion of the remaining unlabeled samples.
+>> - sigma_percentile: Scale parameter used in the 'rbf' kernel.
+
+#### Semi_sklearn.Algorithm.Classifier.SSGMM
+> CLASS Semi_sklearn.Algorithm.Classifier.SSGMM(num_classes, tolerance=1e-8, max_iterations=300)
 >> Parameter
->> - dim_in: 
->> - num_class: weight of unsupervised loss. 
->> - dim_z: the parameter of Beta distribution in Mixup. 
->> - hidden_G: 
->> - hidden_D: 
->> - noise_level: 
->> - activations_G: 
->> - activations_D: 
->> - noise_level: 
+>> - num_classes: The number of classes.
+>> - tolerance: Tolerance for iterative convergence.
+>> - max_iterations: The maximum number of iterations.
 
+#### Semi_sklearn.Algorithm.Classifier.SSVAE
+> CLASS Semi_sklearn.Algorithm.Classifier.SSVAE(
+                 alpha,
+                 dim_in,
+                 num_classes=10,
+                 dim_z=50,
+                 dim_hidden_de=[ 500,500],
+                 dim_hidden_en_y=[ 500,500], dim_hidden_en_z=[ 500,500],
+                 activations_de=[nn.Softplus(), nn.Softplus()],
+                 activations_en_y=[nn.Softplus(), nn.Softplus()],
+                 activations_en_z=[nn.Softplus(), nn.Softplus()],
+                 num_labeled=None,
+                 train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 epoch=1,
+                 network=None,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 mu=None,
+                 optimizer=None,
+                 weight_decay=0,
+                 ema_decay=None,
+                 scheduler=None,
+                 device=None,
+                 evaluation=None,
+                 train_sampler=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 train_batch_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 parallel=None,
+                 file=None)
+>> Parameter
+>> - alpha: The weight of classification loss.
+>> - dim_in: The dimension of the input sample.
+>> - num_classes: The number of classes.
+>> - dim_z: The dimension of the hidden variable z.
+>> - dim_hidden_de: The hidden layer dimension of the decoder.
+>> - dim_hidden_en_y: The hidden layer dimension of the encoder for y.
+>> - dim_hidden_en_z: The hidden layer dimension of the encoder for z.
+>> - activations_de: The activation functions of the decoder.
+>> - activations_en_y: The activation functions of the encoder for y.
+>> - activations_en_z: The activation functions of the encoder for z.
+>> - num_labeled: The number of labeled samples.
+
+#### Semi_sklearn.Algorithm.Classifier.TemporalEnsembling
+> CLASS Semi_sklearn.Algorithm.Classifier.TemporalEnsembling(valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 mu=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 ema_decay=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 warmup=None,
+                 ema_weight=None,
+                 num_classes=None,
+                 num_samples=None
+                 )
+>> Parameter
+>> - lambda_u: The weight of unsupervised loss.
+>> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+>> - ema_weight: Update weight for exponential moving average pseudo labels。
+>> - num_classes: The number of classes.
+>> - num_samples: The number of samples.
+
+#### Semi_sklearn.Algorithm.Classifier.TriTraining
+> CLASS Semi_sklearn.Algorithm.Classifier.TriTraining(base_estimator,base_estimator_2=None,base_estimator_3=None)
+>> Parameter:
+>> - base_estimator: The first base learner in TriTraining.
+>> - base_estimator_2: The second base learner in TriTraining.
+>> - base_estimator_3: The third base learner in TriTraining.
+
+
+#### Semi_sklearn.Algorithm.Classifier.UDA
+> CLASS Semi_sklearn.Algorithm.Classifier.UDA(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 mu=None,
+                 evaluation=None,
+                 ema_decay=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 threshold=0.95,
+                 num_classes=None,
+                 tsa_schedule=None,
+                 T=0.4)
+>> Parameter
+>> - lambda_u: The weight of unsupervised loss.
+>> - threshold: The confidence threshold for choosing samples.
+>> - num_classes: The number of classes.
+>> - tsa_schedule: Threshold adjustment strategy, optional 'linear', 'exp' or 'log'.
+>> - T: Sharpening temperature for soft labels.
+
+#### Semi_sklearn.Algorithm.Classifier.VAT
+> CLASS Semi_sklearn.Algorithm.Classifier.VAT(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 mu=None,
+                 ema_decay=None,
+                 device='cpu',
+                 evaluation=None,
+                 parallel=None,
+                 file=None,
+                 lambda_u=None,
+                 num_classes=None,
+                 tsa_schedule=None,
+                 eps=6,
+                 warmup=None,
+                 it_vat=1,
+                 xi=1e-6,
+                 lambda_entmin=0.06)
+>> Parameter
+>> - lambda_u: The weight of unsupervised loss.
+>> - num_classes: The number of classes.
+>> - tsa_schedule: Threshold adjustment strategy, optional 'linear', 'exp' or 'log'.
+>> - eps: noise level.
+>> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+>> - xi:The scale parameter used when initializing the disturbance variable r, $r=\xi d$. d is a random unit vector.
+>> - lambda_entmin: Entropy minimizes the weight of the loss.
+
+### Semi_sklearn.Algorithm.Regressor
+
+#### Semi_sklearn.Algorithm.Regressor.CoReg
+> CLASS Semi_sklearn.Algorithm.Regressor.CoReg(k1=3, k2=3, p1=2, p2=5, max_iters=100, pool_size=100)
+>> Parameter
+>> - k1: The k value for the k-nearest neighbors in the first base learner.
+>> - k2: The k value for the k-nearest neighbors in the second base learner.
+>> - p1: The order of the distance calculated in the first base learner.
+>> - p2: The order of the distance calculated in the second base learner.
+>> - max_iters: The maximum number of iterations.
+>> - pool_size: The size of the buffer pool.
+
+### Semi_sklearn.Algorithm
+#### Semi_sklearn.Algorithm.Cluster.Constrained_k_means
+> CLASS Semi_sklearn.Algorithm.Cluster.Constrained_k_means(k, tolerance=1e-7, max_iterations=300)
+>> Parameter
+>> - k: The k value for the k-means clustering algorithm.
+>> - tolerance: Tolerance of iterative convergence.
+>> - max_iterations: The maximum number of iterations.
+
+#### Semi_sklearn.Algorithm.Cluster.Constrained_Seed_k_means
+> CLASS Semi_sklearn.Algorithm.Cluster.Constrained_Seed_k_means(k, tolerance=0.00001, max_iterations=300)
+>> Parameter
+>> - k: The k value for the k-means clustering algorithm.
+>> - tolerance: Tolerance of iterative convergence.
+>> - max_iterations: The maximum number of iterations.
 
 ## Base
 
-### Semi_sklearn.SemiDeepModelMixin.SemiDeepModelMixin
-
-> CLASS Semi_sklearn.Base.SemiDeepModelMixin.SemiDeepModelMixin(self, train_dataset=None,
+### Semi_sklearn.DeepModelMixin.DeepModelMixin
+> CLASS Semi_sklearn.Base.DeepModelMixin.DeepModelMixin(train_dataset=None,
                  labeled_dataset=None,
                  unlabeled_dataset=None,
                  valid_dataset=None,
@@ -922,38 +1673,59 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  parallel=None,
                  file=None)
 >> Parameter
->> - train_dataset
->> - labeled_dataset
->> - unlabeled_dataset
->> - valid_dataset
->> - test_dataset
->> - augmentation
->> - network
->> - epoch
->> - num_it_epoch
->> - num_it_total
->> - eval_epoch
->> - eval_it
->> - mu
->> - optimizer
->> - weight_decay
->> - ema_decay
->> - scheduler
->> - device
->> - evaluation
->> - train_sampler
->> - labeled_batch_sampler
->> - unlabeled_batch_sampler
->> - valid_sampler
->> - valid_batch_sampler
->> - test_sampler
->> - test_batch_sampler
->> - parallel
->> - file
+>> - train_dataset: Data manager for training data.
+>> - labeled_dataset: Data manager for labeled data.
+>> - unlabeled_dataset: Data manager for unlabeled data.
+>> - valid_dataset: Data manager for valid data.
+>> - test_dataset: Data manager for test data.
+>> - augmentation: Augmentation method, if there are multiple augmentation methods, you can use a dictionary or a list to pass parameters.
+>> - network: The backbone neural network.
+>> - epoch: Number of training epochs.
+>> - num_it_epoch: The number of iterations in each round, that is, the number of batches of data.
+>> - num_it_total: The total number of batches.
+>> - eval_epoch: Model evaluation is performed every eval_epoch epochs.
+>> - eval_it: Model evaluation is performed every eval_it iterations.
+>> - mu: The ratio of the number of unlabeled data to the number of labeled data.
+>> - optimizer: The optimizer used in training.
+>> - weight_decay: The optimizer's learning rate decay parameter.
+>> - ema_decay: The update scale for the exponential moving average of the model parameters.
+>> - scheduler: Learning rate scheduler.
+>> - device: Training equipment.
+>> - evaluation: Model evaluation metrics. If there are multiple metrics, a dictionary or a list can be used.
+>> - train_sampler: Sampler of training data.
+>> - labeled_sampler=None: Sampler of labeled data.
+>> - unlabeled_sampler=None: Sampler of unlabeled data.
+>> - train_batch_sampler=None: Batch sampler of training data
+>> - labeled_batch_sampler: Batch sampler of labeled data
+>> - unlabeled_batch_sampler: Batch sampler of unlabeled data
+>> - valid_sampler: sampler of valid data.
+>> - valid_batch_sampler: Batch sampler of valid data.
+>> - test_sampler: Sampler of test data.
+>> - test_batch_sampler: Batch sampler of test data.
+>> - parallel: Distributed training method.
+>> - file: Output file.
+
+### Semi_sklearn.SemiEstimator.SemiEstimator
+> CLASS Semi_sklearn.Base.SemiEstimator.SemiEstimator()
+>> fit(X,y,unlabeled_X): Train a SSL model.
+>> - X: Instances of labeled data.
+>> - y: Labels of labeled data.
+>> - unlabeled_X: Instances of unlabeled data.
+
+### Semi_sklearn.InductiveEstimator.InductiveEstimator
+> CLASS Semi_sklearn.Base.InductiveEstimator.InductiveEstimator()
+>> predict(X): Make predictions on the new data.
+>> - X: Samples to be predicted.
+
+### Semi_sklearn.TransductiveEstimator.TransductiveEstimator
+> CLASS Semi_sklearn.Base.TransductiveEstimator.TransductiveEstimator()
+>> predict(X=None,Transductive=True): Output the result of transductive learning or make predictions on the new data.
+>> - X: The samples to be predicted. It is only valid when Transductive is False.
+>> - Transductive: Whether to use transductive learning mechanism to directly output the prediction result of unlabeled_X input during fit.
 
 ## Dataloader
-
-### Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader
+### Semi_sklearn.DataLoader.LabeledDataLoader.
+#### Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader
 > CLASS Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader(batch_size= 1, shuffle: bool = False,
                  sampler = None, batch_sampler= None,
                  num_workers: int = 0, collate_fn= None,
@@ -962,122 +1734,918 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
                  multiprocessing_context=None, generator=None,
                  prefetch_factor: int = 2, persistent_workers: bool = False)
 >> Parameter
->> - batch_size
->> - shuffle
->> - sampler
->> - batch_sampler
->> - num_workers
->> - collate_fn
->> - pin_memory
->> - drop_last
->> - timeout
->> - worker_init_fn
->> - multiprocessing_context
->> - generator
->> - prefetch_factor
->> - persistent_workers
+>> - batch_size: How many samples per batch to load.
+>> - shuffle: Whether to shuffle the data.
+>> - sampler: The sampler used when loading data.
+>> - batch_sampler: set to True to have the data reshuffled at every epoch.
+>> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
+>> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
+>> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+>> - drop_last: Whether to discard redundant data that is not enough for a batch.
+>> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
+>> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
+>> - multiprocessing_context: The context of multiprocessing.
+>> - generator: If not None, this RNG will be used by RandomSampler to generate random indexes and multiprocessing to generate base_seed for workers.
+>> - prefetch_factor: Number of samples loaded in advance by each worker. '2' means there will be a total of 2 * num_workers samples prefetched across all workers.
+>> - persistent_workers: If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the workers 'Dataset' instances alive.
+
+#### Semi_sklearn.DataLoader.TrainDataLoader.TrainDataLoader
+> CLASS Semi_sklearn.DataLoader.TrainDataLoader.TrainDataLoader(
+batch_size=1,
+                 shuffle = False, sampler = None,
+                 batch_sampler=None, Iterable = None,
+                 num_workers = 0, collate_fn = None,
+                 pin_memory = False, drop_last = True,
+                 timeout = 0, worker_init_fn = None,
+                 multiprocessing_context=None, generator=None,
+                 prefetch_factor = 2,
+                 persistent_workers= False,
+                 batch_size_adjust=False,labeled_dataloader=None,unlabeled_dataloader=None)
+
+>> Parameter
+>> - batch_size: How many samples per batch to load.
+>> - shuffle: Whether to shuffle the data.
+>> - sampler: The sampler used when loading data.
+>> - batch_sampler: set to True to have the data reshuffled at every epoch.
+>> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
+>> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
+>> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+>> - drop_last: Whether to discard redundant data that is not enough for a batch.
+>> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
+>> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
+>> - multiprocessing_context: The context of multiprocessing.
+>> - generator: If not None, this RNG will be used by RandomSampler to generate random indexes and multiprocessing to generate base_seed for workers.
+>> - prefetch_factor: Number of samples loaded in advance by each worker. '2' means there will be a total of 2 * num_workers samples prefetched across all workers.
+>> - persistent_workers: If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the workers 'Dataset' instances alive.
+>> - batch_size_adjust: Whether to automatically adjust the batch_size of labeled_dataloader and unlabeled_dataloader according to the ratio of unlabeled samples to labeled samples.
+>> - labeled_dataloader: The dataloader of labeled data.
+>> - unlabeled_dataloader: The dataloader of unlabeled data.
+
+#### Semi_sklearn.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader
+> CLASS Semi_sklearn.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader(batch_size= 1,
+                 shuffle: bool = False, sampler = None,
+                 batch_sampler= None,
+                 num_workers: int = 0, collate_fn= None,
+                 pin_memory: bool = False, drop_last: bool = False,
+                 timeout: float = 0, worker_init_fn = None,
+                 multiprocessing_context=None, generator=None,
+                 prefetch_factor: int = 2,
+                 persistent_workers: bool = False)
+>> Parameter
+>> - batch_size: How many samples per batch to load.
+>> - shuffle: Whether to shuffle the data.
+>> - sampler: The sampler used when loading data.
+>> - batch_sampler: set to True to have the data reshuffled at every epoch.
+>> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
+>> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
+>> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+>> - drop_last: Whether to discard redundant data that is not enough for a batch.
+>> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
+>> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
+>> - multiprocessing_context: The context of multiprocessing.
+>> - generator: If not None, this RNG will be used by RandomSampler to generate random indexes and multiprocessing to generate base_seed for workers.
+>> - prefetch_factor: Number of samples loaded in advance by each worker. '2' means there will be a total of 2 * num_workers samples prefetched across all workers.
+>> - persistent_workers: If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the workers 'Dataset' instances alive.
 
 ## Dataset
+
 ### Semi_sklearn.Dataset.LabeledDataset.LabeledDataset
 
-> CLASS Semi_sklearn.Dataset.LabeledDataset.LabeledDataset（transforms=None, transform=None, target_transform=None, pre_transform=None)
+> CLASS Semi_sklearn.Dataset.LabeledDataset.LabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
 >> Parameter
->> - transforms
->> - transform
->> - target_transform
->> - pre_transform
+>> - pre_transform: The way to preprocess X before augmentation.
+>> - transforms: The way to transform X and y at the same time after data augmentation.
+>> - transform: The way to transform X after data augmentation.
+>> - target_transform: The way to transform y after data augmentation.
+
+### Semi_sklearn.Dataset.UnlabeledDataset.UnlabeledDataset
+
+> CLASS Semi_sklearn.Dataset.UnlabeledDataset.UnlabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
+>> Parameter
+>> - pre_transform: The way to preprocess X before augmentation.
+>> - transform: The way to transform X after data augmentation.
+
+### Semi_sklearn.Dataset.TrainDataset.TrainDataset
+
+> CLASS Semi_sklearn.Dataset.TrainDataset.TrainDataset(transforms=None,
+                 transform=None,
+                 pre_transform=None,
+                 target_transform=None,
+                 unlabeled_transform=None,
+                 labeled_size=None,
+                 stratified=False,
+                 shuffle=True,
+                 random_state=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None
+                 )
+>> Parameter
+>> - pre_transform: The way to preprocess X before augmentation.
+>> - transforms: The way to transform X and y at the same time after data augmentation.
+>> - transform: The way to transform X after data augmentation.
+>> - target_transform: The way to transform y after data augmentation.
+>> - unlabeled_transform: The way to transform unlabeled_X after data augmentation.
+>> - labeled_size: The number or proportion of labeled samples.
+>> - stratified: Whether to sample by class scale.
+>> - shuffle: Whether to shuffle the data.
+>> - random_state: The random seed.
+>> - labeled_dataset: The labeled dataset.
+>> - unlabeled_dataset: The unlabeled dataset.
+
+### Semi_sklearn.Dataset.SemiDataset.SemiDataset
+
+> CLASS Semi_sklearn.Dataset.SemiDataset.SemiDataset(transforms=None,
+                 transform=None,
+                 pre_transform=None,
+                 target_transform=None,
+                 unlabeled_transform=None,
+                 valid_transform=None,
+                 test_transform=None,
+                 test_size=None,
+                 valid_size=None,
+                 labeled_size=None,
+                 stratified=False,
+                 shuffle=True,
+                 random_state=None):
+>> Parameter
+>> - pre_transform: The way to preprocess X before augmentation.
+>> - transforms: The way to transform X and y at the same time after data augmentation.
+>> - transform: The way to transform X after data augmentation.
+>> - target_transform: The way to transform y after data augmentation.
+>> - unlabeled_transform: The way to transform unlabeled_X after data augmentation.
+>> - valid_transform: The way to transform valid X after data augmentation.
+>> - test_transform: The way to transform test X after data augmentation.
+>> - test_size: The number or proportion of test samples.
+>> - valid_size: The number or proportion of valid samples.
+>> - labeled_size: The number or proportion of labeled samples.
+>> - stratified: Whether to sample by class scale.
+>> - shuffle: Whether to shuffle the data.
+>> - random_state: The random seed.
+
+### Semi_sklearn.Dataset.TableMixin.TableMixin
+> CLASS Semi_sklearn.Dataset.TableMixin.TableMixin():
+>> init_transform: Initialize the data transformation method.
+
+### Semi_sklearn.Dataset.VisionMixin.VisionMixin
+> CLASS Semi_sklearn.Dataset.VisionMixin.VisionMixin(mean=None,std=None):
+>> Parameter
+>> - mean: Mean of the dataset.
+>> - std: Standard deviation of the dataset.
+>> init_transform: Initialize the data transformation method.
+
+### Semi_sklearn.Dataset.TextMixin.TextMixin
+> CLASS Semi_sklearn.Dataset.Text.Text(word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
+                 min_freq=1,special_first=True,default_index=None):
+>> parameter:
+>> - word_vocab: A map that converts words to indexes.
+>> - vectors: Word vectors. 
+>> - length: Length of each sentence.
+>> - unk_token: The token used to represent unknown words.
+>> - pad_token: The token used to represent padding.
+>> - min_freq: The minimum frequency required for a word to be used as a token in the word_vocab. It is valid when word_vocab is None and a mapping table needs to be constructed. 
+>> - special_first: Whether to put special characters at the top of the mapping table.
+>> - default_index: The default value that should be used when converting a word to an index if it cannot be converted.
+>> init_transform: Initialize the data transformation method.
+
+### Semi_sklearn.Dataset.GraphMixin.GraphMixin
+> CLASS Semi_sklearn.Dataset.GraphMixin.GraphMixin()
+>> init_transform: Initialize the data transformation method.
 
 ## Distributed
 ### Semi_sklearn.Distributed.DataParallel.DataParallel
 > CLASS Semi_sklearn.DataParallel.DataParallel(device_ids=None, output_device=None, dim=0)
 >> Parameter
->> - device_ids
->> - output_device
->> - dim
+>> - device_ids: Available GPUs.
+>> - output_device: The GPU where the output result is stored.
+>> - dim: The dimension of data aggregation from each device.
+
+### Semi_sklearn.Distributed.DistributedDataParallel.DistributedDataParallel
+> CLASS Semi_sklearn.DistributedDataParallel.DistributedDataParallel(device_ids=None,
+        output_device=None,
+        dim=0,
+        broadcast_buffers=True,
+        process_group=None,
+        bucket_cap_mb=25,
+        find_unused_parameters=False,
+        gradient_as_bucket_view=False)
+>> Parameter
+>> - device_ids: Available GPUs.
+>> - output_device: The GPU where the output result is stored.
+>> - dim: The dimension of data aggregation from each device.
+>> - broadcast_buffers: Flag that enables syncing (broadcasting) buffers of the module at beginning of the 'forward' function. 
+>> - process_group: The process group to be used for distributed data all-reduction. If None, the default process group, which is created by :func:'torch.distributed.init_process_group', will be used.
+>> - bucket_cap_mb: 'DistributedDataParallel' will bucket parameters into multiple buckets so that gradient reduction of each bucket can potentially overlap with backward computation. :attr:'bucket_cap_mb' controls the bucket size in MegaBytes (MB).
+>> - find_unused_parameters: Traverse the autograd graph from all tensors contained in the return value of the wrapped module's 'forward' function. Parameters that don't receive gradients as part of this graph are preemptively marked as being ready to be reduced. In addition, parameters that may have been used in the wrapped module's 'forward' function but were not part of loss computation and thus would also not receive gradients are preemptively marked as ready to be reduced.
+>> - gradient_as_bucket_view: When set to True, gradients will be views pointing to different offsets of 'allreduce' communication buckets. This can reduce peak memory usage, where the saved memory size will be equal to the total gradients size. Moreover, it avoids the overhead of copying between gradients and 'allreduce' communication buckets. When gradients are views, detach_() cannot be called on the gradients. If hitting such errors, please fix it by referring to the :meth: '~torch.optim.Optimizer.zero_grad' function in 'torch/optim/optimizer.py' as a solution.
+
 
 ## Evaluation
 ### Semi_sklearn.Evaluation.Classification
+#### Semi_sklearn.Evaluation.Classification.EvaluationClassification
+> CLASS Semi_sklearn.Evaluation.Classification.EvaluationClassification()
+>> scoring(y_true,y_pred=None,y_score=None): Initialize the data transformation method.
+>> - y_true: Ground-truth labels.
+>> - y_pred: Hard labels for model predictions.
+>> - y_score: Soft labels for model predictions.
+
 #### Semi_sklearn.Evaluation.Classification.Accuracy
 > CLASS Semi_sklearn.Evaluation.Classification.Accuracy(normalize=True, sample_weight=None)
 >> Parameter
->> - normalize
->> - sample_weight
+>> - normalize: If False, returns the number of correctly classified samples.
+>> - sample_weight: The weight of each sample.
+
+#### Semi_sklearn.Evaluation.Classification.Recall
+> CLASS Semi_sklearn.Evaluation.Classification.Recall(labels=None,
+                 pos_label=1,
+                 average="binary",
+                 sample_weight=None,
+                 zero_division="warn")
+>> Parameter
+> - labels: The set of contained labels.
+>> - pos_label: Positive label for binary classification.
+>> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
+>> - sample_weight: The weight of each sample.
+>> - zero_division: The return value when the denominator is 0.
+
+#### Semi_sklearn.Evaluation.Classification.Precision
+> CLASS Semi_sklearn.Evaluation.Classification.Precision(labels=None,
+                pos_label=1,
+                average="binary",
+                sample_weight=None,
+                zero_division="warn")
+>> Parameter
+>> - labels: The set of contained labels.
+>> - pos_label: Positive label for binary classification.
+>> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
+>> - sample_weight: The weight of each sample.
+>> - zero_division: The return value when the denominator is 0.
+
+#### Semi_sklearn.Evaluation.Classification.Top_k_accurary
+> CLASS Semi_sklearn.Evaluation.Classification.Top_k_accurary(k=2, normalize=True, sample_weight=None, labels=None)
+>> Parameter
+>> - k: The k value of Top_k_accurary.
+>> - normalize: If False, returns the number of correctly classified samples.
+>> - sample_weight: The weight of each sample.
+>> - labels: The set of contained labels.
+
+#### Semi_sklearn.Evaluation.Classification.AUC
+> CLASS Semi_sklearn.Evaluation.Classification.AUC(average="macro",
+                 sample_weight=None,
+                 max_fpr=None,
+                 multi_class="raise",
+                 labels=None)
+>> Parameter
+>> - average: The way to calculate the AUC mean, optional 'micro', 'macro', 'samples', 'weighted' or None.
+>> - sample_weight: The weight of each sample.
+>> - max_fpr: Used to determine the range when only a partial AUC is calculated.
+>> - multi_class: Method for handling multiple classes, optional 'raise', 'ovr', 'ovo'.
+>> - labels: The set of contained labels.
+
+#### Semi_sklearn.Evaluation.Classification.F1
+> CLASS Semi_sklearn.Evaluation.Classification.F1(
+labels=None,
+                 pos_label=1,
+                 average="binary",
+                 sample_weight=None,
+                 zero_division="warn")
+>> Parameter
+>> - labels: The set of contained labels.
+>> - pos_label: Positive label for binary classification.
+>> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
+>> - sample_weight: The weight of each sample.
+>> - zero_division: The return value when the denominator is 0.
 
 ### Semi_sklearn.Evaluation.Regression
+
+#### Semi_sklearn.Evaluation.Regression.EvaluationRegressor
+> CLASS Semi_sklearn.Evaluation.Regression.EvaluationRegressor()
+> scoring(y_true,y_pred=None): Score the performace of the model.
+>> - y_true: Ground-truth labels.
+>> - y_pred: The results of model's predictions.
+
 #### Semi_sklearn.Evaluation.Regression.Mean_absolute_error
 > CLASS Semi_sklearn.Evaluation.Regression.Mean_absolute_error(sample_weight=None, multioutput="uniform_average")
 >> Parameter
->> - sample_weight
->> - multioutput
+>> - sample_weight: The weight of each sample.
+>> - multioutput: Aggregation method for multiple outputs.
+
+#### Semi_sklearn.Evaluation.Regression.Mean_Squared_Error
+> CLASS Semi_sklearn.Evaluation.Regression.Mean_Squared_Error(sample_weight=None, multioutput="uniform_average",squared=True)
+>> Parameter
+>> - sample_weight: The weight of each sample.
+>> - multioutput: Aggregation method for multiple outputs.
+>> - squared: If True, output the MSE loss, otherwise output the RMSE loss.
+
+
+#### Semi_sklearn.Evaluation.Regression.Mean_squared_log_error
+> CLASS Semi_sklearn.Evaluation.Regression.Mean_squared_log_error(sample_weight=None, multioutput="uniform_average")
+>> Parameter
+>> - sample_weight: The weight of each sample.
+>> - multioutput: Aggregation method for multiple outputs.
+>> - squared: If True, output the MSLE loss, otherwise output the RMSLE loss.
+
+### Semi_sklearn.Evaluation.Cluster
+
+#### Semi_sklearn.Evaluation.Cluster.EvaluationCluster
+> CLASS Semi_sklearn.Evaluation.Regression.EvaluationCluster()
+> scoring(y_true=None,clusters=None,X=None): Initialize the data transformation method.
+>> - y_true: Ground-truth labels.
+>> - clusters: Clustering results.
+>> - X: Sample features used in clustering.
+
+#### Semi_sklearn.Evaluation.Cluster.Davies_Bouldin_Score
+> CLASS Semi_sklearn.Evaluation.Davies_Bouldin_Score.Davies_Bouldin_Score()
+
+#### Semi_sklearn.Evaluation.Cluster.Fowlkes_Mallows_Score
+> CLASS Semi_sklearn.Evaluation.Fowlkes_Mallows_Score.Fowlkes_Mallows_Score(sparse=False)
+>> Parameter
+>> - sparse: Whether to use sparse matrices for computation.
 
 ## Loss
 ### Semi_sklearn.LOSS.Consistency
 > CLASS Semi_sklearn.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
 >> Parameter
->> - reduction
->> - activation_1
->> - activation_2
+>> - reduction: How to handle the output.
+>> - activation_1: The activation function to process on the first input.
+>> - activation_2: The activation function to process on the second input.
+>> forward(logits_1,logits_2): Perform loss calculations.
+>> - logits_1: The first input to compute consistency.
+>> - logits_2: The second input to compute consistency.
+
+### Semi_sklearn.LOSS.Cross_Entropy
+> CLASS Semi_sklearn.LOSS.Cross_Entropy(use_hard_labels=True, reduction='none')
+>> Parameter
+>> - use_hard_labels: Whether the target is hard labels.
+>> - reduction: How to handle the output.
+>> forward(logits, targets): Perform loss calculations.
+>> - logits: The result of the model output.
+>> - logits_2: The target result.
+
+### Semi_sklearn.LOSS.KL_div
+> CLASS Semi_sklearn.LOSS.KL_div(softmax_1=True, softmax_2=True)
+>> Parameter
+>> - softmax_1: Whether to softmax the first input.
+>> - softmax_2: Whether to softmax the second input.
+>> forward(logits_1,logits_2): Perform loss calculations.
+>> - logits_1: The first input for KL Divergence calculation.
+>> - logits_2: The second input for KL Divergence calculation.
+
+### Semi_sklearn.LOSS.Semi_supervised_loss
+> CLASS Semi_sklearn.LOSS.Semi_supervised_loss(lambda_u)
+>> Parameter
+>> - lambda_u: The weight of unsupervised loss.
+>> forward(sup_loss,unsup_loss): Perform loss calculations.
+>> - sup_loss: The supervised loss.
+>> - unsup_loss: The unsupervised loss.
 
 ## Network
 ### Semi_sklearn.Network.GCN
 > CLASS Semi_sklearn.Network.GCN(num_features,num_classes,normalize=False)
 >> Parameter
->> - num_features
->> - num_classes
->> - normalize
+>> - num_features: The number of features.
+>> - num_classes: The number of classes.
+>> - normalize: Whether to add self-loops and compute symmetric normalization coefficients on the fly.
+
+### Semi_sklearn.Network.ImprovedGAN
+
+> CLASS Semi_sklearn.Network.ImprovedGAN
+(G=None, D=None,dim_in = 28 ** 2,
+                 hidden_G=[1000,500,250,250,250],
+                 hidden_D=[1000,500,250,250,250],
+                 noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
+                 activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus(),nn.Softplus(), nn.Softplus(), nn.Softplus()],
+                 activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 output_dim = 10,z_dim=100,device='cpu')
+>> Parameter
+>> - G: The neural network of generator.
+>> - D: The neural network of discriminator
+>> - dim_in: The dimension of the inputted samples.
+>> - hidden_G: The dimension of the generator's hidden layers.
+>> - hidden_D: The dimension of the discriminator's hidden layers.
+>> - activations_G: The activation functions for each layer of the generator.
+>> - activations_D: The activation functions for each layer of the discriminator.
+>> - output_dim: The dimension of outputs.
+>> - z_dim: The dimension of the hidden variable used to generate data.
+>> - device: The device to train the model.
+
+### Semi_sklearn.Network.Ladder
+
+> CLASS Semi_sklearn.Network.Ladder
+(encoder_sizes=[1000, 500, 250, 250, 250],
+                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 noise_std=0.2,dim_in=28*28,num_classes=10,device='cpu')
+>> Parameter
+>> - encoder_sizes: The neural network of generator.
+>> - encoder_activations: The activation functions of the encoder.
+>> - noise_std: The standard deviation of the noise.
+>> - dim_in: The dimension of the input samples。
+>> - num_classes: The number of classes.
+>> - device: The device to train the model.
+
+### Semi_sklearn.Network.MLP_Reg
+
+> CLASS Semi_sklearn.Network.MLP_Reg(input_dim = 28 ** 2,hidden_dim=[10],activations=[nn.ReLU()])
+>> Parameter
+>> - input_dim: The dimension of input samples.
+>> - hidden_dim: The dimension of hidden layers.
+>> - activations: The activation functions used in the hidden layers.
+
+### Semi_sklearn.Network.ResNet50
+
+> CLASS Semi_sklearn.Network.ResNet50(block= Bottleneck,
+            layers = [3, 4, 6, 3],
+            num_classes = 1000,
+            zero_init_residual= False,
+            groups = 1,
+            width_per_group = 64,
+            replace_stride_with_dilation = None,
+            norm_layer = None)
+>> Parameter:
+>> - block: The basic network module.
+>> - layers: The number of repetitions of modules with hidden layers of 64, 128, 256, and 512 dimensions.
+>> - num_classes: The number of classes.
+>> - zero_init_residual: Whether to initialize residual with 0.
+>> - groups: The number of groups to compute in parallel.
+>> - width_per_group: The number of convolution kernels in each group.
+>> - replace_stride_with_dilation: A list or tuple of 3 bool variables. It represents whether to perform convolution expansion for 64, 128, and 256-dimensional modules.
+>> - norm_layer: Regularization method. The default is BatchNorm2d.
+
+### Semi_sklearn.Network.SDNE
+> CLASS Semi_sklearn.Network.SDNE(input_dim, hidden_layers, device="cpu")
+>> Parameter:
+>> - input_dim: The dimension of the input samples.
+>> - hidden_layers: The dimension of the hidden layers.
+>> - device: The device to train the model.
+
+### Semi_sklearn.Network.SSVAE
+> CLASS Semi_sklearn.Network.SSVAE(dim_in,num_classes,dim_z,dim_hidden_de=[500,500],
+                 dim_hidden_en_y=[500,500],dim_hidden_en_z=[500,500],
+                 activations_de=[nn.Softplus(),nn.Softplus()],
+                 activations_en_y=[nn.Softplus(),nn.Softplus()],
+                 activations_en_z=[nn.Softplus(),nn.Softplus()],
+                 device='cpu')
+>> Parameter:
+>> - dim_in: The dimension of the input sample.
+>> - num_classes: The number of classes.
+>> - dim_z: The dimension of the hidden variable z.
+>> - dim_hidden_de: The hidden layer dimension of the decoder.
+>> - dim_hidden_en_y: The hidden layer dimension of the encoder for y.
+>> - dim_hidden_en_z: The hidden layer dimension of the encoder for z.
+>> - activations_de: The activation functions of the decoder.
+>> - activations_en_y: The activation functions of the encoder for y.
+>> - activations_en_z: The activation functions of the encoder for z.
+>> - device: The device to train the model.
+
+### Semi_sklearn.Network.TextRCNN
+> CLASS Semi_sklearn.Network.TextRCNN(n_vocab,embedding_dim=300,len_seq=300, padding_idx=None, hidden_size=256, num_layers=1,
+                 dropout=0.0, pretrained_embeddings=None,num_class=2)
+>> Parameter:
+>> - n_vocab: The size of the dictionary.
+>> - embedding_dim: The dimension of the word embedding.
+>> - len_seq: The length of the sentence.
+>> - padding_idx: If specified, the entries at 'padding_idx' do not contribute to the gradient; therefore, the embedding vector at 'padding_idx' is not updated during training, i.e. it remains as a fixed "pad". For a newly constructed Embedding, the embedding vector at 'padding_idx' will default to all zeros, but can be updated to another value to be used as the padding vector.
+>> - hidden_size: The dimension of the hidden layer.
+>> - num_layers: The number of network layers.
+>> - dropout: The dropout rate.
+>> - pretrained_embeddings: The pretrained word embeddings.
+
+### Semi_sklearn.Network.WideResNet
+> CLASS Semi_sklearn.Network.WideResNet(num_classes=10, depth=28, widen_factor=2, drop_rate=0.0)
+>> Parameter:
+>> - num_classes: The number of classes.
+>> - depth: The depth of network.
+>> - widen_factor: The width of the network.It is used to determine hidden layer dimensions.
+>> - dropout: The dropout rate.
 
 ## Optimizer
+
+### Semi_sklearn.Optimizer.BaseOptimizer
+> CLASS Semi_sklearn.Optimizer.BaseOptimizer(defaults)
+>> Parameter:
+>> - defaults: A dict containing default values of optimization options (used when a parameter group doesn't specify them).
+>> init_optimizer(params): Put the parameters that need to be optimized into the optimizer.
+>> - params: The parameters to be optimized.
+
 ### Semi_sklearn.Optimizer.Adam
 > CLASS Semi_sklearn.Optimizer.Adam(lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False)
->> Parameter
->> - lr
->> - betas
->> - eps
->> - weight_decay
->> - amsgrad
+>> Parameter:
+>> - lr: learning rate.
+>> - betas: Coefficients used for computing running averages of gradient and its square.
+>> - eps: Term added to the denominator to improve numerical stability
+>> - weight_decay: Weight decay (L2 penalty)
+>> - amsgrad: whether to use the AMSGrad variant of this algorithm from the paper 'On the Convergence of Adam and Beyond'.
+
+### Semi_sklearn.Optimizer.SGD
+> CLASS Semi_sklearn.Optimizer.SGD(lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False)
+>> Parameter:
+>> - lr: Learning rate.
+>> - momentum: Momentum factor.
+>> - dampening: Dampening for momentum.
+>> - weight_decay: Weight decay (L2 penalty).
+>> - nesterov: Enables Nesterov momentum.
 
 ## Sampler
+
+### Semi_sklearn.Sampler.BaseSampler
+> CLASS Semi_sklearn.Sampler.BaseSampler()
+>> init_sampler(data_source):  Initialize the sampler with data.
+>> - data_source: The data to be sampled.
+
+### Semi_sklearn.Sampler.BatchSampler
+> CLASS Semi_sklearn.Sampler.BatchSampler(batch_size, drop_last)
+>> Parameter:
+>> - batch_size: The number of samples in each batch.
+>> - drop_last: Whether to discard samples less than one batch.
+>> init_sampler(sampler): Initialize batch sampler with sampler.
+>> sampler: The sampler used to initial batch sampler.
+
+### Semi_sklearn.Sampler.SequentialSampler
+> CLASS Semi_sklearn.Sampler.SequentialSampler()
+>> init_sampler(data_source):  Initialize the sampler with data.
+>> - data_source: The data to be sampled.
+
 ### Semi_sklearn.Sampler.RandomSampler
 > CLASS Semi_sklearn.Sampler.RandomSampler(replacement: bool = False, num_samples = None, generator=None)
->> Parameter
->> - replacement
->> - num_samples
->> - generator
+>> Parameter:
+>> - replacement: samples are drawn on-demand with replacement if True.
+>> - num_samples: The number of samples
+>> - generator: Generator used in sampling.
+>> init_sampler(data_source):  Initialize the sampler with data.
+>> - data_source: The data to be sampled.
 
 ## Scheduler
+### Semi_sklearn.Scheduler.BaseScheduler
+> CLASS Semi_sklearn.Scheduler.BaseScheduler(last_epoch=-1, verbose=False)
+>> Parameter:
+>> - last_epoch: The index of last epoch.
+>> - verbose: If 'True', prints a message to stdout for each update.
+>> init_scheduler(optimizer): Initialize the scheduler with the optimizer.
+>> - optimizer: The optimizer used by the model.
+
+### Semi_sklearn.Scheduler.BaseScheduler.LambdaLR
+> CLASS Semi_sklearn.Scheduler.BaseScheduler.LambdaLR(lr_lambda, last_epoch=-1,verbose=False)
+>> Parameter:
+>> - lr_lambda: A function which computes a multiplicative factor given an integer parameter epoch, or a list of such functions, one for each group in optimizer.param_groups.
+>> - last_epoch: The index of last epoch.
+>> - verbose: If 'True', prints a message to stdout for each update.
+
 ### Semi_sklearn.Scheduler.CosineAnnealingLR
 > CLASS Semi_sklearn.Scheduler.CosineAnnealingLR(T_max, eta_min=0, last_epoch=-1, verbose=False)
->> Parameter
->> - T_max
->> - eta_min
->> - last_epoch
->> - verbose
+>> Parameter:
+>> - T_max: Maximum number of iterations.
+>> - eta_min: Minimum learning rate.
+>> - last_epoch: The index of last epoch.
+>> - verbose: If 'True', prints a message to stdout for each update.
+
+### Semi_sklearn.Scheduler.StepLR
+> CLASS Semi_sklearn.Scheduler.StepLR(step_size, gamma=0.1, last_epoch=-1, verbose=False)
+>> Parameter:
+>> - step_size: Period of learning rate decay.
+>> - gamma: Multiplicative factor of learning rate decay.
+>> - last_epoch: The index of last epoch.
+>> - verbose: If 'True', prints a message to stdout for each update.
+
+### Semi_sklearn.Scheduler.Linear_warmup
+> CLASS Semi_sklearn.Scheduler.Linear_warmup(num_training_steps,
+                 num_warmup_steps=0,
+                 start_factor=0,
+                 end_factor=1,
+                 last_epoch=-1，verbose=True)
+>> Parameter:
+>> - num_training_steps: The total number of iterations for training.
+>> - num_warmup_steps: The number of iterations to warm up.
+>> - start_factor: The initialchange factor of the learning rate.
+>> - end_factor: The final change factor of the learning rate.
+>> - last_epoch: The index of the last epoch.
+>> - verbose: Whether to output redundant information.
+
 
 ## Split
 ### Semi_sklearn.Scheduler.Split.SemiSplit
 > Function Semi_sklearn.Scheduler.Split.SemiSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
 >> Parameter
->> - stratified
->> - shuffle
->> - random_state
->> - X
->> - y
->> - labeled_size
+>> - stratified: Whether to stratify by classes.
+>> - shuffle: Whether to shuffle the data. 
+>> - random_state: The random seed.
+>> - X: Samples of the data to be split.
+>> - y: Labels of the data to be split.
+>> - labeled_size: The scale or size of the labeled data.
 
 ## Transform
+
+### Semi_sklearn.Transform.Transformer
+> CLASS Semi_sklearn.Transform.Transformer()
+>> fit(X,y=None): Obtain the processing function through existing data.
+>> - X: Samples for learning the function of transformation.
+>> - y: Labels for learning the function of transformation.
+>> transform(X): Process the new data.
+>> - X: Data to be converted.
+>> fit_transform(X,y=None): Firstly perform fit() on the existing samples X and labels y, and then directly transform y.
+>> - X: Samples for learning and transformation.
+>> - y: Labels fo learning
+>> \_\_call\_\_(X,y=None): It is the same as fit_transform.
+>> - X: Samples for learning and transformation.
+>> - y: labels for learning.
+
+### Semi_sklearn.Transform.Normalization
+> CLASS Semi_sklearn.Transform.Normalization(mean=None,std=None)
+>> - mean: The mean of normalization.
+>> - std: The standard deviation of normalization.
+
+### Semi_sklearn.Transform.MinMaxScalar
+> CLASS Semi_sklearn.Transform.MinMaxScalar(min_val=None,max_val=None)
+>> Parameter:
+>> - min_val: The minimum value.
+>> - max_val: The maximum value.
+
+### Semi_sklearn.Transform.Noise
+> CLASS Semi_sklearn.Transform.Noise(noise_level)
+>> Parameter:
+>> - noise_level: the level of noise.
+
+### Semi_sklearn.Transform.AutoContrast
+> CLASS Semi_sklearn.Transform.AutoContrast()
+
+### Semi_sklearn.Transform.Brightness
+> CLASS Semi_sklearn.Transform.Brightness(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.Color
+> CLASS Semi_sklearn.Transform.Color(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### CLASS Semi_sklearn.Transform.Contrast
+> CLASS Semi_sklearn.Transform.Contrast(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### CLASS Semi_sklearn.Transform.Equalize
+> CLASS Semi_sklearn.Transform.Equalize()
+
+### Semi_sklearn.Transform.Identity
+> CLASS Semi_sklearn.Transform.Identity()
+
+### Semi_sklearn.Transform.Invert
+> CLASS Semi_sklearn.Transform.Invert()
+
+### Semi_sklearn.Transform.Posterize
+> CLASS Semi_sklearn.Transform.Posterize(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.Rotate
+> CLASS Semi_sklearn.Transform.Rotate(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.Sharpness
+> CLASS Semi_sklearn.Transform.Sharpness(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.ShearX
+> CLASS Semi_sklearn.Transform.ShearX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.ShearY
+> CLASS Semi_sklearn.Transform.ShearY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.Solarize
+> CLASS Semi_sklearn.Transform.Solarize(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.TranslateX
+> CLASS Semi_sklearn.Transform.TranslateX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.TranslateY
+> CLASS Semi_sklearn.Transform.TranslateY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: The minimum value of the augmentation.
+>> - max_v: The maximum value of the augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - magnitude: The level of the augmentation.
+>> - v: Specify the value of the augmentation directly.
+
+### Semi_sklearn.Transform.RandomCrop
+> CLASS Semi_sklearn.Transform.RandomCrop(padding=None, pad_if_needed=False, fill=0, padding_mode="constant")
+>> Parameter:
+>> - padding: Optional padding on each border of the image. Default is None. If a single int is provided this is used to pad all borders. If sequence of length 2 is provided this is the padding on left/right and top/bottom respectively. If a sequence of length 4 is provided this is the padding for the left, top, right and bottom borders respectively.
+>> - pad_if_needed: It will pad the image if smaller than the desired size to avoid raising an exception. Since cropping is done after padding, the padding seems to be done at a random offset.
+>> - fill: Pixel fill value for constant fill. Default is 0. If a tuple of length 3, it is used to fill R, G, B channels respectively. This value is only used when the padding_mode is constant. Only number is supported for torch Tensor. Only int or str or tuple value is supported for PIL Image.
+>> - padding_mode: Type of padding. Should be: constant, edge, reflect or symmetric. Default is constant.
+
+### Semi_sklearn.Transform.RandomHorizontalFlip
+> CLASS Semi_sklearn.Transform.RandomHorizontalFlip()
+
+### Semi_sklearn.Transform.CutoutAbs
+> CLASS Semi_sklearn.Transform.CutoutAbs(v,fill,random_v)
+>> Parameter:
+>> - v: The absolute value of the crop size.
+>> - fill: The padding value.
+>> - random_v: Whether to randomly determine the crop size.
+
+### Semi_sklearn.Transform.Cutout
+> CLASS Semi_sklearn.Transform.Cutout(v,fill,random_v=True)
+>> Parameter:
+>> - v: The relative value of crop size.
+>> - fill: The padding value.
+>> - random_v: Whether to randomly determine the crop size.
+
+### Semi_sklearn.Transform.RandAugment
+> CLASS Semi_sklearn.Transform.RandAugment(n, m, num_bins,random=False,augment_list=None)
+>> Parameter:
+>> - n: The times of Random augmentation.
+>> - m: The magnitude of Random augmentation.
+>> - num_bins: The number of intervals  division for the value of the augmentation.
+>> - random: Whether to use random value for augmentation.
+>> - augment_list: The list of augmentations and their minimum and maximum values.
+
+### Semi_sklearn.Transform.Tokenizer
+> CLASS Semi_sklearn.Transform.Tokenizer(tokenizer, language='en')
+>> Parameter:
+>> - tokenizer: Function name for word segmentation, such as basic_english, spacy, moses, toktok, revtok, subword, etc.
+>> - language: The language of the text.
+
+### Semi_sklearn.Transform.Vocab
+> CLASS Semi_sklearn.Transform.Vocab(word_vocab=None,vectors=None,text=None,min_freq=1,specials=["<unk>","<pad>"],special_first=True,default_index=None,tokenizer=None)
+>> Parameter:
+>> - word_vocab: A map that converts words to indexes.
+>> - vectors: Word vectors. 
+>> - text: When word_vocab is None, use text to create a mapping table.
+>> - min_freq: The minimum frequency required for a word to be used as a token in the word_vocab. It is valid when word_vocab is None and a mapping table needs to be constructed. 
+>> - specials: List of special characters.
+>> - special_first: Whether to put special characters at the top of the mapping table.
+>> - default_index: The default value that should be used when converting a word to an index if it cannot be converted.
+>> - tokenizer: The word segmentation method used.
+
+### Semi_sklearn.Transform.Vectors
+> CLASS Semi_sklearn.Transform.Vectors(name, cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True, pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - name: The name of the word vector.
+>> - cache: Directory for cached vectors。
+>> - url: The download address of the word vector.
+>> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - pad_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - max_vectors: The maximum number of word vectors.
+>> - lower_case_backup: Whether to convert all to lowercase when looking up words.
+>> - pad_token: The default padding token.
+>> - unk_token: The default token represents unknown words.
+
+### Semi_sklearn.Transform.CharNGram
+> CLASS Semi_sklearn.Transform.CharNGram(lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - lower_case_backup: Whether to convert all to lowercase when looking up words.
+>> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - pad_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - pad_token: The default padding token.
+>> - unk_token: The default token represents unknown words.
+
+### Semi_sklearn.Transform.FastText
+> CLASS Semi_sklearn.Transform.FastText(language="en",lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - language: Language type.
+>> - lower_case_backup: Whether to convert all to lowercase when looking up words.
+>> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - pad_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - pad_token: The default padding token.
+>> - unk_token: The default token represents unknown words.
+
+### Semi_sklearn.Transform.GloVe
+> CLASS Semi_sklearn.Transform.GloVe(name="840B", dim=300,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - name: The name of the word vector.
+>> - dim: The dimension of the word vector.
+>> - lower_case_backup: Whether to convert all to lowercase when looking up words.
+>> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - pad_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+>> - pad_token: The default padding token.
+>> - unk_token: The default token represents unknown words.
+
+### Semi_sklearn.Transform.Truncate
+> CLASS Semi_sklearn.Transform.Truncate(length=100,pos=0)
+>> Paraameter:
+>> - length: The length of the truncated text .
+>> - pos: The position to start truncating.
+
+### Semi_sklearn.Transform.Pad_sequence
+> CLASS Semi_sklearn.Transform.Pad_sequence(length,pad_val=None)
+>> Parameter:
+>> - length: The length of the text after padding.
+>> - pad_val: The padding value for insufficient length of text.
+
 ### Semi_sklearn.Transform.Adjust_length
 > CLASS Semi_sklearn.Transform.Adjust_length(length, pad_val=None, pos=0)
->> Parameter
->> - length
->> - pad_val
->> - pos
+>> Parameter:
+>> - length: Length of adjusted sentence.
+>> - pad_val: The padding value for insufficient length of text.
+>> - pos；If the sentence is too long and needs to be cut, this parameter specifies the position to start cutting.
 
-## utils
+### Semi_sklearn.Transform.Random_deletion
+> CLASS Semi_sklearn.Transform.Random_deletion(p,tokenizer=None)
+>> Parameter:
+>> - p: The proportion of random deletions.
+>> - tokenizer: The tokenizer used when the text is not untokenized.
 
-### Semi_sklearn.utils.get_indexing_method
-> Function Semi_sklearn.utils.get_indexing_method(data)
->> Parameter
->> - data
+### Semi_sklearn.Transform.Random_insertion
+> CLASS Semi_sklearn.Transform.Random_insertion(n=1,tokenizer=None)
+>> Parameter:
+>> - n: The number of times to add words.
+>> - tokenizer: The tokenizer used when the text is not untokenized.
+
+### Semi_sklearn.Transform.Random_swap
+> CLASS Semi_sklearn.Transform.Random_swap(n=1,tokenizer=None)
+>> Parameter:
+>> - n: The number of times to swap words.
+>> - tokenizer: The tokenizer used when the text is not untokenized.
+
+### Semi_sklearn.Transform.TFIDF_replacement
+> CLASS Semi_sklearn.Transform.TFIDF_replacement(text,p=0.7,tokenizer=None,cache_len=100000)
+>> Parameter:
+>> - text: The text that needs to be augmented.
+>> - p: Basic replacement probability.
+>> - tokenizer: The tokenizer used when the text is not untokenized.
+>> - cache_len: buffer size of Random numbers.
+
+### Semi_sklearn.Transform.NormalizeFeatures
+> CLASS Semi_sklearn.Transform.NormalizeFeatures(attrs=["x"])
+>> Parameter:
+>> - attrs: Properties that require regularization.
+
+### Semi_sklearn.Transform.GDC
+> CLASS Semi_sklearn.Transform.GDC(self_loop_weight=1, normalization_in='sym',
+                 normalization_out='col',
+                 diffusion_kwargs=dict(method='ppr', alpha=0.15),
+                 sparsification_kwargs=dict(method='threshold',avg_degree=64),
+                 exact=True)
+>> Parameter:
+>> - self_loop_weight: Weight of the added self-loop. Set to None to add no self-loops. 
+>> - normalization_in: Normalization of the transition matrix on the original (input) graph. Possible values: "sym", "col", and "row"`.
+>> - normalization_out: Normalization of the transition matrix on the transformed GDC (output) graph. Possible values: "sym", "col", and "row"`.
+>> - diffusion_kwargs: Dictionary containing the parameters for diffusion.
+>> - sparsification_kwargs: Dictionary containing the parameters for sparsification.
+>> - exact: Whether to accurately calculate the diffusion matrix.
+
+### Semi_sklearn.Transform.Mixup
+> CLASS Semi_sklearn.Transform.Mixup(alpha)
+>> Parameter:
+>> - alpha: The parameter of the beta distribution.
+
+### Semi_sklearn.Transform.ToImage
+> CLASS Semi_sklearn.Transform.ToImage()
+
+### Semi_sklearn.Transform.ImageToTensor
+> CLASS Semi_sklearn.Transform.ImageToTensor()
+
+### Semi_sklearn.Transform.ToTensor
+> CLASS Semi_sklearn.Transform.ToTensor()
 
 # FAQ
 1. What is the difference of interfaces between Semi-sklearn and the semi-supervised learning module of sklearn?

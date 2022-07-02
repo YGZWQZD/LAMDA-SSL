@@ -7,7 +7,7 @@ import PIL
 import numpy as np
 
 class ShearX(Transformer):
-    def __init__(self, min_v,max_v,num_bins,magnitude,v=None):
+    def __init__(self, min_v=0,max_v=0.3,num_bins=10,magnitude=5,v=None):
         super().__init__()
         self.max_v=max_v
         self.min_v=min_v

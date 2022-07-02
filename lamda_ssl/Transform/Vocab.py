@@ -41,7 +41,6 @@ class Vocab(Transformer):
 
 
     def transform(self,X):
-        # print(len(X))
         if self.vectors is not None:
             return [self.word_vocab[item] if item in self.word_vocab.keys() else self.default_index for item in X]
         return [self.word_vocab[item] for item in X]

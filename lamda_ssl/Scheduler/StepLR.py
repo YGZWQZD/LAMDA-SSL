@@ -1,6 +1,6 @@
 from torch.optim import lr_scheduler
-from lamda_ssl.Scheduler.SemiScheduler import SemiScheduler
-class StepLR(SemiScheduler):
+from lamda_ssl.Scheduler.BaseScheduler import BaseScheduler
+class StepLR(BaseScheduler):
     def __init__(self,  step_size, gamma=0.1, last_epoch=-1, verbose=False):
         super().__init__(last_epoch=last_epoch,verbose=verbose)
         self.step_size=step_size

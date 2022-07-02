@@ -5,7 +5,7 @@ import PIL
 import numpy as np
 
 class Posterize(Transformer):
-    def __init__(self, min_v,max_v,num_bins,magnitude,v=None):
+    def __init__(self, min_v=4,max_v=8,num_bins=10,magnitude=5,v=None,scale=255):
         super().__init__()
         self.max_v=max_v
         self.min_v=min_v
@@ -13,6 +13,7 @@ class Posterize(Transformer):
         self.magnitude=magnitude
         self.magnitudes=self.max_v - (torch.arange(self.num_bins) / ((self.num_bins - 1) / self.min_v)).round().int()
         self.v=self.magnitudes[self.magnitude-1].item()if v is None else v
+        self.scale=scale
         self.v = int(max(1, self.v))
 
 
@@ -23,7 +24,7 @@ class Posterize(Transformer):
             X=PIL.ImageOps.posterize(X, self.v)
             return X
         elif isinstance(X,torch.Tensor):
-            X=F.posterize(X, int(self.v))
+            X=F.posterize((X*self.scale).type(torch.uint8), self.v)/self.scale
             return X
         else:
             raise ValueError('No data to augment')

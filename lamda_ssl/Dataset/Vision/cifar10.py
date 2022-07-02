@@ -4,15 +4,10 @@ from lamda_ssl.Dataset.VisionMixin import VisionMixin
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 import os
 import pickle
-from lamda_ssl.Split.Split import SemiSplit
+from lamda_ssl.Split.Data_Split import Data_Split
 from lamda_ssl.Dataset.TrainDataset import TrainDataset
 from lamda_ssl.Dataset.LabeledDataset import LabeledDataset
 from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
-
-from lamda_ssl.Transform.Normalization import Normalization
-from lamda_ssl.Transform.ImageToTensor import ToTensor
-from sklearn.pipeline import Pipeline
-from lamda_ssl.Transform.ToImage import ToImage
 
 class CIFAR10(SemiDataset,VisionMixin):
     base_folder = "cifar-10-batches-py"
@@ -41,6 +36,8 @@ class CIFAR10(SemiDataset,VisionMixin):
     def __init__(
         self,
         root: str,
+        default_transforms=False,
+        pre_transform=None,
         transforms=None,
         transform = None,
         target_transform = None,
@@ -53,8 +50,9 @@ class CIFAR10(SemiDataset,VisionMixin):
         shuffle=True,
         random_state=None,
         download: bool = False,
-    ) -> None:
 
+    ) -> None:
+        self.default_transforms=default_transforms
         self.labeled_X=None
         self.labeled_y=None
         self.unlabeled_X=None
@@ -87,7 +85,7 @@ class CIFAR10(SemiDataset,VisionMixin):
         self.test_y_indexing_method=None
 
 
-        SemiDataset.__init__(self,transforms=transforms,transform=transform, target_transform=target_transform,
+        SemiDataset.__init__(self,pre_transform=pre_transform,transforms=transforms,transform=transform, target_transform=target_transform,
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
@@ -105,8 +103,9 @@ class CIFAR10(SemiDataset,VisionMixin):
             raise RuntimeError("Dataset not found or corrupted. You can use download=True to download it")
 
         self._load_meta()
+        if self.default_transforms:
+            self.init_default_transforms()
         self.init_dataset()
-        self.init_transforms()
 
     def _load_meta(self) -> None:
         path = os.path.join(self.root, self.base_folder, self.meta["filename"])
@@ -162,8 +161,8 @@ class CIFAR10(SemiDataset,VisionMixin):
         train_X = train_X.transpose((0, 2, 3, 1))
 
         if self.valid_size is not None:
-            valid_X, valid_y, train_X, train_y = SemiSplit(X=train_X, y=train_y,
-                                                                   labeled_size=self.valid_size,
+            valid_X, valid_y, train_X, train_y = Data_Split(X=train_X, y=train_y,
+                                                                   size_split=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
                                                                    random_state=self.random_state
@@ -173,9 +172,8 @@ class CIFAR10(SemiDataset,VisionMixin):
             valid_y=None
 
         if self.labeled_size is not None:
-            # print(self.random_state)
-            labeled_X, labeled_y, unlabeled_X, unlabeled_y = SemiSplit(X=train_X,y=train_y,
-                                                                   labeled_size=self.labeled_size,
+            labeled_X, labeled_y, unlabeled_X, unlabeled_y = Data_Split(X=train_X,y=train_y,
+                                                                   size_split=self.labeled_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
                                                                    random_state=self.random_state
@@ -183,16 +181,16 @@ class CIFAR10(SemiDataset,VisionMixin):
         else:
             labeled_X, labeled_y=train_X,train_y
             unlabeled_X, unlabeled_y=None,None
-        self.test_dataset=LabeledDataset(transform=self.test_transform)
+        self.test_dataset=LabeledDataset(pre_transform=self.pre_transform,transform=self.test_transform)
         self.test_dataset.init_dataset(test_X,test_y)
-        self.valid_dataset=LabeledDataset(transform=self.valid_transform)
+        self.valid_dataset=LabeledDataset(pre_transform=self.pre_transform,transform=self.valid_transform)
         self.valid_dataset.init_dataset(valid_X,valid_y)
-        self.train_dataset = TrainDataset(transforms=self.transforms,transform=self.transform,
+        self.train_dataset = TrainDataset(pre_transform=self.pre_transform,transforms=self.transforms,transform=self.transform,
                                           target_transform=self.target_transform,unlabeled_transform=self.unlabeled_transform)
-        labeled_dataset=LabeledDataset(transforms=self.transforms,transform=self.transform,
+        labeled_dataset=LabeledDataset(pre_transform=self.pre_transform,transforms=self.transforms,transform=self.transform,
                                           target_transform=self.target_transform)
         labeled_dataset.init_dataset(labeled_X, labeled_y)
-        unlabeled_dataset=UnlabeledDataset(transform=self.unlabeled_transform)
+        unlabeled_dataset=UnlabeledDataset(pre_transform=self.pre_transform,transform=self.unlabeled_transform)
         unlabeled_dataset.init_dataset(unlabeled_X, unlabeled_y)
         self.train_dataset.init_dataset(labeled_dataset=labeled_dataset,unlabeled_dataset=unlabeled_dataset)
 

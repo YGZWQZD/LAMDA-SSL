@@ -1,30 +1,38 @@
 import copy
-import random
-
-from scipy import stats
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 import numpy as np
-
-def normfun(x, mu, sigma):
-
-    k=len(x)
-
-    dis=np.expand_dims(x-mu,axis=0)
-
-    pdf = np.exp(-0.5*dis.dot(np.linalg.inv(sigma)).dot(dis.T))/np.sqrt(((2*np.pi)**k)*np.linalg.det(sigma))
-
-    return pdf
+from torch.utils.data.dataset import Dataset
+from lamda_ssl.utils import class_status
+import lamda_ssl.Config.SSGMM as config
 
 class SSGMM(InductiveEstimator,ClassifierMixin):
-    def __init__(self,num_classes, tolerance=1e-8, max_iterations=300):
+    def __init__(self,tolerance=config.tolerance, max_iterations=config.max_iterations, num_classes=config.num_classes,
+                 evaluation=config.evaluation,verbose=config.verbose,file=config.file):
         self.num_classes=num_classes
         self.tolerance=tolerance
         self.max_iterations=max_iterations
+        self.evaluation = evaluation
+        self.verbose = verbose
+        self.file = file
+        self.y_pred=None
+        self.y_score=None
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def normfun(self,x, mu, sigma):
+
+        k = len(x)
+
+        dis = np.expand_dims(x - mu, axis=0)
+
+        pdf = np.exp(-0.5 * dis.dot(np.linalg.inv(sigma)).dot(dis.T)) / np.sqrt(
+            ((2 * np.pi) ** k) * np.linalg.det(sigma))
+
+        return pdf
+
     def fit(self,X,y,unlabeled_X):
-        # print(X)
+        self.num_classes = self.num_classes if self.num_classes is not None else \
+            class_status(y).num_classes
         L=len(X)
         U=len(unlabeled_X)
         m=L+U
@@ -37,24 +45,6 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         self.mu=[]
         self.alpha=[]
 
-        # for i in range(self.n_class):
-        #     self.alpha.append(1.0*len(labele_set[i])/L)
-        #     _mu=0
-        #     for item in labele_set[i]:
-        #         _mu=_mu+X[item]
-        #     _mu=_mu/len(labele_set[i])
-        #     self.mu.append(_mu)
-            # _sigma=0
-            # for item in labele_set[i]:
-            #     dis=X[item]-self.mu[i]
-            #     if len(dis.shape)==1:
-            #         dis = np.expand_dims(dis, axis=0)
-            #     _sigma=_sigma+np.matmul(dis.T,dis)
-            # _sigma=_sigma/len(labele_set[i])
-            # self.sigma.append(_sigma)
-
-        # self.mu=np.array(self.mu)
-        # self.alpha=np.array(self.alpha)
         self.gamma=np.empty((U,self.num_classes))
         self.alpha = np.random.rand(self.num_classes)
         self.alpha = self.alpha / self.alpha.sum()
@@ -65,15 +55,14 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
 
         for _ in range(self.max_iterations):
             # E Step
-            # print(_)
             pre=copy.copy(self.alpha)
 
             for j in range(U):
                 _sum=0
                 for i in range(self.num_classes):
-                    _sum+=self.alpha[i]*normfun(unlabeled_X[j],self.mu[i],self.sigma[i])
+                    _sum+=self.alpha[i]*self.normfun(unlabeled_X[j],self.mu[i],self.sigma[i])
                 for i in range(self.num_classes):
-                    self.gamma[j][i]=self.alpha[i]*normfun(unlabeled_X[j],self.mu[i],self.sigma[i])/_sum
+                    self.gamma[j][i]=self.alpha[i]*self.normfun(unlabeled_X[j],self.mu[i],self.sigma[i])/_sum
                     # print(self.gamma[j][i])
 
 
@@ -89,10 +78,9 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
                 for j in range(U):
                     _sum_mu+=self.gamma[j][i]*unlabeled_X[j]
                     _norm+=self.gamma[j][i]
-                #print(_norm)
+
                 self.mu[i]=_sum_mu/_norm
 
-                # print(self.mu[i])
                 self.alpha[i]=_norm/m
 
 
@@ -101,9 +89,6 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
 
                 for j in range(U):
                     _sum_sigma += self.gamma[j][i]*np.outer(unlabeled_X[j] - self.mu[i], unlabeled_X[j] - self.mu[i])
-                    # print(unlabeled_X[j])
-                    # print(self.mu[i])
-                #print(_sum_sigma)
                 self.sigma[i]=_sum_sigma/_norm
 
             isOptimal = True
@@ -117,22 +102,56 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         return self
 
     def predict_proba(self,X):
-        proba=np.empty((len(X),self.num_classes))
+        y_proba=np.empty((len(X),self.num_classes))
         for i in range(len(X)):
             _sum=0
             for j in range(self.num_classes):
-                _sum+=normfun(X[i],self.mu[j],self.sigma[j])
+                _sum+=self.normfun(X[i],self.mu[j],self.sigma[j])
             for j in range(self.num_classes):
-                proba[i][j]=normfun(X[i],self.mu[j],self.sigma[j])/_sum
-        return proba
+                y_proba[i][j]=self.normfun(X[i],self.mu[j],self.sigma[j])/_sum
+        return y_proba
 
     def predict(self,X):
-        proba=self.predict_proba(X)
-        result=np.zeros(len(X))
-        for _ in range(len(X)):
-            result[_]=np.argmax(proba[_])
-        return result
+        y_proba=self.predict_proba(X)
+        y_pred=np.argmax(y_proba, axis=1)
+        return y_pred
 
+    def evaluate(self,X,y=None):
+
+        if isinstance(X,Dataset) and y is None:
+            y=getattr(X,'y')
+
+        self.y_score = self.predict_proba(X)
+        self.y_pred=self.predict(X)
+
+
+        if self.evaluation is None:
+            return None
+        elif isinstance(self.evaluation,(list,tuple)):
+            result=[]
+            for eval in self.evaluation:
+                score=eval.scoring(y,self.y_pred,self.y_score)
+                if self.verbose:
+                    print(score, file=self.file)
+                result.append(score)
+            self.result = result
+            return result
+        elif isinstance(self.evaluation,dict):
+            result={}
+            for key,val in self.evaluation.items():
+
+                result[key]=val.scoring(y,self.y_pred,self.y_score)
+
+                if self.verbose:
+                    print(key,' ',result[key],file=self.file)
+                self.result = result
+            return result
+        else:
+            result=self.evaluation.scoring(y,self.y_pred,self.y_score)
+            if self.verbose:
+                print(result, file=self.file)
+            self.result=result
+            return result
 
 
 

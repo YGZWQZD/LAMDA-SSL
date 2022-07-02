@@ -1,45 +1,78 @@
+import copy
+
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
-from lamda_ssl.Base.SemiDeepModelMixin import SemiDeepModelMixin
+from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
-from lamda_ssl.Opitimizer.SemiOptimizer import SemiOptimizer
+from lamda_ssl.Opitimizer.BaseOptimizer import BaseOptimizer
 import lamda_ssl.Network.GCN as GCNNET
+from torch.utils.data.dataset import Dataset
+from torch_geometric.data.data import Data
 import torch.nn.functional as F
 import torch
-from lamda_ssl.utils import to_device
-class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
+from lamda_ssl.utils import class_status
+import lamda_ssl.Config.GCN as config
+
+class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
-                 num_features=1433,
-                 num_classes=7,
-                 normalize=True,
-                 epoch=1,
-                 eval_epoch=None,
-                 optimizer=None,
-                 weight_decay=None,
-                 scheduler=None,
-                 device='cpu',
-                 evaluation=None,
-                 network=None,
-                 parallel=None,
-                 file=None
+                 num_features=config.num_features,
+                 num_classes=config.num_classes,
+                 normalize=config.normalize,
+                 epoch=config.epoch,
+                 eval_epoch=config.eval_epoch,
+                 optimizer=config.optimizer,
+                 weight_decay=config.weight_decay,
+                 scheduler=config.scheduler,
+                 device=config.device,
+                 evaluation=config.evaluation,
+                 network=config.network,
+                 parallel=config.parallel,
+                 file=config.file,
+                 verbose=config.verbose
                  ):
-        self.network=network if network is not None else GCNNET.GCN(num_features=num_features,num_classes=num_classes,
-                                                                    normalize=normalize)
-        SemiDeepModelMixin.__init__(self,
+        DeepModelMixin.__init__(self,
                                     epoch=epoch,
                                     weight_decay=weight_decay,
-                                    network=self.network,
+                                    network=network,
                                     optimizer=optimizer,
                                     scheduler=scheduler,
                                     device=device,
                                     eval_epoch=eval_epoch,
                                     evaluation=evaluation,
                                     parallel=parallel,
-                                    file=file
+                                    file=file,
+                                    verbose=verbose
                                     )
+        self.normalize=normalize
+        self.num_features=num_features
+        self.num_classes=num_classes
         self._estimator_type = ClassifierMixin._estimator_type
 
+    def fit(self,X=None,y=None,unlabeled_X=None,valid_X=None,valid_y=None,
+            edge_index=None,train_mask=None,labeled_mask=None,unlabeled_mask=None,valid_mask=None,test_mask=None):
+        self.init_train_dataset(X,y,unlabeled_X,edge_index,train_mask,labeled_mask,unlabeled_mask,valid_mask,test_mask)
+        self.init_train_dataloader()
+        self.start_fit()
+        self.epoch_loop(valid_X,valid_y)
+        self.end_fit()
+        return self
+
+    def start_fit(self):
+        self.num_features= self.data.x.shape[1] if self.num_features is None else self.num_features
+        self.num_classes = self.num_classes if self.num_classes is not None else \
+            class_status(self.data.y).num_classes
+        if self.network is None:
+            self.network=GCNNET.GCN(num_features=self.num_features,num_classes=self.num_classes,
+                                                                    normalize=self.normalize)
+            self._network=copy.deepcopy(self.network)
+            self.init_model()
+            self.init_ema()
+            self.init_optimizer()
+            self.init_scheduler()
+        self._network.zero_grad()
+        self._network.train()
+
     def init_optimizer(self):
-        if isinstance(self._optimizer,SemiOptimizer):
+        if isinstance(self._optimizer,BaseOptimizer):
             grouped_parameters=[
                 dict(params=self._network.conv1.parameters(), weight_decay=self.weight_decay),
                 dict(params=self._network.conv2.parameters(), weight_decay=0)
@@ -49,10 +82,44 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
     def init_train_dataloader(self):
         pass
 
-    def init_train_dataset(self, X=None, y=None, unlabeled_X=None):
+    def init_train_dataset(self, X=None, y=None, unlabeled_X=None,
+                           edge_index=None,train_mask=None,labeled_mask=None,
+                           unlabeled_mask=None,val_mask=None,test_mask=None):
+        if isinstance(X,Dataset):
+            X=X.data
+        if not isinstance(X,Data):
+            if unlabeled_X is not None:
+                if not isinstance(X, torch.Tensor):
+                    X = torch.Tensor(X)
+                if not isinstance(y, torch.Tensor):
+                    y = torch.LongTensor(y)
+                if not isinstance(unlabeled_X, torch.Tensor):
+                    unlabeled_X = torch.Tensor(unlabeled_X)
+                if not isinstance(edge_index, torch.Tensor):
+                    edge_index = torch.LongTensor(edge_index)
+                if not isinstance(train_mask, torch.Tensor):
+                    train_mask = torch.BoolTensor(train_mask)
+                if not isinstance(labeled_mask, torch.Tensor):
+                    labeled_mask = torch.BoolTensor(labeled_mask)
+                if not isinstance(unlabeled_mask, torch.Tensor):
+                    unlabeled_mask = torch.BoolTensor(unlabeled_mask)
+                if not isinstance(val_mask, torch.Tensor):
+                    val_mask = torch.BoolTensor(val_mask)
+                if not isinstance(val_mask, torch.Tensor):
+                    test_mask = torch.BoolTensor(test_mask)
+
+                if unlabeled_X is not None:
+                    X = torch.cat((X, unlabeled_X), dim=0)
+                    unlabeled_y = torch.ones(unlabeled_X.shape[0]) * -1
+                    y = torch.cat((y, unlabeled_y), dim=0)
+
+            X=Data(X=X,y=y,edge_index=edge_index,train_mask=train_mask,labeled_mask=labeled_mask,
+                   unlabeled_mask=unlabeled_mask,val_mask=val_mask,test_mask=test_mask)
         self.data=X
         self.labeled_mask = self.data.labeled_mask if hasattr(self.data,'labeled_mask') else None
-        self.unlabeled_mask = self.data.labeled_mask if hasattr(self.data,'unlabeled_mask') else None
+        self.unlabeled_mask = self.data.unlabeled_mask if hasattr(self.data,'unlabeled_mask') else None
+        self.valid_mask = self.data.val_mask if hasattr(self.data, 'val_mask') else None
+        self.test_mask = self.data.test_mask if hasattr(self.data, 'test_mask') else None
 
 
 
@@ -62,7 +129,8 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
             valid_X=self.data.val_mask
 
         for self._epoch in range(1,self.epoch+1):
-            print(self._epoch,file=self.file)
+            if self.verbose:
+                print(self._epoch,file=self.file)
             train_result = self.train(lb_X=self.data.labeled_mask)
 
             self.end_batch_train(train_result)
@@ -88,8 +156,8 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         pass
 
     def init_pred_dataset(self, X=None, valid=False):
-        if X is not None:
-            X=to_device(X,self.device)
+        if X is not None and not isinstance(X, torch.Tensor):
+            X = torch.BoolTensor(X).to(self.device)
         if valid:
             self.pred_mask = X if X is not None else self.data.val_mask
         else:
@@ -101,11 +169,11 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
 
 
     def predict(self,X=None,valid=None):
-        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+        return DeepModelMixin.predict(self,X=X,valid=valid)
 
 
     @torch.no_grad()
-    def evaluate(self,X,y=None,valid=False):
+    def evaluate(self,X=None,y=None,valid=False):
         y_pred=self.predict(X,valid=valid).cpu()
         y_score=self.y_score.cpu()
         y =self.data.y[X] if y is None else y
@@ -114,16 +182,25 @@ class GCN(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         elif isinstance(self.evaluation,(list,tuple)):
             result=[]
             for eval in self.evaluation:
-                result.append(eval.scoring(y,y_pred,y_score))
+                score=eval.scoring(y,y_pred,y_score)
+                if self.verbose:
+                    print(score,file=self.file)
+                result.append(score)
+            self.result=result
             return result
         elif isinstance(self.evaluation,dict):
             result={}
             for key,val in self.evaluation.items():
                 result[key]=val.scoring(y,y_pred,y_score)
-                print(key,' ',result[key],file=self.file)
+                if self.verbose:
+                    print(key,' ',result[key],file=self.file)
+            self.result = result
             return result
         else:
             result=self.evaluation.scoring(y,y_pred,y_score)
+            if self.verbose:
+                print(result,file=self.file)
+            self.result = result
             return result
 
 

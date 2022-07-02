@@ -1,5 +1,5 @@
 from lamda_ssl.Transform.Normalization import Normalization
-from lamda_ssl.Transform.ImageToTensor import ToTensor
+from lamda_ssl.Transform.ImageToTensor import ImageToTensor
 from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
 from lamda_ssl.Transform.ToImage import ToImage
@@ -8,20 +8,20 @@ class VisionMixin:
         self.mean=mean
         self.std=std
 
-    def init_transforms(self):
+    def init_default_transforms(self):
         self.transforms=None
         self.target_transform=None
         self.pre_transform=ToImage()
-        self.transform=Pipeline([('ToTensor',ToTensor()),
+        self.transform=Pipeline([('ToTensor',ImageToTensor()),
                               ('Normalization',Normalization(mean=self.mean,std=self.std))
                               ])
-        self.unlabeled_transform=Pipeline([('ToTensor',ToTensor()),
+        self.unlabeled_transform=Pipeline([('ToTensor',ImageToTensor()),
                               ('Normalization',Normalization(mean=self.mean,std=self.std))
                               ])
-        self.test_transform=Pipeline([('ToTensor',ToTensor()),
+        self.test_transform=Pipeline([('ToTensor',ImageToTensor()),
                               ('Normalization',Normalization(mean=self.mean,std=self.std))
                               ])
-        self.valid_transform=Pipeline([('ToTensor',ToTensor()),
+        self.valid_transform=Pipeline([('ToTensor',ImageToTensor()),
                               ('Normalization',Normalization(mean=self.mean,std=self.std))
                               ])
         return self

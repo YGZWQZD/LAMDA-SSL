@@ -1,6 +1,6 @@
 from lamda_ssl.Transform.Transformer import Transformer
 import torch_geometric.transforms as gt
-class NormalizeFeatures(Transformer):
+class GDC(Transformer):
     def __init__(self,self_loop_weight=1, normalization_in='sym',
                  normalization_out='col',
                  diffusion_kwargs=dict(method='ppr', alpha=0.15),

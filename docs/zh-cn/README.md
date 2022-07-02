@@ -1202,63 +1202,6 @@ train_dataset=None,
 >> - lambda_rot: 旋转角度分类损失的权重。
 >> - rotate_v_list: 旋转角度列表。
 
-#### Semi_sklearn.Algorithm.Classifier.ReMixmatch
-> CLASS Semi_sklearn.Algorithm.Classifier.ReMixmatch（train_dataset=None,
-                 valid_dataset=None,
-                 test_dataset=None,
-                 train_dataloader=None,
-                 valid_dataloader=None,
-                 test_dataloader=None,
-                 augmentation=None,
-                 network=None,
-                 train_sampler=None,
-                 train_batch_sampler=None,
-                 valid_sampler=None,
-                 valid_batch_sampler=None,
-                 test_sampler=None,
-                 test_batch_sampler=None,
-                 labeled_dataset=None,
-                 unlabeled_dataset=None,
-                 labeled_dataloader=None,
-                 unlabeled_dataloader=None,
-                 labeled_sampler=None,
-                 unlabeled_sampler=None,
-                 labeled_batch_sampler=None,
-                 unlabeled_batch_sampler=None,
-                 epoch=1,
-                 num_it_epoch=None,
-                 num_it_total=None,
-                 warmup=None,
-                 eval_epoch=None,
-                 eval_it=None,
-                 optimizer=None,
-                 weight_decay=None,
-                 scheduler=None,
-                 device='cpu',
-                 evaluation=None,
-                 mu=None,
-                 ema_decay=None,
-                 parallel=None,
-                 file=None,
-                 lambda_u=None,
-                 T=None,
-                 num_classes=10,
-                 alpha=None,
-                 p_target=None,
-                 lambda_s=None,
-                 lambda_rot=None,
-                 rotate_v_list=None
-                 )
->> Parameter
->> - lambda_u: 无监督损失的权重。
->> - T: 锐化温度。
->> - num_classes: 类别数量。
->> - alpha: Mixup中的Beta分布的参数。
->> - p_target: 有标注数据的标注分布。
->> - lambda_s: 基于Mixup前的数据计算的无监督损失的权重。
->> - lambda_rot: 旋转角度分类损失的权重。
->> - rotate_v_list: 旋转角度列表。
-
 #### Semi_sklearn.Algorithm.Classifier.S3VM
 > CLASS Semi_sklearn.Algorithm.Classifier.S3VM（Cl=1.0,
             Cu=0.001,
@@ -1404,7 +1347,7 @@ similarity_kernel = 'rbf',
 >> - n_neighbors: 核函数为'knn'时有效，表示k近邻中k的值。
 >> - n_jobs: 核函数为'knn'时有效，表示并行作业数量。
 >> - gamma: 核函数为'rbf'时有效，表示rbf核的gamma值。
->> - max_models: 集成中做大模型数量。
+>> - max_models: 集成中最大模型数量。
 >> - sample_percent: 每次迭代采样的样本数量占剩余无标注样本的比例。
 >> - sigma_percentile: 'rbf'核中使用的比例参数。
 
@@ -1412,7 +1355,7 @@ similarity_kernel = 'rbf',
 > CLASS Semi_sklearn.Algorithm.Classifier.SSGMM(num_classes, tolerance=1e-8, max_iterations=300)
 >> Parameter
 >> - num_classes: 类别数量。
->> - tolerance: 迭代阶数的容忍度。
+>> - tolerance: 迭代结束的容忍度。
 >> - max_iterations: 最大迭代次数。
 
 #### Semi_sklearn.Algorithm.Classifier.SSVAE
@@ -1664,8 +1607,8 @@ similarity_kernel = 'rbf',
 
 ## Base
 
-### Semi_sklearn.SemiDeepModelMixin.SemiDeepModelMixin
-> CLASS Semi_sklearn.Base.SemiDeepModelMixin.SemiDeepModelMixin(train_dataset=None,
+### Semi_sklearn.DeepModelMixin.DeepModelMixin
+> CLASS Semi_sklearn.Base.DeepModelMixin.DeepModelMixin(train_dataset=None,
                  labeled_dataset=None,
                  unlabeled_dataset=None,
                  valid_dataset=None,
@@ -1710,10 +1653,10 @@ similarity_kernel = 'rbf',
 >> - augmentation: 增广方法，如果有多种增广方式，可以用字典或列表传参。
 >> - network: 使用的骨干神经网络。
 >> - epoch: 训练轮次数量。
->> - num_it_epoch: 每一轮次的跌打的数量，即数据的批数。
+>> - num_it_epoch: 每一轮次的迭代的数量，即数据的批数。
 >> - num_it_total: 总batch数量。
 >> - eval_epoch: 每隔eval_epoch个epoch进行一次模型效果验证。
->> - eval_it: 每隔eval_epoch个epoch进行一次模型效果验证。
+>> - eval_it: 每隔eval_it次迭代进行一次模型效果验证。
 >> - mu: 无标注数据数量与有标注数据数量的比值。
 >> - optimizer: 训练中使用的优化器。
 >> - weight_decay: 优化器的学习率衰减参数。
@@ -1736,25 +1679,25 @@ similarity_kernel = 'rbf',
 
 ### Semi_sklearn.SemiEstimator.SemiEstimator
 > CLASS Semi_sklearn.Base.SemiEstimator.SemiEstimator()
->> fit(X,y,unlabeled_X)
+>> fit(X,y,unlabeled_X): 进行半监督学习模型训练。
 >> - X: 有标注数据的样本。
 >> - y: 有标注数据的标注。
 >> - unlabeled_X: 无标注数据的样本。
 
 ### Semi_sklearn.InductiveEstimator.InductiveEstimator
 > CLASS Semi_sklearn.Base.InductiveEstimator.InductiveEstimator()
->> predict(X)
+>> predict(X): 对待预测数据进行预测。
 >> - X: 待预测的样本。
 
 ### Semi_sklearn.TransductiveEstimator.TransductiveEstimator
 > CLASS Semi_sklearn.Base.TransductiveEstimator.TransductiveEstimator()
->> predict(X=None,,Transductive=True)
+>> predict(X=None,Transductive=True): 输出直推学习的结果或对待预测数据进行预测。
 >> - X: 待预测的样本，仅在Transductive为False时有效。
 >> - Transductive: 是否使用直推学习机制，直接输出fit时输入的unlabeled_X的预测结果。
 
 ## Dataloader
-
-### Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader
+### Semi_sklearn.DataLoader.LabeledDataLoader.
+#### Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader
 > CLASS Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader(batch_size= 1, shuffle: bool = False,
                  sampler = None, batch_sampler= None,
                  num_workers: int = 0, collate_fn= None,
@@ -1768,116 +1711,923 @@ similarity_kernel = 'rbf',
 >> - sampler: 加载时使用的采样器。
 >> - batch_sampler: 加载时使用的批采样器。
 >> - num_workers: 数据加载时使用的子进程数量。
->> - collate_fn: 
->> - pin_memory: 
->> - drop_last: 
->> - timeout: 
->> - worker_init_fn: 
->> - multiprocessing_context: 
->> - generator: 
->> - prefetch_factor: 
->> - persistent_workers: 
+>> - collate_fn: 将列表中的样本转变为Tensor的方法。
+>> - pin_memory: 如果为“True”，数据加载器将在返回之前将张量复制到 CUDA 固定内存中。
+>> - drop_last: 对于冗余的不够一批次的数据是否丢除。
+>> - timeout: 收集一批次数据的超时值。
+>> - worker_init_fn: 如果不是None，将在每个工作子进程上调用的函数。
+>> - multiprocessing_context: 多进程上下文。
+>> - generator: 如果不是None，采样器为RandomSampler时用来生成随机索引。
+>> - prefetch_factor: 每个进程预先加载的样本数。
+>> - persistent_workers: 如果为“True”，数据加载器将不会在数据集被使用一次后关闭工作进程。 这允许维持工作人员的“数据集”实例处于活动状态。
+
+#### Semi_sklearn.DataLoader.TrainDataLoader.TrainDataLoader
+> CLASS Semi_sklearn.DataLoader.TrainDataLoader.TrainDataLoader(
+batch_size=1,
+                 shuffle = False, sampler = None,
+                 batch_sampler=None, Iterable = None,
+                 num_workers = 0, collate_fn = None,
+                 pin_memory = False, drop_last = True,
+                 timeout = 0, worker_init_fn = None,
+                 multiprocessing_context=None, generator=None,
+                 prefetch_factor = 2,
+                 persistent_workers= False,
+                 batch_size_adjust=False,labeled_dataloader=None,unlabeled_dataloader=None)
+
+>> Parameter
+>> - batch_size: 每一批数据的数量。
+>> - shuffle: 是否对数据进行洗牌。
+>> - sampler: 加载时使用的采样器。
+>> - batch_sampler: 加载时使用的批采样器。
+>> - num_workers: 数据加载时使用的子进程数量。
+>> - collate_fn: 将列表中的样本转变为Tensor的方法。
+>> - pin_memory: 如果为“True”，数据加载器将在返回之前将张量复制到 CUDA 固定内存中。
+>> - drop_last: 对于冗余的不够一批次的数据是否丢除。
+>> - timeout: 收集一批次数据的超时值。
+>> - worker_init_fn: 如果不是None，将在每个工作子进程上调用的函数。
+>> - multiprocessing_context: 多进程上下文。
+>> - generator: 如果不是None，采样器为RandomSampler时用来生成随机索引。
+>> - prefetch_factor: 每个进程预先加载的样本数。
+>> - persistent_workers: 如果为“True”，数据加载器将不会在数据集被使用一次后关闭工作进程。 这允许维持工作人员的“数据集”实例处于活动状态。
+>> - batch_size_adjust: 是否根据无标注样本与有标注样本的比例自动调整labeled_dataloader和unlabeled_dataloader的batch_size的大小。
+>> - labeled_dataloader: 有标注数据的加载器。
+>> - unlabeled_dataloader: 无标注数据的加载器。
+
+#### Semi_sklearn.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader
+> CLASS Semi_sklearn.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader(batch_size= 1,
+                 shuffle: bool = False, sampler = None,
+                 batch_sampler= None,
+                 num_workers: int = 0, collate_fn= None,
+                 pin_memory: bool = False, drop_last: bool = False,
+                 timeout: float = 0, worker_init_fn = None,
+                 multiprocessing_context=None, generator=None,
+                 prefetch_factor: int = 2,
+                 persistent_workers: bool = False)
+>> Parameter
+>> - batch_size: 每一批数据的数量。
+>> - shuffle: 是否对数据进行洗牌。
+>> - sampler: 加载时使用的采样器。
+>> - batch_sampler: 加载时使用的批采样器。
+>> - num_workers: 数据加载时使用的子进程数量。
+>> - collate_fn: 将列表中的样本转变为Tensor的方法。
+>> - pin_memory: 如果为“True”，数据加载器将在返回之前将张量复制到 CUDA 固定内存中。
+>> - drop_last: 对于冗余的不够一批次的数据是否丢除。
+>> - timeout: 收集一批次数据的超时值。
+>> - worker_init_fn: 如果不是None，将在每个工作子进程上调用的函数。
+>> - multiprocessing_context: 多进程上下文。
+>> - generator: 如果不是None，采样器为RandomSampler时用来生成随机索引。
+>> - prefetch_factor: 每个进程预先加载的样本数。
+>> - persistent_workers: 如果为“True”，数据加载器将不会在数据集被使用一次后关闭工作进程。 这允许维持工作人员的“数据集”实例处于活动状态。
 
 ## Dataset
+
 ### Semi_sklearn.Dataset.LabeledDataset.LabeledDataset
 
-> CLASS Semi_sklearn.Dataset.LabeledDataset.LabeledDataset（transforms=None, transform=None, target_transform=None, pre_transform=None)
+> CLASS Semi_sklearn.Dataset.LabeledDataset.LabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
 >> Parameter
->> - transforms
->> - transform
->> - target_transform
->> - pre_transform
+>> - pre_transform: 在增广前对X进行预处理的方式。
+>> - transforms: 在数据增广后同时对X和y进行变换的方式。
+>> - transform: 在数据增广后对X进行变换的方式。
+>> - target_transform: 在数据增广后对y进行变换的方式。
+
+### Semi_sklearn.Dataset.UnlabeledDataset.UnlabeledDataset
+
+> CLASS Semi_sklearn.Dataset.UnlabeledDataset.UnlabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
+>> Parameter
+>> - pre_transform: 在增广前对X进行预处理的方式。
+>> - transform: 在数据增广后对X进行变换的方式。
+
+### Semi_sklearn.Dataset.TrainDataset.TrainDataset
+
+> CLASS Semi_sklearn.Dataset.TrainDataset.TrainDataset(transforms=None,
+                 transform=None,
+                 pre_transform=None,
+                 target_transform=None,
+                 unlabeled_transform=None,
+                 labeled_size=None,
+                 stratified=False,
+                 shuffle=True,
+                 random_state=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None
+                 )
+>> Parameter
+>> - pre_transform: 在增广前对X进行预处理的方式。
+>> - transforms: 在数据增广后同时对X和y进行变换的方式。
+>> - transform: 在数据增广后对X进行变换的方式。
+>> - target_transform: 在数据增广后对y进行变换的方式。
+>> - unlabeled_transform: 在增广后对unlabeled_X进行处理的方式。
+>> - labeled_size: 有标注样本的个数或比例。
+>> - stratified: 是否按类别比例采样。
+>> - shuffle: 是否对数据进行洗牌。
+>> - random_state: 随机种子。
+>> - labeled_dataset: 有标注数据集。
+>> - unlabeled_dataset: 无标注数据集。
+
+### Semi_sklearn.Dataset.SemiDataset.SemiDataset
+
+> CLASS Semi_sklearn.Dataset.SemiDataset.SemiDataset(transforms=None,
+                 transform=None,
+                 pre_transform=None,
+                 target_transform=None,
+                 unlabeled_transform=None,
+                 valid_transform=None,
+                 test_transform=None,
+                 test_size=None,
+                 valid_size=None,
+                 labeled_size=None,
+                 stratified=False,
+                 shuffle=True,
+                 random_state=None):
+>> Parameter
+>> - pre_transform: 在增广前对X进行预处理的方式。
+>> - transforms: 在数据增广后同时对X和y进行变换的方式。
+>> - transform: 在数据增广后对X进行变换的方式。
+>> - target_transform: 在数据增广后对y进行变换的方式。
+>> - unlabeled_transform: 在增广后对unlabeled_X进行处理的方式。
+>> - valid_transform: 在增广后对验证数据的X进行处理的方式。
+>> - test_transform: 在增广后对测试数据的X进行处理的方式。
+>> - test_size: 测试样本的个数或比例。
+>> - valid_size: 验证样本的个数或比例。
+>> - labeled_size: 有标注样本的个数或比例。
+>> - stratified: 是否按类别比例采样。
+>> - shuffle: 是否对数据进行洗牌。
+>> - random_state: 随机种子。
+
+### Semi_sklearn.Dataset.TableMixin.TableMixin
+> CLASS Semi_sklearn.Dataset.TableMixin.TableMixin():
+>> init_transform: 对数据变换方式进行初始化。
+
+### Semi_sklearn.Dataset.VisionMixin.VisionMixin
+> CLASS Semi_sklearn.Dataset.VisionMixin.VisionMixin(mean=None,std=None):
+>> Parameter
+>> - mean: 数据集均值。
+>> - std: 数据集方差。
+>> init_transform: 对数据变换方式进行初始化。
+
+### Semi_sklearn.Dataset.TextMixin.TextMixin
+> CLASS Semi_sklearn.Dataset.Text.Text(word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
+                 min_freq=1,special_first=True,default_index=None):
+>> parameter:
+>> - word_vocab:  将单词转变为下标的映射表。
+>> - vectors: 词向量。
+>> - length: 句长。
+>> - unk_token: 用于表示未知单词的token。
+>> - pad_token: 用于表示填充的token。
+>> - min_freq: 当word_vocab为None，需要构建映射表时，单词可作为token的最低出现频率要求。
+>> - special_first: 是否将特殊字符放在映射表最前面。
+>> - default_index: 将单词转变为下标时如果无法转变应使用的默认值。
+
+### Semi_sklearn.Dataset.GraphMixin.GraphMixin
+> CLASS Semi_sklearn.Dataset.GraphMixin.GraphMixin()
+>> init_transform: 对数据变换方式进行初始化。
 
 ## Distributed
 ### Semi_sklearn.Distributed.DataParallel.DataParallel
 > CLASS Semi_sklearn.DataParallel.DataParallel(device_ids=None, output_device=None, dim=0)
 >> Parameter
->> - device_ids
->> - output_device
->> - dim
+>> - device_ids: 可使用的gpu卡号。
+>> - output_device: 模型输出结果存放的卡号。
+>> - dim: 各设备上数据聚集的维度。
+
+### Semi_sklearn.Distributed.DistributedDataParallel.DistributedDataParallel
+> CLASS Semi_sklearn.DistributedDataParallel.DistributedDataParallel(device_ids=None,
+        output_device=None,
+        dim=0,
+        broadcast_buffers=True,
+        process_group=None,
+        bucket_cap_mb=25,
+        find_unused_parameters=False,
+        gradient_as_bucket_view=False)
+>> Parameter
+>> - device_ids: 可使用的gpu卡号。
+>> - output_device: 模型输出结果存放的卡号。
+>> - dim: 各设备上数据聚集的维度。
+>> - broadcast_buffers: 是否在“forward”函数开始时启用模块的同步缓冲区。
+>> - process_group: 用于分布式数据全归约的进程组。 如果为“None”，将使用由torch.distributed.init_process_group 创建的默认进程组。
+>> - bucket_cap_mb: DistributedDataParallel将参数分到多个桶中，以便每个桶中参数的梯度减少与反向传播计算重叠。
+>> - find_unused_parameters: 是否对forward函数返回的Tensor遍历autograd图，并简化没有被用到的参数。
+>> - gradient_as_bucket_view: 梯度是否是指向``allreduce`` 通信桶的不同偏移量的视图。
+
 
 ## Evaluation
 ### Semi_sklearn.Evaluation.Classification
+#### Semi_sklearn.Evaluation.Classification.EvaluationClassification
+> CLASS Semi_sklearn.Evaluation.Classification.EvaluationClassification()
+>> scoring(y_true,y_pred=None,y_score=None): 对模型进行评分。
+>> - y_true: 真实的样本标注。
+>> - y_pred: 模型预测结果的硬标注。
+>> - y_score: 模型预测结果的软标注。
+
 #### Semi_sklearn.Evaluation.Classification.Accuracy
 > CLASS Semi_sklearn.Evaluation.Classification.Accuracy(normalize=True, sample_weight=None)
 >> Parameter
->> - normalize
->> - sample_weight
+>> - normalize: 如果为False，返回正确分类的样本数量。
+>> - sample_weight: 样本权重。
+
+#### Semi_sklearn.Evaluation.Classification.Recall
+> CLASS Semi_sklearn.Evaluation.Classification.Recall(labels=None,
+                 pos_label=1,
+                 average="binary",
+                 sample_weight=None,
+                 zero_division="warn")
+>> Parameter
+>> - labels: 包含的标注集合。
+>> - pos_label: 二分类时的正类标注。
+>> - average: 多分类时的计算方法，可选'micro', 'macro', 'samples', 'weighted', 'binary'。
+>> - sample_weight: 样本权重。
+>> - zero_division: 分母为0时的返回值。
+
+#### Semi_sklearn.Evaluation.Classification.Precision
+> CLASS Semi_sklearn.Evaluation.Classification.Precision(labels=None,
+                pos_label=1,
+                average="binary",
+                sample_weight=None,
+                zero_division="warn")
+>> Parameter
+>> - labels: 包含的标注集合。
+>> - pos_label: 二分类时的正类标注。
+>> - average: 多分类时的计算方法，可选'micro', 'macro', 'samples', 'weighted', 'binary'。
+>> - sample_weight: 样本权重。
+>> - zero_division: 分母为0时的返回值。
+
+#### Semi_sklearn.Evaluation.Classification.Top_k_accurary
+> CLASS Semi_sklearn.Evaluation.Classification.Top_k_accurary(k=2, normalize=True, sample_weight=None, labels=None)
+>> Parameter
+>> - k: k的取值。
+>> - normalize: 如果为False，返回正确分类的样本数量。
+>> - sample_weight: 样本权重。
+>> - labels: 包含的标注集合。
+
+#### Semi_sklearn.Evaluation.Classification.AUC
+> CLASS Semi_sklearn.Evaluation.Classification.AUC(average="macro",
+                 sample_weight=None,
+                 max_fpr=None,
+                 multi_class="raise",
+                 labels=None)
+>> Parameter
+>> - average: 计算AUC均值的方式，可选'micro', 'macro', 'samples', 'weighted'或None。
+>> - sample_weight: 样本权重。
+>> - max_fpr: 当只计算部分AUC时用于确定范围。
+>> - multi_class: 处理多分类的方法，可选'raise', 'ovr', 'ovo'。
+>> - labels: 包含的标注集合。
+
+#### Semi_sklearn.Evaluation.Classification.F1
+> CLASS Semi_sklearn.Evaluation.Classification.F1(
+labels=None,
+                 pos_label=1,
+                 average="binary",
+                 sample_weight=None,
+                 zero_division="warn")
+>> Parameter
+>> - labels: 包含的标注集合。
+>> - pos_label: 二分类时的正类标注。
+>> - average: 多分类时的计算方法，可选'micro', 'macro', 'samples', 'weighted', 'binary'。
+>> - sample_weight: 样本权重。
+>> - zero_division: 分母为0时的返回值。
 
 ### Semi_sklearn.Evaluation.Regression
+
+#### Semi_sklearn.Evaluation.Regression.EvaluationRegressor
+> CLASS Semi_sklearn.Evaluation.Regression.EvaluationRegressor()
+> scoring(y_true,y_pred=None): 对模型进行评分。
+>> - y_true: 真实标注。
+>> - y_pred: 模型预测结果。
+
 #### Semi_sklearn.Evaluation.Regression.Mean_absolute_error
 > CLASS Semi_sklearn.Evaluation.Regression.Mean_absolute_error(sample_weight=None, multioutput="uniform_average")
 >> Parameter
->> - sample_weight
->> - multioutput
+>> - sample_weight: 样本权重。
+>> - multioutput: 对于多个输出的聚合方法。
+
+#### Semi_sklearn.Evaluation.Regression.Mean_Squared_Error
+> CLASS Semi_sklearn.Evaluation.Regression.Mean_Squared_Error(sample_weight=None, multioutput="uniform_average",squared=True)
+>> Parameter
+>> - sample_weight: 样本权重。
+>> - multioutput: 对于多个输出的聚合方法。
+>> - squared: 如果是True，输出MSE损失，否则输出RMSE损失。
+
+
+#### Semi_sklearn.Evaluation.Regression.Mean_squared_log_error
+> CLASS Semi_sklearn.Evaluation.Regression.Mean_squared_log_error(sample_weight=None, multioutput="uniform_average")
+>> Parameter
+>> - sample_weight: 样本权重。
+>> - multioutput: 对于多个输出的聚合方法。
+>> - squared: 如果是True，输出MSLE损失，否则输出RMSLE损失。
+
+### Semi_sklearn.Evaluation.Cluster
+
+#### Semi_sklearn.Evaluation.Cluster.EvaluationCluster
+> CLASS Semi_sklearn.Evaluation.Regression.EvaluationCluster()
+> scoring(y_true=None,clusters=None,X=None): 对模型进行评分。
+>> - y_true: 真实标注。
+>> - clusters: 聚类结果。
+>> - X: 聚类时使用的样本特征。
+
+#### Semi_sklearn.Evaluation.Cluster.Davies_Bouldin_Score
+> CLASS Semi_sklearn.Evaluation.Davies_Bouldin_Score.Davies_Bouldin_Score()
+
+#### Semi_sklearn.Evaluation.Cluster.Fowlkes_Mallows_Score
+> CLASS Semi_sklearn.Evaluation.Fowlkes_Mallows_Score.Fowlkes_Mallows_Score(sparse=False)
+>> Parameter
+>> - sparse: 是否使用稀疏矩阵进行计算
 
 ## Loss
 ### Semi_sklearn.LOSS.Consistency
 > CLASS Semi_sklearn.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
 >> Parameter
->> - reduction
->> - activation_1
->> - activation_2
+>> - reduction: 对输出的处理方式。
+>> - activation_1: 对于第一个输入进行处理的激活函数。
+>> - activation_2: 对于第二个输入进行处理的激活函数。
+>> forward(logits_1,logits_2): 进行损失计算。
+>> - logits_1: 计算一致性的第一个输入。
+>> - logits_2: 计算一致性的第二个输入。
+
+### Semi_sklearn.LOSS.Cross_Entropy
+> CLASS Semi_sklearn.LOSS.Cross_Entropy(use_hard_labels=True, reduction='none')
+>> Parameter
+>> - use_hard_labels: 目标是否为硬标注。
+>> - reduction: 对输出的处理方式。
+>> forward(logits, targets): 进行损失计算。
+>> - logits: 模型输出的结果。
+>> - logits_2: 目标结果。
+
+### Semi_sklearn.LOSS.KL_div
+> CLASS Semi_sklearn.LOSS.KL_div(softmax_1=True, softmax_2=True)
+>> Parameter
+>> - softmax_1: 是否对第一个输入进行softmax。
+>> - softmax_2: 是否对第二个输入进行softmax。
+>> forward(logits_1,logits_2): 进行损失计算。
+>> - logits_1: 第一个输入。
+>> - logits_2: 第二个输入。
+
+### Semi_sklearn.LOSS.Semi_supervised_loss
+> CLASS Semi_sklearn.LOSS.Semi_supervised_loss(lambda_u)
+>> Parameter
+>> - lambda_u: 无监督算是的权重。
+>> forward(sup_loss,unsup_loss): 进行损失计算。
+>> - sup_loss: 监督损失。
+>> - unsup_loss: 无监督损失。
 
 ## Network
 ### Semi_sklearn.Network.GCN
 > CLASS Semi_sklearn.Network.GCN(num_features,num_classes,normalize=False)
 >> Parameter
->> - num_features
->> - num_classes
->> - normalize
+>> - num_features: 特征维度。
+>> - num_classes: 类别数量。
+>> - normalize: 是否添加自环并即时计算对称归一化系数。
+
+### Semi_sklearn.Network.ImprovedGAN
+
+> CLASS Semi_sklearn.Network.ImprovedGAN
+(G=None, D=None,dim_in = 28 ** 2,
+                 hidden_G=[1000,500,250,250,250],
+                 hidden_D=[1000,500,250,250,250],
+                 noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
+                 activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus(),nn.Softplus(), nn.Softplus(), nn.Softplus()],
+                 activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 output_dim = 10,z_dim=100,device='cpu')
+>> Parameter
+>> - G: 生成器网络。
+>> - D: 判别器网络。
+>> - dim_in: 输入的样本维度。
+>> - hidden_G: 生成器的隐层维度。
+>> - hidden_D: 判别器的隐层维度。
+>> - noise_level: 每一层的噪声级别。
+>> - activations_G: 生成器每一层的激活函数。
+>> - activations_D: 判别器每一层的激活函数。
+>> - output_dim: 输出维度。
+>> - z_dim: 用于生成数据的隐变量维度。
+>> - device: 训练模型的设备。
+
+### Semi_sklearn.Network.Ladder
+
+> CLASS Semi_sklearn.Network.Ladder
+(encoder_sizes=[1000, 500, 250, 250, 250],
+                 encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
+                 noise_std=0.2,dim_in=28*28,num_classes=10,device='cpu')
+>> Parameter
+>> - encoder_sizes: 生成器网络。
+>> - encoder_activations: 编码器的激活函数。
+>> - noise_std: 噪声的方差。
+>> - dim_in: 样本输入的维度。
+>> - num_classes: 类别数量。
+>> - device: 设备。
+
+### Semi_sklearn.Network.MLP_Reg
+
+> CLASS Semi_sklearn.Network.MLP_Reg(input_dim = 28 ** 2,hidden_dim=[10],activations=[nn.ReLU()])
+>> Parameter
+>> - input_dim: 输入样本维度。
+>> - hidden_dim: 隐层维度。
+>> - activations: 隐层使用的激活函数。
+
+### Semi_sklearn.Network.ResNet50
+
+> CLASS Semi_sklearn.Network.ResNet50(block= Bottleneck,
+            layers = [3, 4, 6, 3],
+            num_classes = 1000,
+            zero_init_residual= False,
+            groups = 1,
+            width_per_group = 64,
+            replace_stride_with_dilation = None,
+            norm_layer = None)
+>> Parameter:
+>> - block: 基本网络模块。
+>> - layers: 隐层为64、128、256、512维的模块的重复次数。
+>> - num_classes: 类别数量。
+>> - zero_init_residual: 是否用0初始化residual。
+>> - groups: 并行计算的组数。
+>> - width_per_group: 每个组内的卷积核个数
+>> - replace_stride_with_dilation: 含3个bool变量的列表或元组，针对64、128、256维的模块是否进行卷积扩张。
+>> - norm_layer: 正则化方法，默认为BatchNorm2d。
+
+### Semi_sklearn.Network.SDNE
+> CLASS Semi_sklearn.Network.SDNE(input_dim, hidden_layers, device="cpu")
+>> Parameter:
+>> - input_dim: 输入样本维度。
+>> - hidden_layers: 隐层维度。
+>> - device: 设备。
+
+### Semi_sklearn.Network.SSVAE
+> CLASS Semi_sklearn.Network.SSVAE(dim_in,num_classes,dim_z,dim_hidden_de=[500,500],
+                 dim_hidden_en_y=[500,500],dim_hidden_en_z=[500,500],
+                 activations_de=[nn.Softplus(),nn.Softplus()],
+                 activations_en_y=[nn.Softplus(),nn.Softplus()],
+                 activations_en_z=[nn.Softplus(),nn.Softplus()],
+                 device='cpu')
+>> Parameter:
+>> - dim_in: 样本输入维度。
+>> - num_classes: 类别数量。
+>> - dim_z: 隐变量的维度。
+>> - dim_hidden_de: 解码器隐层维度。
+>> - dim_hidden_en_y: 对于y的编码器的隐层维度。
+>> - dim_hidden_en_z: 对于z的编码器的隐层维度。
+>> - activations_de: 解码器各层的激活函数。
+>> - activations_en_y: 对于y的编码器的激活函数。
+>> - activations_en_z: 对于z的编码器的激活函数。
+>> - device: 设备。
+
+### Semi_sklearn.Network.TextRCNN
+> CLASS Semi_sklearn.Network.TextRCNN(n_vocab,embedding_dim=300,len_seq=300, padding_idx=None, hidden_size=256, num_layers=1,
+                 dropout=0.0, pretrained_embeddings=None,num_class=2)
+>> Parameter:
+>> - n_vocab: 字典大小。
+>> - embedding_dim: 词嵌入维度。
+>> - len_seq: 句长。
+>> - padding_idx: 填充值的坐标，不会对梯度产生影响，也不会被更新。
+>> - hidden_size: 隐层的维度。
+>> - num_layers: 网络层数。
+>> - dropout: 神经元丢弃率。
+>> - pretrained_embeddings: 预训练的词嵌入。
+
+### Semi_sklearn.Network.WideResNet
+> CLASS Semi_sklearn.Network.WideResNet(num_classes=10, depth=28, widen_factor=2, drop_rate=0.0)
+>> Parameter:
+>> - num_classes: 类别数量。
+>> - depth: 网络深度。
+>> - widen_factor: 网络宽度，用于确定隐层维度。
+>> - dropout: 神经元丢弃率。
 
 ## Optimizer
+
+### Semi_sklearn.Optimizer.BaseOptimizer
+> CLASS Semi_sklearn.Optimizer.BaseOptimizer(defaults)
+>> Parameter:
+>> - defaults: 包含优化选项默认值的字典。
+>> init_optimizer(params): 将需要优化的参数放入优化器。
+>> - params: 待优化的参数。
+
 ### Semi_sklearn.Optimizer.Adam
 > CLASS Semi_sklearn.Optimizer.Adam(lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False)
->> Parameter
->> - lr
->> - betas
->> - eps
->> - weight_decay
->> - amsgrad
+>> Parameter:
+>> - lr: 初始学习率。
+>> - betas: 用于计算梯度平均值及其平方的的系数。
+>> - eps: 添加到分母以提高数值稳定性的项。
+>> - weight_decay: L2正则对应的权重。
+>> - amsgrad: 是否使用amsgrad技术。
+
+### Semi_sklearn.Optimizer.SGD
+> CLASS Semi_sklearn.Optimizer.SGD(lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False)
+>> Parameter:
+>> - lr: 初始学习率。
+>> - momentum: 冲量。
+>> - dampening: 冲量的阻尼。
+>> - weight_decay: L2正则对应的权重。
+>> - nesterov: 是否使用nesterov冲量。
 
 ## Sampler
+
+### Semi_sklearn.Sampler.BaseSampler
+> CLASS Semi_sklearn.Sampler.BaseSampler()
+>> init_sampler(data_source):  通过数据对采样器进行初始化。
+>> - data_source: 待采样数据。
+
+### Semi_sklearn.Sampler.BatchSampler
+> CLASS Semi_sklearn.Sampler.BatchSampler(batch_size, drop_last)
+>> Parameter:
+>> - batch_size: 批数据大小。
+>> - drop_last: 是否丢弃不足一个batch的数据。
+>> init_sampler(sampler): 通过采样器初始化批采样器。
+>> sampler: 使用的基本采样器。
+
+### Semi_sklearn.Sampler.SequentialSampler
+> CLASS Semi_sklearn.Sampler.SequentialSampler()
+>> init_sampler(data_source):  通过数据对采样器进行初始化。
+>> - data_source: 待采样数据。
+
 ### Semi_sklearn.Sampler.RandomSampler
 > CLASS Semi_sklearn.Sampler.RandomSampler(replacement: bool = False, num_samples = None, generator=None)
->> Parameter
->> - replacement
->> - num_samples
->> - generator
+>> Parameter:
+>> - replacement: 是否重复采样。
+>> - num_samples: 采样总量。
+>> - generator: 同于生产采样序列的生成器。
+>> init_sampler(data_source):  通过数据对采样器进行初始化。
+>> - data_source: 待采样数据。
 
 ## Scheduler
+### Semi_sklearn.Scheduler.BaseScheduler
+> CLASS Semi_sklearn.Scheduler.BaseScheduler(last_epoch=-1, verbose=False)
+>> Parameter:
+>> - last_epoch: 最后一个轮次的索引。
+>> - verbose: 是否输出冗余信息。
+>> init_scheduler(optimizer): 利用优化器初始化调度器。
+>> - optimizer: 模型使用的优化器。
+
+### Semi_sklearn.Scheduler.BaseScheduler.LambdaLR
+> CLASS Semi_sklearn.Scheduler.BaseScheduler.LambdaLR(lr_lambda, last_epoch=-1,verbose=False)
+>> Parameter:
+>> - lr_lambda: 自定义的学习率调度方法。
+>> - last_epoch: 最后一个轮次的索引。
+>> - verbose: 是否输出冗余信息。
+
 ### Semi_sklearn.Scheduler.CosineAnnealingLR
 > CLASS Semi_sklearn.Scheduler.CosineAnnealingLR(T_max, eta_min=0, last_epoch=-1, verbose=False)
->> Parameter
->> - T_max
->> - eta_min
->> - last_epoch
->> - verbose
+>> Parameter:
+>> - T_max: 最大迭代次数。
+>> - eta_min: 最小学习率。
+>> - last_epoch: 最后一个轮次的索引。
+>> - verbose: 是否输出冗余信息。
+
+### Semi_sklearn.Scheduler.StepLR
+> CLASS Semi_sklearn.Scheduler.StepLR(step_size, gamma=0.1, last_epoch=-1, verbose=False)
+>> Parameter:
+>> - step_size: 学习率衰减期。
+>> - gamma: 学习率衰减的因子。
+>> - last_epoch: 最后一个轮次的索引。
+>> - verbose: 是否输出冗余信息。
+
+### Semi_sklearn.Scheduler.Linear_warmup
+> CLASS Semi_sklearn.Scheduler.Linear_warmup(num_training_steps,
+                 num_warmup_steps=0,
+                 start_factor=0,
+                 end_factor=1,
+                 last_epoch=-1，verbose=True)
+>> Parameter:
+>> - num_training_steps: 训练总迭代次数。
+>> - num_warmup_steps: 预热的迭代次数。
+>> - start_factor: 初始的学习率变动因子。
+>> - end_factor: 最终的学习率变动因子。
+>> - last_epoch: 最后一个轮次的索引。
+>> - verbose: 是否输出冗余信息。
+
 
 ## Split
 ### Semi_sklearn.Scheduler.Split.SemiSplit
 > Function Semi_sklearn.Scheduler.Split.SemiSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
 >> Parameter
->> - stratified
->> - shuffle
->> - random_state
->> - X
->> - y
->> - labeled_size
+>> - stratified: 是否按类别分层。
+>> - shuffle: 是否洗牌。
+>> - random_state: 随机种子。
+>> - X: 待分割的数据样本。
+>> - y: 待分割的数据标注。
+>> - labeled_size: 有标注数据的比例或大小。
 
 ## Transform
+
+### Semi_sklearn.Transform.Transformer
+> CLASS Semi_sklearn.Transform.Transformer()
+>> fit(X,y=None): 通过已有数据获取处理方式。
+>> - X: 用于学习处理方式的样本。
+>> - y: 用于学习处理方式的标注.
+>> transform(X): 对新的数据进行处理。
+>> - X: 待转换的数据。
+>> fit_transform(X,y=None): 首先对已有数据和标注X和y进行fit()再直接对y进行转换。
+>> - X: 用于学习和转换的样本。
+>> - y: 用于学习的标注。
+>> \_\_call\_\_(X,y=None): 与fit_transform相同。
+>> - X: 用于学习和转换的样本。
+>> - y: 用于学习的标注.
+
+### Semi_sklearn.Transform.Normalization
+> CLASS Semi_sklearn.Transform.Normalization(mean=None,std=None)
+>> - mean: 均值。
+>> - std: 方差。
+
+### Semi_sklearn.Transform.MinMaxScalar
+> CLASS Semi_sklearn.Transform.MinMaxScalar(min_val=None,max_val=None)
+>> Parameter:
+>> - min_val: 最小值。
+>> - max_val: 最大值。
+
+### Semi_sklearn.Transform.Noise
+> CLASS Semi_sklearn.Transform.Noise(noise_level)
+>> Parameter:
+>> - noise_level: 噪声幅度。
+
+### Semi_sklearn.Transform.AutoContrast
+> CLASS Semi_sklearn.Transform.AutoContrast()
+
+### Semi_sklearn.Transform.Brightness
+> CLASS Semi_sklearn.Transform.Brightness(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.Color
+> CLASS Semi_sklearn.Transform.Color(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### CLASS Semi_sklearn.Transform.Contrast
+> CLASS Semi_sklearn.Transform.Contrast(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### CLASS Semi_sklearn.Transform.Equalize
+> CLASS Semi_sklearn.Transform.Equalize()
+
+### Semi_sklearn.Transform.Identity
+> CLASS Semi_sklearn.Transform.Identity()
+
+### Semi_sklearn.Transform.Invert
+> CLASS Semi_sklearn.Transform.Invert()
+
+### Semi_sklearn.Transform.Posterize
+> CLASS Semi_sklearn.Transform.Posterize(min_v,max_v,num_bins,magnitude,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.Rotate
+> CLASS Semi_sklearn.Transform.Rotate(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.Sharpness
+> CLASS Semi_sklearn.Transform.Sharpness(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.ShearX
+> CLASS Semi_sklearn.Transform.ShearX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.ShearY
+> CLASS Semi_sklearn.Transform.ShearY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.Solarize
+> CLASS Semi_sklearn.Transform.Solarize(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.TranslateX
+> CLASS Semi_sklearn.Transform.TranslateX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.TranslateY
+> CLASS Semi_sklearn.Transform.TranslateY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+>> Parameter:
+>> - min_v: 增广幅度最小值。 
+>> - max_v: 增广幅度最大值。
+>> - num_bins: 增广幅度划分的间隔数量。
+>> - magnitude: 增广级别。
+>> - v: 直接指定增广幅度。
+
+### Semi_sklearn.Transform.RandomCrop
+> CLASS Semi_sklearn.Transform.RandomCrop(padding=None, pad_if_needed=False, fill=0, padding_mode="constant")
+>> Parameter:
+>> - padding: 填充的位置。
+>> - pad_if_needed: 是否在图片小于预期大小时进行填充。
+>> - fill: 用于填充的像素。
+>> - padding_mode: 填充空白值的模式。
+
+### Semi_sklearn.Transform.RandomHorizontalFlip
+> CLASS Semi_sklearn.Transform.RandomHorizontalFlip()
+
+### Semi_sklearn.Transform.CutoutAbs
+> CLASS Semi_sklearn.Transform.CutoutAbs(v,fill,random_v)
+>> Parameter:
+>> - v: 裁剪大小的绝对值。
+>> - fill: 裁剪后的填充值。
+>> - random_v: 是否随机确定裁剪大小。
+
+### Semi_sklearn.Transform.Cutout
+> CLASS Semi_sklearn.Transform.Cutout(v,fill,random_v=True)
+>> Parameter:
+>> - v: 裁剪大小的相对值。
+>> - fill: 裁剪后的填充值。
+>> - random_v: 是否随机确定裁剪大小。
+
+### Semi_sklearn.Transform.RandAugment
+> CLASS Semi_sklearn.Transform.RandAugment(n, m, num_bins,random=False,augment_list=None)
+>> Parameter:
+>> - n: 随即增广次数。
+>> - m: 随即增广幅度。
+>> - num_bins: 增广幅度划分。
+>> - random: 是否采用随机增广幅度。
+>> - augment_list: 增广方法和幅度的最小和最大值
+
+### Semi_sklearn.Transform.Tokenizer
+> CLASS Semi_sklearn.Transform.Tokenizer(tokenizer, language='en')
+>> Parameter:
+>> - tokenizer: 用于分词的函数名，如basic_english, spacy, moses, toktok, revtok, subword等。
+>> - language: 文本的语言。
+
+### Semi_sklearn.Transform.Vocab
+> CLASS Semi_sklearn.Transform.Vocab(word_vocab=None,vectors=None,text=None,min_freq=1,specials=["<unk>","<pad>"],special_first=True,default_index=None,tokenizer=None)
+>> Parameter:
+>> - word_vocab: 词到下标的映射表。
+>> - vectors: 词向量。
+>> - text: word_vocab为None时，利用text建立映射表。
+>> - min_freq: word_vocab为None时，建立映射表时可用token的最低频率。
+>> - specials: 特殊字符列表。
+>> - special_first: 是否将特殊字符放在映射表最前面。
+>> - default_index: 对于无法得到下标的单词使用的默认下标。
+>> - tokenizer: 使用的分词方法。
+
+### Semi_sklearn.Transform.Vectors
+> CLASS Semi_sklearn.Transform.Vectors(name, cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True, pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - name: 词向量的名字。
+>> - cache: 缓存向量的目录。
+>> - url: 词向量下载地址。
+>> - unk_init: 默认情况下，将词汇表外的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - pad_init: 默认情况下，将待填充的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - max_vectors: 词向量的最大数量。
+>> - lower_case_backup: 是否在查找单词时全部转化为小写。
+>> - pad_token: 默认的填充token。
+>> - unk_token: 默认的未知单词填充token。
+
+### Semi_sklearn.Transform.CharNGram
+> CLASS Semi_sklearn.Transform.CharNGram(lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - lower_case_backup: 是否在查找单词时全部转化为小写。
+>> - unk_init: 默认情况下，将词汇表外的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - pad_init: 默认情况下，将待填充的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - pad_token: 默认的填充token。
+>> - unk_token: 默认的未知单词填充token。
+
+### Semi_sklearn.Transform.FastText
+> CLASS Semi_sklearn.Transform.FastText(language="en",lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - language: 文本语言类型。
+>> - lower_case_backup: 是否在查找单词时全部转化为小写。
+>> - unk_init: 默认情况下，将词汇表外的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - pad_init: 默认情况下，将待填充的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - pad_token: 默认的填充token。
+>> - unk_token: 默认的未知单词填充token。
+
+### Semi_sklearn.Transform.GloVe
+> CLASS Semi_sklearn.Transform.GloVe(name="840B", dim=300,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+>> Parameter:
+>> - name: 词向量的名字。
+>> - dim: 词向量的维度。
+>> - lower_case_backup: 是否在查找单词时全部转化为小写。
+>> - unk_init: 默认情况下，将词汇表外的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - pad_init: 默认情况下，将待填充的词向量初始化为零向量； 可以是任何接受张量并返回相同大小的张量的函数。
+>> - pad_token: 默认的填充token。
+>> - unk_token: 默认的未知单词填充token。
+
+### Semi_sklearn.Transform.Truncate
+> CLASS Semi_sklearn.Transform.Truncate(length=100,pos=0)
+>> Paraameter:
+>> - length: 裁剪后的文本长度。
+>> - pos: 开始裁剪的位置。
+
+### Semi_sklearn.Transform.Pad_sequence
+> CLASS Semi_sklearn.Transform.Pad_sequence(length,pad_val=None)
+>> Parameter:
+>> - length: 文本填充后的长度。
+>> - pad_val: 填充值。
+
 ### Semi_sklearn.Transform.Adjust_length
 > CLASS Semi_sklearn.Transform.Adjust_length(length, pad_val=None, pos=0)
 >> Parameter
->> - length
->> - pad_val
->> - pos
+>> - length: 调整后的句长。
+>> - pad_val: 对于不足长度的文本进行填充。
+>> - pos；如果句长过长，需要切割，则该参数指明开始切割的位置。
 
-## utils
-### Semi_sklearn.utils.get_indexing_method
-> Function Semi_sklearn.utils.get_indexing_method(data)
+### Semi_sklearn.Transform.Random_deletion
+> CLASS Semi_sklearn.Transform.Random_deletion(p,tokenizer=None)
 >> Parameter
->> - data
+>> - p: 随机删除的比例。
+>> - tokenizer: 分词方法。
+
+### Semi_sklearn.Transform.Random_insertion
+> CLASS Semi_sklearn.Transform.Random_insertion(n=1,tokenizer=None)
+>> Parameter
+>> - n: 增加单词的次数。
+>> - tokenizer: 分词方法。
+
+### Semi_sklearn.Transform.Random_swap
+> CLASS Semi_sklearn.Transform.Random_swap(n=1,tokenizer=None)
+>> Parameter
+>> - n: 交换单词的次数。
+>> - tokenizer: 分词方法。
+
+### Semi_sklearn.Transform.TFIDF_replacement
+> CLASS Semi_sklearn.Transform.TFIDF_replacement(text,p=0.7,tokenizer=None,cache_len=100000)
+>> Parameter
+>> - text: 文本。
+>> - p: 基本替换概率。
+>> - tokenizer: 分词方法。
+>> - cache_len: 随机数缓冲区大小。
+
+### Semi_sklearn.Transform.NormalizeFeatures
+> CLASS Semi_sklearn.Transform.NormalizeFeatures(attrs=["x"])
+>> Parameter:
+>> - attrs: 需要正则化的属性。
+
+### Semi_sklearn.Transform.GDC
+> CLASS Semi_sklearn.Transform.GDC(self_loop_weight=1, normalization_in='sym',
+                 normalization_out='col',
+                 diffusion_kwargs=dict(method='ppr', alpha=0.15),
+                 sparsification_kwargs=dict(method='threshold',avg_degree=64),
+                 exact=True)
+>> Parameter:
+>> - self_loop_weight: 添加自环的权重。
+>> - normalization_in: 原始（输入）图上转换矩阵的归一化方法，可选"sym"，"col"和"row"。
+>> - normalization_out: 转换后的 GDC（输出）图上转换矩阵的归一化方法，可选"sym"，"col"和"row"。
+>> - diffusion_kwargs: 包含扩散参数的字典。
+>> - sparsification_kwargs: 包含稀疏化参数的字典。
+>> - exact: 是否精确计算扩散矩阵。
+
+### Semi_sklearn.Transform.Mixup
+> CLASS Semi_sklearn.Transform.Mixup(alpha)
+>> Parameter:
+>> - alpha: Beta分布的参数。
+
+### Semi_sklearn.Transform.ToImage
+> CLASS Semi_sklearn.Transform.ToImage()
+
+### Semi_sklearn.Transform.ImageToTensor
+> CLASS Semi_sklearn.Transform.ImageToTensor()
+
+### Semi_sklearn.Transform.ToTensor
+> CLASS Semi_sklearn.Transform.ToTensor()
+
+# 常见问题
+
+1. Semi-sklearn的接口和sklearn半监督学习模块的接口有什么不同？
+
+sklearn的接口的fit()方法一般有X和y两项，无标注的X对应的标注y用-1表示。但是在很多二分类任务中，-1表示负类，容易冲突，因此Semi-sklearn的fit()方法有X,y和unlabeled_X三项输入。
+
+2. DeepModelMixin模块如何理解？
+
+这一模块主要是使深度学习与经典机器学习拥有相同的接口，并且为了便于用户更换深度学习种对应的组件，DeepModelMixin对pytorch进行了解耦。
 
 # 参考文献
 
@@ -1962,13 +2712,3 @@ similarity_kernel = 'rbf',
 [40]	ZAGORUYKO S, KOMODAKIS N. Wide Residual Networks[J/OL]. arXiv:1605.07146 [cs], 2017[2022-04-26]. http://arxiv.org/abs/1605.07146.
 
 [41]	CUBUK E D, ZOPH B, SHLENS J, et al. Randaugment: Practical automated data augmentation with a reduced search space[C]. IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW), 2020: 3008-3017.
-
-# 常见问题
-
-1. Semi-sklearn的接口和sklearn半监督学习模块的接口有什么不同？
-
-sklearn的接口的fit()方法一般有X和y两项，无标注的X对应的标注y用-1表示。但是在很多二分类任务中，-1表示负类，容易冲突，因此Semi-sklearn的fit()方法有X,y和unlabeled_X三项输入。
-
-2. DeepModelMixin模块如何理解？
-
-这一模块主要是使深度学习与经典机器学习拥有相同的接口，并且为了便于用户更换深度学习种对应的组件，DeepModelMixin对pytorch进行了解耦。

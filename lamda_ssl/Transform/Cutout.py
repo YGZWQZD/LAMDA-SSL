@@ -6,7 +6,7 @@ from lamda_ssl.Transform.CutoutAbs import CutoutAbs
 import numpy as np
 
 class Cutout(Transformer):
-    def __init__(self, v,fill,random_v=True):
+    def __init__(self, v=0.5,fill=(127,127,127),random_v=True):
         super().__init__()
         self.v=v
         self.fill=fill

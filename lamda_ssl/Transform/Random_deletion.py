@@ -2,7 +2,7 @@ from lamda_ssl.Transform.Transformer import Transformer
 import random
 from lamda_ssl.Transform.Tokenizer import Tokenizer
 class Random_deletion(Transformer):
-    def __init__(self,p,tokenizer=None):
+    def __init__(self,p=0.5,tokenizer=None):
         super(Random_deletion, self).__init__()
         self.p=p
         self.tokenizer=tokenizer if tokenizer is not None else Tokenizer('basic_english','en')

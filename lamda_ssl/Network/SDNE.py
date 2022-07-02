@@ -1,8 +1,8 @@
 import torch
-
+import copy
 class SDNE(torch.nn.Module):
 
-    def __init__(self, input_dim, hidden_layers, device="cpu"):
+    def __init__(self, dim_in, hidden_layers, device="cpu"):
         '''
         Structural Deep Network Embedding（SDNE）
         :param input_dim: 节点数量 node_size
@@ -13,21 +13,22 @@ class SDNE(torch.nn.Module):
         '''
         super(SDNE, self).__init__()
         self.device = device
-        input_dim_copy = input_dim
+        dim_in_copy = copy.copy(dim_in)
+        self.dim_in = dim_in_copy
         layers = []
         for layer_dim in hidden_layers:
-            layers.append(torch.nn.Linear(input_dim, layer_dim))
+            layers.append(torch.nn.Linear(dim_in, layer_dim))
             layers.append(torch.nn.ReLU())
-            input_dim = layer_dim
+            dim_in = layer_dim
         self.encoder = torch.nn.Sequential(*layers)
 
         layers = []
         for layer_dim in reversed(hidden_layers[:-1]):
-            layers.append(torch.nn.Linear(input_dim, layer_dim))
+            layers.append(torch.nn.Linear(dim_in , layer_dim))
             layers.append(torch.nn.ReLU())
-            input_dim = layer_dim
+            dim_in  = layer_dim
         # 最后加一层输入的维度
-        layers.append(torch.nn.Linear(input_dim, input_dim_copy))
+        layers.append(torch.nn.Linear(dim_in , dim_in_copy))
         layers.append(torch.nn.ReLU())
         self.decoder = torch.nn.Sequential(*layers)
         # torch中的只对weight进行正则真难搞啊

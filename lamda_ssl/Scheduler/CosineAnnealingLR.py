@@ -1,6 +1,6 @@
 from torch.optim import lr_scheduler
-from lamda_ssl.Scheduler.SemiScheduler import SemiScheduler
-class CosineAnnealingLR(SemiScheduler):
+from lamda_ssl.Scheduler.BaseScheduler import BaseScheduler
+class CosineAnnealingLR(BaseScheduler):
     def __init__(self,  T_max, eta_min=0, last_epoch=-1, verbose=False):
         super().__init__(last_epoch=last_epoch,verbose=verbose)
         self.T_max=T_max

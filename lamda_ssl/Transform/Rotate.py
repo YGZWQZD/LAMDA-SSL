@@ -6,7 +6,7 @@ import torchvision.transforms.functional as F
 import random
 
 class Rotate(Transformer):
-    def __init__(self, min_v=None,max_v=None,num_bins=None,magnitude=None,v=None):
+    def __init__(self, min_v=0,max_v=30,num_bins=10,magnitude=5,v=None):
         super().__init__()
         self.max_v=max_v
         self.min_v=min_v

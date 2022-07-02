@@ -1,6 +1,6 @@
-from lamda_ssl.Opitimizer.SemiOptimizer import SemiOptimizer
+from lamda_ssl.Opitimizer.BaseOptimizer import BaseOptimizer
 from torch.optim import adam
-class Adam(SemiOptimizer):
+class Adam(BaseOptimizer):
     def __init__(self,lr=1e-3, betas=(0.9, 0.999), eps=1e-8,
                  weight_decay=0, amsgrad=False):
         self.lr=lr

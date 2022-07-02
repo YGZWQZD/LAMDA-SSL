@@ -1,6 +1,6 @@
 from lamda_ssl.Dataset.SemiDataset import SemiDataset
 from lamda_ssl.Dataset.TableMixin import TableMixin
-from lamda_ssl.Split.Split import SemiSplit
+from lamda_ssl.Split.Data_Split import Data_Split
 from lamda_ssl.Dataset.TrainDataset import TrainDataset
 from lamda_ssl.Dataset.LabeledDataset import LabeledDataset
 from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
@@ -10,7 +10,8 @@ import numpy as np
 class Boston(SemiDataset,TableMixin):
     def __init__(
         self,
-        root=None,
+        default_transforms=False,
+        pre_transform=None,
         transforms=None,
         transform = None,
         target_transform = None,
@@ -24,7 +25,7 @@ class Boston(SemiDataset,TableMixin):
         shuffle=True,
         random_state=None,
     ) -> None:
-
+        self.default_transforms=default_transforms
         self.labeled_X=None
         self.labeled_y=None
         self.unlabeled_X=None
@@ -58,19 +59,21 @@ class Boston(SemiDataset,TableMixin):
 
 
         self.dataset=datasets.load_boston()
-        SemiDataset.__init__(self,transforms=transforms,transform=transform, target_transform=target_transform,
+        SemiDataset.__init__(self,pre_transform=pre_transform,transforms=transforms,transform=transform,
+                             target_transform=target_transform,
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,test_size=test_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
         TableMixin.__init__(self)
+        if self.default_transforms:
+            self.init_default_transforms()
         self.init_dataset()
-        self.init_transforms()
 
     def _init_dataset(self):
         X, y = self.dataset.data, self.dataset.target.astype(np.float32)
         if self.test_size is not None:
-            test_X, test_y, train_X, train_y = SemiSplit(X=X, y=y,
-                                               labeled_size=self.test_size,
+            test_X, test_y, train_X, train_y = Data_Split(X=X, y=y,
+                                               size_split=self.test_size,
                                                stratified=self.stratified,
                                                shuffle=self.shuffle,
                                                random_state=self.random_state
@@ -82,8 +85,8 @@ class Boston(SemiDataset,TableMixin):
             train_y=y
 
         if self.valid_size is not None:
-            valid_X, valid_y, train_X, train_y = SemiSplit(X=train_X, y=train_y,
-                                                                   labeled_size=self.valid_size,
+            valid_X, valid_y, train_X, train_y = Data_Split(X=train_X, y=train_y,
+                                                                   size_split=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
                                                                    random_state=self.random_state
@@ -93,8 +96,8 @@ class Boston(SemiDataset,TableMixin):
             valid_y=None
 
         if self.labeled_size is not None:
-            labeled_X, labeled_y, unlabeled_X, unlabeled_y = SemiSplit(X=train_X,y=train_y,
-                                                                   labeled_size=self.labeled_size,
+            labeled_X, labeled_y, unlabeled_X, unlabeled_y = Data_Split(X=train_X,y=train_y,
+                                                                   size_split=self.labeled_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
                                                                    random_state=self.random_state
@@ -102,15 +105,15 @@ class Boston(SemiDataset,TableMixin):
         else:
             labeled_X, labeled_y=train_X,train_y
             unlabeled_X, unlabeled_y=None,None
-        self.test_dataset=LabeledDataset(transform=self.test_transform)
+        self.test_dataset=LabeledDataset(pre_transform=self.pre_transform,transform=self.test_transform)
         self.test_dataset.init_dataset(test_X,test_y)
-        self.valid_dataset=LabeledDataset(transform=self.valid_transform)
+        self.valid_dataset=LabeledDataset(pre_transform=self.pre_transform,transform=self.valid_transform)
         self.valid_dataset.init_dataset(valid_X,valid_y)
-        self.train_dataset = TrainDataset(transforms=self.transforms,transform=self.transform,
+        self.train_dataset = TrainDataset(pre_transform=self.pre_transform,transforms=self.transforms,transform=self.transform,
                                           target_transform=self.target_transform,unlabeled_transform=self.unlabeled_transform)
-        labeled_dataset=LabeledDataset(transforms=self.transforms,transform=self.transform,
+        labeled_dataset=LabeledDataset(pre_transform=self.pre_transform,transforms=self.transforms,transform=self.transform,
                                           target_transform=self.target_transform)
         labeled_dataset.init_dataset(labeled_X, labeled_y)
-        unlabeled_dataset=UnlabeledDataset(transform=self.unlabeled_transform)
+        unlabeled_dataset=UnlabeledDataset(pre_transform=self.pre_transform,transform=self.unlabeled_transform)
         unlabeled_dataset.init_dataset(unlabeled_X, unlabeled_y)
         self.train_dataset.init_dataset(labeled_dataset=labeled_dataset,unlabeled_dataset=unlabeled_dataset)

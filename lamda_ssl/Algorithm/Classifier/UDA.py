@@ -1,60 +1,59 @@
 import copy
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
-from lamda_ssl.Base.SemiDeepModelMixin import SemiDeepModelMixin
-from lamda_ssl.Opitimizer.SemiOptimizer import SemiOptimizer
-from lamda_ssl.Scheduler.SemiScheduler import SemiScheduler
+from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
-from lamda_ssl.utils import EMA
 import torch
 from lamda_ssl.utils import cross_entropy
 from lamda_ssl.utils import class_status
-from torch.nn import Softmax
 import math
+import lamda_ssl.Config.UDA as config
 
-class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
-    def __init__(self,train_dataset=None,
-                 valid_dataset=None,
-                 test_dataset=None,
-                 train_dataloader=None,
-                 valid_dataloader=None,
-                 test_dataloader=None,
-                 augmentation=None,
-                 network=None,
-                 train_sampler=None,
-                 train_batch_sampler=None,
-                 valid_sampler=None,
-                 valid_batch_sampler=None,
-                 test_sampler=None,
-                 test_batch_sampler=None,
-                 labeled_dataset=None,
-                 unlabeled_dataset=None,
-                 labeled_dataloader=None,
-                 unlabeled_dataloader=None,
-                 labeled_sampler=None,
-                 unlabeled_sampler=None,
-                 labeled_batch_sampler=None,
-                 unlabeled_batch_sampler=None,
-                 epoch=1,
-                 num_it_epoch=None,
-                 num_it_total=None,
-                 eval_epoch=None,
-                 eval_it=None,
-                 optimizer=None,
-                 weight_decay=None,
-                 scheduler=None,
-                 device='cpu',
-                 mu=None,
-                 evaluation=None,
-                 parallel=None,
-                 file=None,
-                 lambda_u=None,
-                 ema_decay=None,
-                 threshold=0.95,
-                 num_classes=None,
-                 tsa_schedule=None,
-                 T=0.4,
+class UDA(InductiveEstimator,DeepModelMixin,ClassifierMixin):
+    def __init__(self,
+                 threshold=config.threshold,
+                 lambda_u=config.lambda_u,
+                 T=config.T,
+                 num_classes=config.num_classes,
+                 tsa_schedule=config.tsa_schedule,
+                 mu=config.mu,
+                 ema_decay=config.ema_decay,
+                 weight_decay=config.weight_decay,
+                 epoch=config.epoch,
+                 num_it_epoch=config.num_it_epoch,
+                 num_it_total=config.num_it_total,
+                 eval_epoch=config.eval_epoch,
+                 eval_it=config.eval_it,
+                 device=config.device,
+                 train_dataset=config.train_dataset,
+                 labeled_dataset=config.labeled_dataset,
+                 unlabeled_dataset=config.unlabeled_dataset,
+                 valid_dataset=config.valid_dataset,
+                 test_dataset=config.test_dataset,
+                 train_dataloader=config.train_dataloader,
+                 labeled_dataloader=config.labeled_dataloader,
+                 unlabeled_dataloader=config.unlabeled_dataloader,
+                 valid_dataloader=config.valid_dataloader,
+                 test_dataloader=config.test_dataloader,
+                 train_sampler=config.train_sampler,
+                 train_batch_sampler=config.train_batch_sampler,
+                 valid_sampler=config.valid_sampler,
+                 valid_batch_sampler=config.valid_batch_sampler,
+                 test_sampler=config.test_sampler,
+                 test_batch_sampler=config.test_batch_sampler,
+                 labeled_sampler=config.labeled_sampler,
+                 unlabeled_sampler=config.unlabeled_sampler,
+                 labeled_batch_sampler=config.labeled_batch_sampler,
+                 unlabeled_batch_sampler=config.unlabeled_batch_sampler,
+                 augmentation=config.augmentation,
+                 network=config.network,
+                 optimizer=config.optimizer,
+                 scheduler=config.scheduler,
+                 evaluation=config.evaluation,
+                 parallel=config.parallel,
+                 file=config.file,
+                 verbose=config.verbose
                  ):
-        SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
+        DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
@@ -89,7 +88,8 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
                                     device=device,
                                     evaluation=evaluation,
                                     parallel=parallel,
-                                    file=file
+                                    file=file,
+                                    verbose=verbose
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
@@ -106,7 +106,6 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
     def init_augmentation(self):
-        # print(self._augmentation)
         if self._augmentation is not None:
             if isinstance(self._augmentation, dict):
                 self.weakly_augmentation = self._augmentation['augmentation'] \
@@ -172,6 +171,6 @@ class UDA(InductiveEstimator,SemiDeepModelMixin,ClassifierMixin):
         return loss
 
     def predict(self,X=None,valid=None):
-        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+        return DeepModelMixin.predict(self,X=X,valid=valid)
 
 

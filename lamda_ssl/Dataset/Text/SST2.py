@@ -2,7 +2,7 @@ from lamda_ssl.Dataset.SemiDataset import SemiDataset
 from lamda_ssl.Dataset.TextMixin import TextMixin
 from torchtext.utils import download_from_url,extract_archive
 import io
-from lamda_ssl.Split.Split import SemiSplit
+from lamda_ssl.Split.Data_Split import Data_Split
 from lamda_ssl.Dataset.LabeledDataset import LabeledDataset
 from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
 from lamda_ssl.Dataset.TrainDataset import TrainDataset
@@ -22,6 +22,8 @@ class  SST2(SemiDataset,TextMixin):
         "test": os.path.join("SST-2", "test.tsv"),
     }
     def __init__(self,root,
+        default_transforms = False,
+        pre_transform=None,
         transforms=None,
         transform = None,
         target_transform = None,
@@ -37,19 +39,22 @@ class  SST2(SemiDataset,TextMixin):
         word_vocab=None, vectors=None, length=50, unk_token='<unk>', pad_token='<pad>',
         min_freq=1, special_first=True, default_index=None):
 
-        SemiDataset.__init__(self,transforms=transforms,transform=transform, target_transform=target_transform,
+        SemiDataset.__init__(self,pre_transform=pre_transform,transforms=transforms,transform=transform, target_transform=target_transform,
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,valid_size=valid_size,labeled_size=labeled_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
 
         TextMixin.__init__(self,length=length,vectors=vectors,word_vocab=word_vocab,unk_token=unk_token,
                                pad_token=pad_token,min_freq=min_freq,special_first=special_first,default_index=default_index)
+        self.default_transforms=default_transforms
         self.root=root
 
         if download:
             self.download()
+        if self.default_transforms:
+            self.init_default_transforms()
         self.init_dataset()
-        self.init_transforms()
+
 
 
 
@@ -95,8 +100,8 @@ class  SST2(SemiDataset,TextMixin):
 
 
         if self.valid_size is not None:
-            valid_X, valid_y, labeled_X, labeled_y = SemiSplit(X=labeled_X, y=labeled_y,
-                                                                   labeled_size=self.valid_size,
+            valid_X, valid_y, labeled_X, labeled_y = Data_Split(X=labeled_X, y=labeled_y,
+                                                                   size_split=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
                                                                    random_state=self.random_state
@@ -106,8 +111,8 @@ class  SST2(SemiDataset,TextMixin):
             valid_y = None
 
         if self.labeled_size is not None:
-            labeled_X, labeled_y, unlabeled_X,unlabeled_y = SemiSplit(X=labeled_X, y=labeled_y,
-                                                               labeled_size=self.labeled_size,
+            labeled_X, labeled_y, unlabeled_X,unlabeled_y = Data_Split(X=labeled_X, y=labeled_y,
+                                                               size_split=self.labeled_size,
                                                                stratified=self.stratified,
                                                                shuffle=self.shuffle,
                                                                random_state=self.random_state
@@ -117,17 +122,17 @@ class  SST2(SemiDataset,TextMixin):
             valid_y = None
 
 
-        self.test_dataset = LabeledDataset(transform=self.test_transform)
+        self.test_dataset = LabeledDataset(pre_transform=self.pre_transform,transform=self.test_transform)
         self.test_dataset.init_dataset(test_X, test_y)
-        self.valid_dataset = LabeledDataset(transform=self.valid_transform)
+        self.valid_dataset = LabeledDataset(pre_transform=self.pre_transform,transform=self.valid_transform)
         self.valid_dataset.init_dataset(valid_X, valid_y)
-        self.train_dataset = TrainDataset(transforms=self.transforms, transform=self.transform,
+        self.train_dataset = TrainDataset(pre_transform=self.pre_transform,transforms=self.transforms, transform=self.transform,
                                           target_transform=self.target_transform,
                                           unlabeled_transform=self.unlabeled_transform)
-        labeled_dataset = LabeledDataset(transforms=self.transforms, transform=self.transform,
+        labeled_dataset = LabeledDataset(pre_transform=self.pre_transform,transforms=self.transforms, transform=self.transform,
                                        target_transform=self.target_transform)
         labeled_dataset.init_dataset(labeled_X, labeled_y)
-        unlabeled_dataset = UnlabeledDataset(transform=self.unlabeled_transform)
+        unlabeled_dataset = UnlabeledDataset(pre_transform=self.pre_transform,transform=self.unlabeled_transform)
         unlabeled_dataset.init_dataset(unlabeled_X)
         self.train_dataset.init_dataset(labeled_dataset=labeled_dataset, unlabeled_dataset=unlabeled_dataset)
 

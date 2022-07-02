@@ -1,6 +1,6 @@
 from torch.utils.data.dataloader import DataLoader
-from lamda_ssl.Sampler.SemiSampler import SemiSampler
-from lamda_ssl.Sampler.BatchSampler import SemiBatchSampler
+from lamda_ssl.Sampler.BaseSampler import BaseSampler
+from lamda_ssl.Sampler.BatchSampler import BatchSampler
 class LabeledDataLoader:
     def __init__(self,
                  batch_size= 1, shuffle: bool = False,
@@ -31,12 +31,12 @@ class LabeledDataLoader:
         self.dataset=dataset
         if sampler is not None:
             self.sampler=sampler
-        if isinstance(self.sampler,SemiSampler):
+        if isinstance(self.sampler,BaseSampler):
             self.sampler=self.sampler.init_sampler(self.dataset)
 
         if batch_sampler is not None:
             self.batch_sampler=batch_sampler
-        if isinstance(self.batch_sampler,SemiBatchSampler):
+        if isinstance(self.batch_sampler,BatchSampler):
             self.batch_sampler=self.batch_sampler.init_sampler(self.sampler)
 
         if self.batch_sampler is None and self.sampler is None:
@@ -83,6 +83,3 @@ class LabeledDataLoader:
                                 prefetch_factor = self.prefetch_factor,
                                 persistent_workers = self.persistent_workers)
         return self.dataloader
-# a=SemiTestDataLoader()
-# print(type(a).__name__)
-# print(type(SemiTestDataLoader).__name__)

@@ -2,16 +2,17 @@ import torch
 import torch.nn as nn
 class MLP_Reg(torch.nn.Module):
     # define model elements
-    def __init__(self, input_dim = 28 ** 2,hidden_dim=[10],
+    def __init__(self, dim_in = 28 ** 2,hidden_dim=[10],
                  activations=[nn.ReLU()]):
         super(MLP_Reg, self).__init__()
         # input to first hidden layer
         self.num_hidden=len(hidden_dim)
         self.activations=activations
         self.layers=torch.nn.ModuleList()
+
         for _ in range(self.num_hidden):
             if _==0:
-                in_dim=input_dim
+                in_dim=dim_in
             else:
                 in_dim=hidden_dim[_-1]
             out_dim=hidden_dim[_]

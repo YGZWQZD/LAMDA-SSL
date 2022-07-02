@@ -4,7 +4,7 @@ import numpy as np
 
 from lamda_ssl.Transform.Transformer import Transformer
 from torchvision import transforms
-class ToTensor(Transformer):
+class ImageToTensor(Transformer):
     def __init__(self):
         super().__init__()
 
@@ -12,10 +12,8 @@ class ToTensor(Transformer):
         if isinstance(X,np.ndarray):
             X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
-            # print(X.size)
             X=transforms.ToTensor()(X)
             X = X.detach().float()
-            # print(X)
             return X
 
         elif isinstance(X,torch.Tensor):

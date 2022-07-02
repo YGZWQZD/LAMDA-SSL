@@ -15,52 +15,32 @@ from lamda_ssl.Transform.TranslateY import TranslateY
 from lamda_ssl.Transform.Transformer import Transformer
 import random
 
-
-
-# augs = [(AutoContrast, None, None),
-#             (Brightness, 0.9, 0.05),
-#             (Color, 0.9, 0.05),
-#             (Contrast, 0.9, 0.05),
-#             (Equalize, None, None),
-#             (Identity, None, None),
-#             (Posterize, 4, 4),
-#             (Rotate, 30, 0),
-#             (Sharpness, 0.9, 0.05),
-#             (ShearX, 0.3, 0),
-#             (ShearY, 0.3, 0),
-#             (Solarize, 256, 0),
-#             (TranslateX, 0.3, 0),
-#             (TranslateY, 0.3, 0)]
-
-
-
 class RandAugment(Transformer):
-    def __init__(self, n, m, num_bins,random=False,augment_list=None):
+    def __init__(self, n=2, m=5, num_bins=10, random=True,augment_list=None):
         super().__init__()
         self.n = n
         self.m = m
         self.num_bins=num_bins
         self.random=random
-        self.augment_list = [(AutoContrast, None, None),
-            (Brightness, 0.0, 0.9),
-            (Color, 0.0, 0.9),
-            (Contrast, 0.0, 0.9),
+        self.augment_list =[[(AutoContrast, None, None),
+            (Brightness, 0.05, 0.95),
+            (Color, 0.05, 0.95),
+            (Contrast, 0.05, 0.95),
             (Equalize, None, None),
             (Identity, None, None),
             (Posterize, 4, 8),
             (Rotate,  0.0,30.0),
-            (Sharpness, 0.0, 0.9),
+            (Sharpness, 0.05, 0.95),
             (ShearX, 0.0, 0.3),
             (ShearY, 0.0, 0.3),
             (Solarize,  0.0,255.0),
-            (TranslateX, 0.0, 150.0 / 331.0),
-            (TranslateY, 0.0,150.0 / 331.0)] if augment_list is None else augment_list
+            (TranslateX, 0.0, 0.3),
+            (TranslateY, 0.0, 0.3)]] if augment_list is None else augment_list
 
     def transform(self, X):
-
         ops = random.choices(self.augment_list, k=self.n)
         for op, min_v, max_v in ops:
-            if min_v is None and max_v is None:
+            if max_v is None and max_v is None:
                 aug=op()
             else:
                 if self.random:
@@ -68,7 +48,6 @@ class RandAugment(Transformer):
                 else:
                     m=self.m
                 aug=op(min_v=min_v,max_v=max_v,num_bins=self.num_bins,magnitude=m)
-            # print(X)
-            # print(aug)
-            X=aug.fit_transform(X)
+            if random.random() < 0.5:
+                X=aug.fit_transform(X)
         return X

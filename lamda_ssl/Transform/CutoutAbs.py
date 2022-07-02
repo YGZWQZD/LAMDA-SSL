@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 class CutoutAbs(Transformer):
-    def __init__(self, v,fill,random_v):
+    def __init__(self, v=16,fill=(127,127,127),random_v=True):
         super().__init__()
         self.v=v
         self.random_v=random_v
@@ -74,6 +74,7 @@ class CutoutAbs(Transformer):
                 y0 = int(max(0, y0 - vy / 2.))
                 x1 = int(min(w, x0 + vx))
                 y1 = int(min(h, y0 + vy))
+                # print('???')
                 X[0,x0:x1,y0:y1].copy_(torch.Tensor([self.fill[0]]))
                 X[1,x0:x1,y0:y1].copy_(torch.Tensor([self.fill[1]]))
                 X[2,x0:x1,y0:y1].copy_(torch.Tensor([self.fill[2]]))

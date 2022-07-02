@@ -2,13 +2,21 @@ import numpy as np
 from sklearn.base import ClusterMixin
 from lamda_ssl.Base.TransductiveEstimator import TransductiveEstimator
 import copy
-
+from torch.utils.data.dataset import Dataset
+import lamda_ssl.Config.Constrained_Seed_k_means as config
 
 class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
-    def __init__(self, k, tolerance=0.00001, max_iterations=300):
+    def __init__(self, k=config.k, tolerance=config.tolerance, max_iterations=config.max_iterations,evaluation=config.evaluation,
+                 verbose=config.verbose,file=config.file):
         self.k = k
         self.tolerance = tolerance
         self.max_iterations = max_iterations
+        self.evaluation = evaluation
+        self.verbose = verbose
+        self.file = file
+        self.X=None
+        self.y_pred=None
+        self._estimator_type = ClusterMixin._estimator_type
 
     def fit(self, X, y=None, unlabeled_X=None,clusters=None):
         assert y is not None or clusters is not None
@@ -18,13 +26,6 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
                 clusters[_] = set()
             for _ in range(len(X)):
                 clusters[y[_]].add(_)
-
-        # index_list = list(range(len(X)))
-        # random.shuffle(index_list)
-        #
-        # c = X[index_list[:self.k]]
-
-        # print(clusters)
 
         c=[]
         for _ in range(self.k):
@@ -41,11 +42,9 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
 
         _X=np.vstack([X,unlabeled_X])
 
-
-
+        self.X=_X
 
         for i in range(self.max_iterations):
-
 
             self.clusters = copy.copy(clusters)
 
@@ -59,18 +58,14 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
                     self.is_clustered[idx]=_
                     self.unlabeled[idx]=False
 
-            # self.unlabeled=self.unlabeled.tolist()
-
-            # print(self.unlabeled)
             unlabeled_idx=np.arange(len(_X))
             self.unlabeled_set=unlabeled_idx[self.unlabeled]
 
             for x_index in self.unlabeled_set:
 
-                # print(c)
                 distances = np.array([np.linalg.norm(_X[x_index] - c[centroid]) for centroid in range(len(c))])
                 r=np.argmin(distances).item()
-                # print(r)
+
                 self.clusters[r].add(x_index)
                 self.is_clustered[x_index]=r
 
@@ -117,3 +112,39 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
                 distances = np.array([np.linalg.norm(X[_] - self.center[centroid]) for centroid in range(len(self.center))])
                 result = np.hstack([result, np.argmin(distances)])
         return result
+
+    def evaluate(self, X=None, y=None,Transductive=True):
+        if isinstance(X, Dataset) and y is None:
+            y= getattr(X, 'y')
+
+        self.y_pred=self.predict(X,Transductive=Transductive)
+
+        if Transductive:
+            X=self.X
+
+        if self.evaluation is None:
+            return None
+
+        elif isinstance(self.evaluation,(list,tuple)):
+            result=[]
+            for eval in self.evaluation:
+                score=eval.scoring(y,self.y_pred,X)
+                if self.verbose:
+                    print(score, file=self.file)
+                result.append(score)
+            self.result = result
+            return result
+        elif isinstance(self.evaluation,dict):
+            result={}
+            for key,val in self.evaluation.items():
+                result[key]=val.scoring(y,self.y_pred,X)
+                if self.verbose:
+                    print(key,' ',result[key],file=self.file)
+                self.result = result
+            return result
+        else:
+            result=self.evaluation.scoring(y,self.y_pred,X)
+            if self.verbose:
+                print(result, file=self.file)
+            self.result=result
+            return result

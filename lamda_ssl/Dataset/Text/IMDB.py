@@ -2,7 +2,7 @@ from lamda_ssl.Dataset.SemiDataset import SemiDataset
 from lamda_ssl.Dataset.TextMixin import TextMixin
 from torchtext.utils import download_from_url,extract_archive
 import io
-from lamda_ssl.Split.Split import SemiSplit
+from lamda_ssl.Split.Data_Split import Data_Split
 from lamda_ssl.Dataset.LabeledDataset import LabeledDataset
 from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
 from lamda_ssl.Dataset.TrainDataset import TrainDataset
@@ -19,6 +19,8 @@ class  IMDB(SemiDataset,TextMixin):
     _PATH = "aclImdb_v1.tar.gz"
     DATASET_NAME = "IMDB"
     def __init__(self,root,
+        default_transforms=False,
+        pre_transform=None,
         transforms=None,
         transform = None,
         target_transform = None,
@@ -33,7 +35,7 @@ class  IMDB(SemiDataset,TextMixin):
         word_vocab=None, vectors=None, length=300, unk_token='<unk>', pad_token='<pad>',
         min_freq=1, special_first=True, default_index=None):
 
-        SemiDataset.__init__(self,transforms=transforms,transform=transform, target_transform=target_transform,
+        SemiDataset.__init__(self,pre_transform=pre_transform,transforms=transforms,transform=transform, target_transform=target_transform,
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,valid_size=valid_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
@@ -41,7 +43,7 @@ class  IMDB(SemiDataset,TextMixin):
         TextMixin.__init__(self,length=length,vectors=vectors,word_vocab=word_vocab,unk_token=unk_token,
                                pad_token=pad_token,min_freq=min_freq,special_first=special_first,default_index=default_index)
         self.root=root
-
+        self.default_transforms=default_transforms
         self.classes=['neg','pos']
         self.class_to_idx={'neg':0,'pos':1}
 
@@ -54,10 +56,9 @@ class  IMDB(SemiDataset,TextMixin):
         for root, dirs, files in walk:
             for item in files:
                 self.extracted_files.append(os.path.join(root, item))
+        if self.default_transforms:
+            self.init_default_transforms()
         self.init_dataset()
-        self.init_transforms()
-
-
 
 
     def download(self):
@@ -99,8 +100,8 @@ class  IMDB(SemiDataset,TextMixin):
                     test_y.append(0)
 
         if self.valid_size is not None:
-            valid_X, valid_y, labeled_X, labeled_y = SemiSplit(X=labeled_X, y=labeled_y,
-                                                                   labeled_size=self.valid_size,
+            valid_X, valid_y, labeled_X, labeled_y = Data_Split(X=labeled_X, y=labeled_y,
+                                                                   size_split=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
                                                                    random_state=self.random_state
@@ -109,17 +110,17 @@ class  IMDB(SemiDataset,TextMixin):
             valid_X = None
             valid_y = None
 
-        self.test_dataset = LabeledDataset(transform=self.test_transform)
+        self.test_dataset = LabeledDataset(pre_transform=self.pre_transform,transform=self.test_transform)
         self.test_dataset.init_dataset(test_X, test_y)
-        self.valid_dataset = LabeledDataset(transform=self.valid_transform)
+        self.valid_dataset = LabeledDataset(pre_transform=self.pre_transform,transform=self.valid_transform)
         self.valid_dataset.init_dataset(valid_X, valid_y)
-        self.train_dataset = TrainDataset(transforms=self.transforms, transform=self.transform,
+        self.train_dataset = TrainDataset(pre_transform=self.pre_transform,transforms=self.transforms, transform=self.transform,
                                           target_transform=self.target_transform,
                                           unlabeled_transform=self.unlabeled_transform)
-        labeled_dataset = LabeledDataset(transforms=self.transforms, transform=self.transform,
+        labeled_dataset = LabeledDataset(pre_transform=self.pre_transform,transforms=self.transforms, transform=self.transform,
                                        target_transform=self.target_transform)
         labeled_dataset.init_dataset(labeled_X, labeled_y)
-        unlabeled_dataset = UnlabeledDataset(transform=self.unlabeled_transform)
+        unlabeled_dataset = UnlabeledDataset(pre_transform=self.pre_transform,transform=self.unlabeled_transform)
         unlabeled_dataset.init_dataset(unlabeled_X)
         self.train_dataset.init_dataset(labeled_dataset=labeled_dataset, unlabeled_dataset=unlabeled_dataset)
 

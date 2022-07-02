@@ -1,52 +1,53 @@
-from lamda_ssl.Base.SemiDeepModelMixin import SemiDeepModelMixin
+from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 from lamda_ssl.utils import cross_entropy,consistency_loss
 from lamda_ssl.utils import Bn_Controller
 import copy
 import numpy as np
-
-class PiModel(SemiDeepModelMixin,InductiveEstimator,ClassifierMixin):
-    def __init__(self,train_dataset=None,
-                 valid_dataset=None,
-                 test_dataset=None,
-                 train_dataloader=None,
-                 valid_dataloader=None,
-                 test_dataloader=None,
-                 augmentation=None,
-                 network=None,
-                 train_sampler=None,
-                 train_batch_sampler=None,
-                 valid_sampler=None,
-                 valid_batch_sampler=None,
-                 test_sampler=None,
-                 test_batch_sampler=None,
-                 labeled_dataset=None,
-                 unlabeled_dataset=None,
-                 labeled_dataloader=None,
-                 unlabeled_dataloader=None,
-                 labeled_sampler=None,
-                 unlabeled_sampler=None,
-                 labeled_batch_sampler=None,
-                 unlabeled_batch_sampler=None,
-                 epoch=1,
-                 num_it_epoch=None,
-                 num_it_total=None,
-                 warmup=0.4,
-                 eval_epoch=None,
-                 eval_it=None,
-                 optimizer=None,
-                 scheduler=None,
-                 device='cpu',
-                 evaluation=None,
-                 parallel=None,
-                 file=None,
-                 lambda_u=None,
-                 mu=None,
-                 ema_decay=None,
-                 weight_decay=None
+import lamda_ssl.Config.PiModel as config
+class PiModel(DeepModelMixin,InductiveEstimator,ClassifierMixin):
+    def __init__(self,lambda_u=config.lambda_u,
+                 warmup=config.warmup,
+                 mu=config.mu,
+                 ema_decay=config.ema_decay,
+                 weight_decay=config.weight_decay,
+                 epoch=config.epoch,
+                 num_it_epoch=config.num_it_epoch,
+                 num_it_total=config.num_it_total,
+                 eval_epoch=config.eval_epoch,
+                 eval_it=config.eval_it,
+                 device=config.device,
+                 train_dataset=config.train_dataset,
+                 labeled_dataset=config.labeled_dataset,
+                 unlabeled_dataset=config.unlabeled_dataset,
+                 valid_dataset=config.valid_dataset,
+                 test_dataset=config.test_dataset,
+                 train_dataloader=config.train_dataloader,
+                 labeled_dataloader=config.labeled_dataloader,
+                 unlabeled_dataloader=config.unlabeled_dataloader,
+                 valid_dataloader=config.valid_dataloader,
+                 test_dataloader=config.test_dataloader,
+                 train_sampler=config.train_sampler,
+                 train_batch_sampler=config.train_batch_sampler,
+                 valid_sampler=config.valid_sampler,
+                 valid_batch_sampler=config.valid_batch_sampler,
+                 test_sampler=config.test_sampler,
+                 test_batch_sampler=config.test_batch_sampler,
+                 labeled_sampler=config.labeled_sampler,
+                 unlabeled_sampler=config.unlabeled_sampler,
+                 labeled_batch_sampler=config.labeled_batch_sampler,
+                 unlabeled_batch_sampler=config.unlabeled_batch_sampler,
+                 augmentation=config.augmentation,
+                 network=config.network,
+                 optimizer=config.optimizer,
+                 scheduler=config.scheduler,
+                 evaluation=config.evaluation,
+                 parallel=config.parallel,
+                 file=config.file,
+                 verbose=config.verbose
                  ):
-        SemiDeepModelMixin.__init__(self,train_dataset=train_dataset,
+        DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,
                                     train_dataloader=train_dataloader,
@@ -81,7 +82,8 @@ class PiModel(SemiDeepModelMixin,InductiveEstimator,ClassifierMixin):
                                     device=device,
                                     evaluation=evaluation,
                                     parallel=parallel,
-                                    file=file
+                                    file=file,
+                                    verbose=verbose
                                     )
         self.ema_decay=ema_decay
         self.lambda_u=lambda_u
@@ -117,7 +119,7 @@ class PiModel(SemiDeepModelMixin,InductiveEstimator,ClassifierMixin):
         return loss
 
     def predict(self,X=None,valid=None):
-        return SemiDeepModelMixin.predict(self,X=X,valid=valid)
+        return DeepModelMixin.predict(self,X=X,valid=valid)
 
 
 

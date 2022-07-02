@@ -167,12 +167,7 @@ class SSVAE(nn.Module):
     # q(z|x,y) = Normal(z|mu_phi(x,y), diag(sigma2_phi(x))) -- SSL paper eq 4
     def encode_z(self, x, y):
         xy = torch.cat([x, y], dim=1)
-        # print(xy)
         mu, logsigma = self.encoder_z(xy).chunk(2, dim=-1)
-        # print(mu)
-        # print(logsigma)
-        # print(logsigma )
-        # print(logsigma.exp())
         return DT.Normal(mu, logsigma.exp())
         # return DT.Normal(mu, logsigma.exp())
 
@@ -187,8 +182,6 @@ class SSVAE(nn.Module):
     def decode(self, y, z):
         yz = torch.cat([y, z], dim=1)
         reconstruction = DT.Bernoulli(logits=self.decoder(yz))
-        # print(logsigma)
-        # print(logsigma**2)
         return reconstruction
 
     # classification model q(y|x) using the trained q distribution

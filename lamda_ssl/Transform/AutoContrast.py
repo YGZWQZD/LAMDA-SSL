@@ -10,13 +10,13 @@ class AutoContrast(Transformer):
 
 
     def transform(self,X):
-        # print(X)
         if isinstance(X,np.ndarray):
             X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
             X=PIL.ImageOps.autocontrast(X)
             return X
         elif isinstance(X,torch.Tensor):
+            #X = F.autocontrast((X * self.scale).type(torch.uint8)) / self.scale
             X = F.autocontrast(X)
             return X
         else:

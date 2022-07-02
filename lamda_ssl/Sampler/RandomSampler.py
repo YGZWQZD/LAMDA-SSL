@@ -1,6 +1,6 @@
-from lamda_ssl.Sampler.SemiSampler import SemiSampler
+from lamda_ssl.Sampler.BaseSampler import BaseSampler
 from torch.utils.data import sampler
-class RandomSampler(SemiSampler):
+class RandomSampler(BaseSampler):
     def __init__(self,replacement: bool = False,
                  num_samples = None, generator=None):
         super().__init__()

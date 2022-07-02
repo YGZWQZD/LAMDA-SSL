@@ -4,9 +4,13 @@ from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import shuffle
 import numpy as np
+from torch.utils.data.dataset import Dataset
+import lamda_ssl.Config.CoReg as config
 
 class CoReg(InductiveEstimator,RegressorMixin):
-    def __init__(self, k1=3, k2=3, p1=2, p2=5, max_iters=100, pool_size=100):
+    def __init__(self, k1=config.k1, k2=config.k2, p1=config.p1, p2=config.p2,
+                 max_iters=config.max_iters, pool_size=config.pool_size,
+                 evaluation=config.evaluation,verbose=config.verbose,file=config.file):
         super(CoReg, self).__init__()
         self.k1=k1
         self.k2=k2
@@ -18,9 +22,11 @@ class CoReg(InductiveEstimator,RegressorMixin):
         self.h2 = KNeighborsRegressor(n_neighbors=self.k2, p=self.p2)
         self.h1_temp = KNeighborsRegressor(n_neighbors=self.k1, p=self.p1)
         self.h2_temp = KNeighborsRegressor(n_neighbors=self.k2, p=self.p2)
+        self.evaluation = evaluation
+        self.verbose = verbose
+        self.file = file
+        self.y_pred=None
         self._estimator_type = RegressorMixin._estimator_type
-
-
 
     def fit(self,X,y,unlabeled_X):
         X1=copy.copy(X)
@@ -109,3 +115,39 @@ class CoReg(InductiveEstimator,RegressorMixin):
         result2 = self.h2.predict(X)
         result = 0.5 * (result1 + result2)
         return result
+
+    def evaluate(self,X,y=None):
+
+        if isinstance(X,Dataset) and y is None:
+            y=getattr(X,'y')
+
+        self.y_pred=self.predict(X)
+
+
+        if self.evaluation is None:
+            return None
+        elif isinstance(self.evaluation,(list,tuple)):
+            result=[]
+            for eval in self.evaluation:
+                score=eval.scoring(y,self.y_pred)
+                if self.verbose:
+                    print(score, file=self.file)
+                result.append(score)
+            self.result = result
+            return result
+        elif isinstance(self.evaluation,dict):
+            result={}
+            for key,val in self.evaluation.items():
+
+                result[key]=val.scoring(y,self.y_pred)
+
+                if self.verbose:
+                    print(key,' ',result[key],file=self.file)
+                self.result = result
+            return result
+        else:
+            result=self.evaluation.scoring(y,self.y_pred)
+            if self.verbose:
+                print(result, file=self.file)
+            self.result=result
+            return result

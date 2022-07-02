@@ -3,10 +3,9 @@ from .TrainDataset import TrainDataset
 from .LabeledDataset import LabeledDataset
 from .UnlabeledDataset import UnlabeledDataset
 from ..utils import get_indexing_method
-from ..Split.Split import SemiSplit
-# from lamda_ssl.utils import partial
-# import torch
-# from scipy import sparse
+from ..Split.Data_Split import Data_Split
+import copy
+
 class SemiDataset(Dataset):
     def __init__(self,
                  transforms=None,
@@ -24,7 +23,7 @@ class SemiDataset(Dataset):
                  random_state=None):
         self.transforms=transforms
         self.transform = transform
-        self.pre_transfprm=pre_transform
+        self.pre_transform=pre_transform
         self.target_transform=target_transform
         self.unlabeled_transform = unlabeled_transform
         self.valid_transform = valid_transform
@@ -47,16 +46,16 @@ class SemiDataset(Dataset):
         self.test_X=None
         self.test_y=None
 
-        self.labeled_dataset=LabeledDataset(transforms=self.transforms, transform=self.transform,
+        self.labeled_dataset=LabeledDataset(pre_transform=pre_transform,transforms=self.transforms, transform=self.transform,
                                           target_transform=self.target_transform)
-        self.unlabeled_dataset=UnlabeledDataset(transform=self.unlabeled_transform)
-        self.train_dataset = TrainDataset(transforms=self.transforms, transform=self.transform,
+        self.unlabeled_dataset=UnlabeledDataset(pre_transform=pre_transform,transform=self.unlabeled_transform)
+        self.train_dataset = TrainDataset(pre_transform=pre_transform,transforms=self.transforms, transform=self.transform,
                                           target_transform=self.target_transform,
                                           unlabeled_transform=self.unlabeled_transform,
                                           labeled_size=self.labeled_size, stratified=self.stratified,
                                           shuffle=self.shuffle, random_state=self.random_state)
-        self.valid_dataset = LabeledDataset(transform=self.valid_transform)
-        self.test_dataset=LabeledDataset(transform=self.test_transform)
+        self.valid_dataset = LabeledDataset(pre_transform=pre_transform,transform=self.valid_transform)
+        self.test_dataset=LabeledDataset(pre_transform=pre_transform,transform=self.test_transform)
 
         self.len_test=None
         self.len_valid = None
@@ -73,10 +72,6 @@ class SemiDataset(Dataset):
         self.valid_y_indexing_method=None
 
         self.data_initialized=False
-        # self.labeled_class=LabeledDataset
-        # self.unLabeled_class=UnlabeledDataset
-        # self.train_class=partial(TrainDataset,labeled_size=self.labeled_size,stratified=self.stratified,
-        #                              shuffle=self.shuffle,random_state=self.random_state)
 
     def _init_dataset(self):
         raise NotImplementedError(
@@ -106,12 +101,12 @@ class SemiDataset(Dataset):
 
             if test_dataset is not None:
                 self.test_dataset=test_dataset
-                # setattr(self.test_dataset,'transform',self.test_transform)
+
             elif test_X is not None:
                 self.test_dataset.inin_dataset(test_X,test_y)
             elif self.test_size is not None:
-                test_X, test_y,labeled_X, labeled_y = SemiSplit(X=labeled_X, y=labeled_y,
-                                                           labeled_size=self.test_size,
+                test_X, test_y,labeled_X, labeled_y = Data_Split(X=labeled_X, y=labeled_y,
+                                                           size_split=self.test_size,
                                                            stratified=self.stratified,
                                                            shuffle=self.shuffle,
                                                            random_state=self.random_state
@@ -127,8 +122,8 @@ class SemiDataset(Dataset):
                     labeled_X=getattr(labeled_dataset,'X')
                     labeled_y=getattr(labeled_dataset,'y')
 
-                valid_X, valid_y,labeled_X, labeled_y = SemiSplit(X=labeled_X, y=labeled_y,
-                                                           labeled_size=self.valid_size,
+                valid_X, valid_y,labeled_X, labeled_y = Data_Split(X=labeled_X, y=labeled_y,
+                                                           size_split=self.valid_size,
                                                            stratified=self.stratified,
                                                            shuffle=self.shuffle,
                                                            random_state=self.random_state
@@ -149,12 +144,21 @@ class SemiDataset(Dataset):
         self.labeled_y = getattr(self.labeled_dataset,'y')
         self.unlabeled_X = getattr(self.unlabeled_dataset,'X')
         self.unlabeled_y = getattr(self.unlabeled_dataset,'y')
+        if self.valid_X is None and self.test_X is None:
+            self.valid_X =copy.copy(self.unlabeled_X)
+            self.valid_y=copy.copy(self.unlabeled_y)
+            self.valid_dataset.init_dataset(self.valid_X, self.valid_y)
+            self.test_X =copy.copy(self.unlabeled_X)
+            self.test_y=copy.copy(self.unlabeled_y)
+            self.test_dataset.init_dataset(self.test_X, self.test_y)
         if self.valid_X is None:
-            self.valid_X =self.test_X
-            self.valid_y=self.test_y
+            self.valid_X =copy.copy(self.test_X)
+            self.valid_y=copy.copy(self.test_y)
+            self.valid_dataset.init_dataset(self.valid_X, self.valid_y)
         if self.test_X is None:
-            self.test_X=self.valid_X
-            self.test_y=self.valid_y
+            self.test_X=copy.copy(self.valid_X)
+            self.test_y=copy.copy(self.valid_y)
+            self.test_dataset.init_dataset(self.test_X, self.test_y)
         self.labeled_X_indexing_method=get_indexing_method(self.labeled_X)
         self.labeled_y_indexing_method = get_indexing_method(self.labeled_y)
         self.unlabeled_X_indexing_method =get_indexing_method(self.unlabeled_X)

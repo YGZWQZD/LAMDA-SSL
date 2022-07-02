@@ -1,6 +1,7 @@
 from lamda_ssl.Evaluation.Cluster.EvaluationCluster import EvaluationCluster
 from sklearn.metrics import fowlkes_mallows_score
 from lamda_ssl.utils import partial
+
 class Fowlkes_Mallows_Score(EvaluationCluster):
     def __init__(self,sparse=False):
         super().__init__()
