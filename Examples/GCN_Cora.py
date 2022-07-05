@@ -1,13 +1,13 @@
-from lamda_ssl.Dataset.Graph.Cora import Cora
-from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
-from lamda_ssl.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
-from lamda_ssl.Evaluation.Classification.Precision import Precision
-from lamda_ssl.Evaluation.Classification.Recall import Recall
-from lamda_ssl.Evaluation.Classification.F1 import F1
-from lamda_ssl.Evaluation.Classification.AUC import AUC
-from lamda_ssl.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
-from lamda_ssl.Opitimizer.Adam import Adam
-from lamda_ssl.Algorithm.Classifier.GCN import GCN
+from LAMDA_SSL.Dataset.Graph.Cora import Cora
+from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
+from LAMDA_SSL.Evaluation.Classification.Precision import Precision
+from LAMDA_SSL.Evaluation.Classification.Recall import Recall
+from LAMDA_SSL.Evaluation.Classification.F1 import F1
+from LAMDA_SSL.Evaluation.Classification.AUC import AUC
+from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
+from LAMDA_SSL.Opitimizer.Adam import Adam
+from LAMDA_SSL.Algorithm.Classifier.GCN import GCN
 
 file = open("../Result/GCN_Cora.txt", "w")
 

@@ -1,27 +1,27 @@
 #  Introduction
 
-Semi-sklearn is an useful and efficient toolbox for semi-supervised learning. At present, Semi-sklearn contains 30 semi-supervised learning algorithms, including 13 algorithms based on classical machine learning models and 17 algorithms based on deep neural network models. Semi-sklearn can be used to process four types of data: structured data, image data, text data and graph data, and can be used for three types of task: classification, regression and clustering. Semi-sklearn includes multiple modules such as data management, data transformation, algorithm application, model evaluation and so on, which facilitates the completion of the end-to-end semi-supervised learning process, and is compatible with the current popular machine learning toolkit scikit-learn and deep learning toolkit pytorch.
+LAMDA-SSL is an useful and efficient toolbox for semi-supervised learning. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 13 algorithms based on classical machine learning models and 17 algorithms based on deep neural network models. LAMDA-SSL can be used to process four types of data: structured data, image data, text data and graph data, and can be used for three types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, algorithm application, model evaluation and so on, which facilitates the completion of the end-to-end semi-supervised learning process, and is compatible with the current popular machine learning toolkit scikit-learn and deep learning toolkit pytorch.
 
 ## Design Idea
 
 
-The overall design idea of Semi-sklearn is shown in the figure. Semi-sklearn refers to the underlying implementation of sklearn. All Algorithms in Semi-sklearn have interfaces similar to that Algorithms in sklearn.The learners in sklearn all inherit the parent class Estimator. Estimator uses known data to build a model to make predictions on unknown data. There are usually two usual methods in Estimator: fit() and transform(). fit() method is an adaptation process using existing data to build a model, which corresponds to the training process in machine learning. transform() method is a transformation process using the fitted model to predict results of new instances, which corresponds to the predicting process in machine learning.
+The overall design idea of LAMDA-SSL is shown in the figure. LAMDA-SSL refers to the underlying implementation of sklearn. All Algorithms in LAMDA-SSL have interfaces similar to that Algorithms in sklearn.The learners in sklearn all inherit the parent class Estimator. Estimator uses known data to build a model to make predictions on unknown data. There are usually two usual methods in Estimator: fit() and transform(). fit() method is an adaptation process using existing data to build a model, which corresponds to the training process in machine learning. transform() method is a transformation process using the fitted model to predict results of new instances, which corresponds to the predicting process in machine learning.
 
 <div align=center>
 <img width="500px"  src="./Imgs/Base.png" >
 </div>
 
-Learners in Semi-sklearn indirectly inherits Estimator in sklearn by inheriting the semi-supervised predictor class SemiEstimator. Data used for fit() method in sklearn usually includes samples and labels.However, in semi-supervised learning, labeled samples, labels and unlabeled samples are used in the training process of the model, so Estimator's fit() method is inconvenient directly used in semi-supervised learning algorithms. Although sklearn also implements two types of semi-supervised learning algorithms, self-training methods and graph-based methods, which also inherit the Estimator class, in order to use the interface of the fit() method, sklearn combines labeled samples and unlabeled data samples as samples input of fit() method, mark the labels corresponding to the unlabeled samples as -1 in labels input of fit() method. Although this processing method can be adapted to the Estimator interface, it also has limitations, especially in some binary classification scenario using -1 to indicate negative labels of labeled samples, which will conflict with unlabeled samples. Therefore, it is necessary to re-establish a new class SemiEstimator on the basis of Estimator for semi-supervised learning. There are three parts in the input of SemiEstimator's fit() method: labeled samples, labels and unlabeled samples, which better adapts the application scenario of semi-supervised learning. It doesn't require users combining data by themselves, and avoids the conflict between marks of unlabeled samples and labels of negative samples in binary classification. Compared with Estimator it's more convenient.
+Learners in LAMDA-SSL indirectly inherits Estimator in sklearn by inheriting the semi-supervised predictor class SemiEstimator. Data used for fit() method in sklearn usually includes samples and labels.However, in semi-supervised learning, labeled samples, labels and unlabeled samples are used in the training process of the model, so Estimator's fit() method is inconvenient directly used in semi-supervised learning algorithms. Although sklearn also implements two types of semi-supervised learning algorithms, self-training methods and graph-based methods, which also inherit the Estimator class, in order to use the interface of the fit() method, sklearn combines labeled samples and unlabeled data samples as samples input of fit() method, mark the labels corresponding to the unlabeled samples as -1 in labels input of fit() method. Although this processing method can be adapted to the Estimator interface, it also has limitations, especially in some binary classification scenario using -1 to indicate negative labels of labeled samples, which will conflict with unlabeled samples. Therefore, it is necessary to re-establish a new class SemiEstimator on the basis of Estimator for semi-supervised learning. There are three parts in the input of SemiEstimator's fit() method: labeled samples, labels and unlabeled samples, which better adapts the application scenario of semi-supervised learning. It doesn't require users combining data by themselves, and avoids the conflict between marks of unlabeled samples and labels of negative samples in binary classification. Compared with Estimator it's more convenient.
 
-Semi-supervised learning is generally divided into inductive learning and transductive learning. The difference is whether the samples to be predicted is directly used as the unlabeled samples in the training process. Semi-sklearn uses two classes InductiveEstimator and TransductiveEstimator, which correspond to two types of semi-supervised learning methods: inductive learning and transductive learning respectively. InductiveEstimator and TransductiveEstimator both inherit SemiEstimator.
+Semi-supervised learning is generally divided into inductive learning and transductive learning. The difference is whether the samples to be predicted is directly used as the unlabeled samples in the training process. LAMDA-SSL uses two classes InductiveEstimator and TransductiveEstimator, which correspond to two types of semi-supervised learning methods: inductive learning and transductive learning respectively. InductiveEstimator and TransductiveEstimator both inherit SemiEstimator.
 
 <div align=center>
 <img width="500px"  src="./Imgs/LearningPattern.png" > 
 </div>
 
-In order to enable estimators to have corresponding functions for different tasks, sklearn has developed components (Mixin) corresponding to the scene for different usage scenarios of estimators. Estimators in sklearn often inherit both Estimator and corresponding components, so that they have the most basic fitting and prediction capabilities and also have the function of processing tasks corresponding to specific components. The key components include ClassifierMixin for classification tasks, RegressorMixin for regression tasks, ClusterMixin for clustering tasks, and TransformerMixin for data transformation, which are also used in Semi-sklearn.
+In order to enable estimators to have corresponding functions for different tasks, sklearn has developed components (Mixin) corresponding to the scene for different usage scenarios of estimators. Estimators in sklearn often inherit both Estimator and corresponding components, so that they have the most basic fitting and prediction capabilities and also have the function of processing tasks corresponding to specific components. The key components include ClassifierMixin for classification tasks, RegressorMixin for regression tasks, ClusterMixin for clustering tasks, and TransformerMixin for data transformation, which are also used in LAMDA-SSL.
 
-In addition, different from sklearn framework commonly used in classical machine learning, deep learning often uses pytorch framework. There are lots of dependencies between the components of pytorch such as Dataset coupling with Dataloader, Optimizer coupling with Scheduler, Sampler coupling with BatchSampler, etc. In pytorch, there is no simple logic and interfaces like sklearn which causes great difficulty in integrating both classical machine learning methods and deep learning methods into a same toolkit. In order to solve this problem Semi-sklearn uses DeepModelMixin component to enable deep semi-supervised models developed based on pytorch to have the same interface and usage as classical machine learning methods. Deep semi-supervised learning algorithms in Semi-sklearn all inherit this component. DeepModelMixin decouples each module of pytorch, which is convenient for users to independently replace data loader, network structure, optimizer and other modules in deep learning without considering the impact of replacement on other modules. Deep semi-supervised learning algorithms can be called as easily as classical semi-supervised learning algorithms in Semi-sklearn.
+In addition, different from sklearn framework commonly used in classical machine learning, deep learning often uses pytorch framework. There are lots of dependencies between the components of pytorch such as Dataset coupling with Dataloader, Optimizer coupling with Scheduler, Sampler coupling with BatchSampler, etc. In pytorch, there is no simple logic and interfaces like sklearn which causes great difficulty in integrating both classical machine learning methods and deep learning methods into a same toolkit. In order to solve this problem LAMDA-SSL uses DeepModelMixin component to enable deep semi-supervised models developed based on pytorch to have the same interface and usage as classical machine learning methods. Deep semi-supervised learning algorithms in LAMDA-SSL all inherit this component. DeepModelMixin decouples each module of pytorch, which is convenient for users to independently replace data loader, network structure, optimizer and other modules in deep learning without considering the impact of replacement on other modules. Deep semi-supervised learning algorithms can be called as easily as classical semi-supervised learning algorithms in LAMDA-SSL.
 
 <div align=center>
 <img width="600px"  src="./Imgs/PytorchCoupling.png" > 
@@ -30,11 +30,11 @@ In addition, different from sklearn framework commonly used in classical machine
 
 ## Data Management
 
-Semi-sklearn has powerful data management and data processing functions. In Semi-sklearn, a semi-supervised dataset can be managed by SemiDataset class. The SemiDataset class can manage three sub-datasets: TrainDataset, ValidDataset, and TestDataset corresponding to training dataset, validation dataset and test dataset in machine learning tasks respectively. The most basic classes for data management are LabeledDataset and UnlabeledDataset, which correspond to labeled data and unlabeled data in semi-supervised learning respectively. Training datasets often contains both labeled data and unlabeled data. Therefore, TrainDataset simultaneously manage a LabeledDataset and an UnlabeledDataset. 
+LAMDA-SSL has powerful data management and data processing functions. In LAMDA-SSL, a semi-supervised dataset can be managed by SemiDataset class. The SemiDataset class can manage three sub-datasets: TrainDataset, ValidDataset, and TestDataset corresponding to training dataset, validation dataset and test dataset in machine learning tasks respectively. The most basic classes for data management are LabeledDataset and UnlabeledDataset, which correspond to labeled data and unlabeled data in semi-supervised learning respectively. Training datasets often contains both labeled data and unlabeled data. Therefore, TrainDataset simultaneously manage a LabeledDataset and an UnlabeledDataset. 
 
-Semi-sklearn designs two most basic data loaders: LabeledDataloader and UnlabeledDataloader for LabeledDataset and UnlabeledDataset respectively.Semi-sklarn uses TrainDataloader class to manage the two loaders in the training process of semi-supervised learning and adjust the relationship between the two loaders, such as adjusting the ratio of labeled data and unlabeled data in each batch. 
+LAMDA-SSL designs two most basic data loaders: LabeledDataloader and UnlabeledDataloader for LabeledDataset and UnlabeledDataset respectively.Semi-sklarn uses TrainDataloader class to manage the two loaders in the training process of semi-supervised learning and adjust the relationship between the two loaders, such as adjusting the ratio of labeled data and unlabeled data in each batch. 
 
-Semi-sklearn can process structured data, image data, text data, and graph data, which are four common data types in practical applications. Semi-sklearn uses four components corresponding to data types: StructuredDataMixin, VisionMixin, TextMixin, and GraphMixin. Every Dataset can inherit the component corresponding to its data type to obtain the data processing function in the component.
+LAMDA-SSL can process structured data, image data, text data, and graph data, which are four common data types in practical applications. LAMDA-SSL uses four components corresponding to data types: StructuredDataMixin, VisionMixin, TextMixin, and GraphMixin. Every Dataset can inherit the component corresponding to its data type to obtain the data processing function in the component.
 
 <div align=center>
 <img width="600px"  src="./Imgs/Dataset.png" > 
@@ -43,11 +43,11 @@ Semi-sklearn can process structured data, image data, text data, and graph data,
 
 ## Data Transformation
 
-Before using data to learn models and using models to predict labels of new data, it is usually necessary to preprocess or augment data, especially in the field of semi-supervised learning. To meet the needs of adding noise, the data transformation module of Semi-sklearn provides various data preprocessing and data augmentation methods for different types of data, such as normalization, standardization, MinMaxScale for structured data, Rotation, cropping, flipping for visual data, word segmentation, word embedding, length adjustment for text data, node feature standardization, k-nearest neighbor graph construction, graph diffusion for graph data, etc. All data transformation methods inherit TransformerMixin class from sklearn. Transformation method can be called using the interface of either sklearn or pytorch. For multi transformations in turn, both Pipeline mechanism in sklearn and Compose   mechanism in pytorch can be used. 
+Before using data to learn models and using models to predict labels of new data, it is usually necessary to preprocess or augment data, especially in the field of semi-supervised learning. To meet the needs of adding noise, the data transformation module of LAMDA-SSL provides various data preprocessing and data augmentation methods for different types of data, such as normalization, standardization, MinMaxScale for structured data, Rotation, cropping, flipping for visual data, word segmentation, word embedding, length adjustment for text data, node feature standardization, k-nearest neighbor graph construction, graph diffusion for graph data, etc. All data transformation methods inherit TransformerMixin class from sklearn. Transformation method can be called using the interface of either sklearn or pytorch. For multi transformations in turn, both Pipeline mechanism in sklearn and Compose   mechanism in pytorch can be used. 
 
 ## Algorithm Usage
 
-At present, Semi-sklearn contains 30 semi-supervised learning algorithms. There are 13 algorithms based on classical machine learning models, including generative method: SSGMM; semi-supervised support vector machine methods: TSVM, LapSVM; graph-based methods: Label Propagation, Label Spreading;  wrappers methods: Self-Training, Co-Training, Tri-Training; ensemble methods: Assemble, SemiBoost; semi-supervised regression method: CoReg; semi-supervised clustering method: Constrained K Means, Constrained Seed K Means. There are 17 algorithms based on deep neural network models, including Consistency regularization methods: Ladder Network, Pi Model, Temporal Ensembling, Mean Teacher, VAT, UDA; pseudo-label-based methods: Pseudo Label, S4L; hybird methods: ICT , MixMatch, ReMixMatch, FixMatch, FlexMatch; deep generative methods: ImprovedGAN, SSVAE; deep graph based methods: SDNE, GCN.
+At present, LAMDA-SSL contains 30 semi-supervised learning algorithms. There are 13 algorithms based on classical machine learning models, including generative method: SSGMM; semi-supervised support vector machine methods: TSVM, LapSVM; graph-based methods: Label Propagation, Label Spreading;  wrappers methods: Self-Training, Co-Training, Tri-Training; ensemble methods: Assemble, SemiBoost; semi-supervised regression method: CoReg; semi-supervised clustering method: Constrained K Means, Constrained Seed K Means. There are 17 algorithms based on deep neural network models, including Consistency regularization methods: Ladder Network, Pi Model, Temporal Ensembling, Mean Teacher, VAT, UDA; pseudo-label-based methods: Pseudo Label, S4L; hybird methods: ICT , MixMatch, ReMixMatch, FixMatch, FlexMatch; deep generative methods: ImprovedGAN, SSVAE; deep graph based methods: SDNE, GCN.
 
 <div align=center>
 <img width="1000px"  src="./Imgs/ClassicalSSL.png" >
@@ -61,7 +61,7 @@ At present, Semi-sklearn contains 30 semi-supervised learning algorithms. There 
 
 ## Model Evaluation
 
-Semi-sklearn provides different evaluation indicators for different tasks, such as accuracy, precision, recall for classification tasks, mean squared error, mean squared logarithmic error, mean absolute error for regression tasks and Davies Bouldin Index, Fowlkes and Mallows Index, Rand Index for clustering tasks etc. In Semi-sklearn, the evaluation method can be called after getting the prediction results directly passed to the model in the form of a python dictionary as a parameter.
+LAMDA-SSL provides different evaluation indicators for different tasks, such as accuracy, precision, recall for classification tasks, mean squared error, mean squared logarithmic error, mean absolute error for regression tasks and Davies Bouldin Index, Fowlkes and Mallows Index, Rand Index for clustering tasks etc. In LAMDA-SSL, the evaluation method can be called after getting the prediction results directly passed to the model in the form of a python dictionary as a parameter.
 
 # Quick Start
 
@@ -70,16 +70,16 @@ Semi-sklearn provides different evaluation indicators for different tasks, such 
 Take CIFAR10 dataset as an example, firstly import the CIFAR10 class.
 
 ```python
-from lamda_ssl.Dataset.Vision.cifar10 import CIFAR10
+from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
 ```
 
 Instantiate a CIFAR10 dataset, which is equivalent to a data manager. The parameter 'root' indicates the storage path of the dataset. The parameter 'labeled_size' indicates the number or proportion of labeled samples. The parameter 'stratified' indicates whether to divide the dataset according to the category ratio. The parameter 'shuffle' indicates whether the dataset needs to be shuffled and The parameter 'download' indicates whether the dataset needs to be downloaded.
 
 ```python
-dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False)
+dataset=CIFAR10(root='..\LAMDA_SSL\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False)
 ```
 
-Initialize the internal structure of the dataset through the method 'init_dataset'. If you use the datasets in Semi-sklearn, you do not need to set parameters. If you use a custom dataset, you need to input specific data.
+Initialize the internal structure of the dataset through the method 'init_dataset'. If you use the datasets in LAMDA-SSL, you do not need to set parameters. If you use a custom dataset, you need to input specific data.
 
 ```python
 dataset.init_dataset()
@@ -110,7 +110,7 @@ test_y=getattr(dataset.test_dataset,'y')
 Taking RandAugment data augmentation as an example. firstly import the RandAugment class.
 
 ```python
-from lamda_ssl.Transform.RandAugment import RandAugment
+from LAMDA_SSL.Transform.RandAugment import RandAugment
 ```
 
 Instantiate RandAugment class. The parameter 'n' is the number of random augmentation. The parameter 'm' is the magnitude of augmentation. The parameter 'num_bins' is the number of levels of magnitude division. This setting divides the augmentation magnitude into 10 levels, and uses the 10-th level augmentation augmentation twice.
@@ -133,15 +133,15 @@ augmented_X=augmentation(X)
 
 ## Use Pipeline Mechanism
 
-Semi-sklearn supports Pipeline mechanism, which uses multiple data processing methods for data processing in turn.
+LAMDA-SSL supports Pipeline mechanism, which uses multiple data processing methods for data processing in turn.
 Such as strong data augmentation and weak data augmentation in the FixMatch algorithm.
 
 ```python
 from sklearn.pipeline import Pipeline
-from lamda_ssl.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from lamda_ssl.Transform.RandomCrop import RandomCrop
-from lamda_ssl.Transform.RandAugment import RandAugment
-from lamda_ssl.Transform.Cutout import Cutout
+from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Transform.RandomCrop import RandomCrop
+from LAMDA_SSL.Transform.RandAugment import RandAugment
+from LAMDA_SSL.Transform.Cutout import Cutout
 weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
@@ -166,7 +166,7 @@ Take the Self-training algorithm as an example.
 Firstly import and initialize the BreastCancer dataset.
 
 ```python
-from lamda_ssl.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
 dataset.init_dataset()
 dataset.init_transforms()
@@ -186,7 +186,7 @@ test_y=dataset.test_y
 Call and initialize the Self-training model using  SVM model as the base learner.
 
 ```python
-from lamda_ssl.Algorithm.Classifier.Self_Training import Self_training
+from LAMDA_SSL.Algorithm.Classifier.Self_Training import Self_training
 from sklearn.svm import SVC
 
 SVM = SVC(C=1.0, kernel='linear', probability=True, gamma='auto')
@@ -208,8 +208,8 @@ result=model.predict(X=test_X)
 Evaluate model performance.
 
 ```python
-from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
-from lamda_ssl.Evaluation.Classification.Recall import Recall
+from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classification.Recall import Recall
 print(Accuracy().scoring(test_y,result))
 print(Recall().scoring(test_y,result))
 ```
@@ -221,7 +221,7 @@ Firstly import and initialize CIFAR10 dataset.
 
 ```python
 from lamda_ssl.Dataset.Vision.cifar10 import CIFAR10
-dataset=CIFAR10(root='..\Semi_sklearn\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
+dataset=CIFAR10(root='..\LAMDA_SSL\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False)
 dataset.init_dataset()
 dataset.init_transforms()
 ```
@@ -243,8 +243,8 @@ test_y=getattr(dataset.test_dataset,'y')
 In deep learning, dataloaders need to be used. Firstly, it is necessary to encapsulate the specific data into a data maneger and determine the processing method during the data loading process.
 
 ```python
-from lamda_ssl.Dataset.TrainDataset import TrainDataset
-from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
+from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
+from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 train_dataset=TrainDataset(transforms=dataset.transforms,transform=dataset.transform,pre_transform=dataset.pre_transform,
                            target_transform=dataset.target_transform,unlabeled_transform=dataset.unlabeled_transform)
 
@@ -256,9 +256,9 @@ test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 Before initializing the data loader, you can set the sampler according to your requirements. Here, random sampling is used for training and sequential sampling is used for test and Validation.
 
 ```python
-from lamda_ssl.Sampler.RandomSampler import RandomSampler
-from lamda_ssl.Sampler.SequentialSampler import SequentialSampler
-from lamda_ssl.Sampler.BatchSampler import SemiBatchSampler
+from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
+from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
+from LAMDA_SSL.Sampler.BatchSampler import SemiBatchSampler
 train_sampler=RandomSampler(replacement=True,num_samples=64*(2**20))
 train_batch_sampler=SemiBatchSampler(batch_size=64,drop_last=True)
 valid_sampler=SequentialSampler()
@@ -269,10 +269,10 @@ Set the data augmentation method in the form of Pipeline. If there are multiple 
 
 ```python
 from sklearn.pipeline import Pipeline
-from lamda_ssl.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from lamda_ssl.Transform.RandomCrop import RandomCrop
-from lamda_ssl.Transform.RandAugment import RandAugment
-from lamda_ssl.Transform.Cutout import Cutout
+from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Transform.RandomCrop import RandomCrop
+from LAMDA_SSL.Transform.RandAugment import RandAugment
+from LAMDA_SSL.Transform.Cutout import Cutout
 weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
@@ -291,33 +291,33 @@ augmentation={
 Set the neural network structure in deep learning. Here, WideResNet is used as the basic structure of the neural network.
 
 ```python
-from lamda_ssl.Network.WideResNet import WideResNet
+from LAMDA_SSL.Network.WideResNet import WideResNet
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
 ```
 
 Set the optimizer in deep learning, here the SGD optimizer is used.
 
 ```python
-from lamda_ssl.Opitimizer.SGD import SGD
+from LAMDA_SSL.Opitimizer.SGD import SGD
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 ```
 Set the scheduler in deep learning to adjust the learning rate during training.
 
 ```python
-from lamda_ssl.Scheduler.CosineAnnealingLR import CosineAnnealingLR
+from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 ```
 
 In the deep semi-supervised learning algorithms, a dictionary can be used to store multiple evaluation indicators, which are directly used as parameters during model initialization to verify the model performence during the training process.
 
 ```python
-from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
-from lamda_ssl.Evaluation.Classification.Top_k_Accuracy import Top_k_accurary
-from lamda_ssl.Evaluation.Classification.Precision import Precision
-from lamda_ssl.Evaluation.Classification.Recall import Recall
-from lamda_ssl.Evaluation.Classification.F1 import F1
-from lamda_ssl.Evaluation.Classification.AUC import AUC
-from lamda_ssl.Evaluation.Classification.Confusion_Matrix import Confusion_matrix
+from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_accurary
+from LAMDA_SSL.Evaluation.Classification.Precision import Precision
+from LAMDA_SSL.Evaluation.Classification.Recall import Recall
+from LAMDA_SSL.Evaluation.Classification.F1 import F1
+from LAMDA_SSL.Evaluation.Classification.AUC import AUC
+from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_matrix
 
 evaluation = {
     'accuracy': Accuracy(),
@@ -333,7 +333,7 @@ evaluation = {
 Initialize Fixmatch algorithm and set components and parameters.
 
 ```python
-from lamda_ssl.Algorithm.Classifier.FixMatch import Fixmatch
+from LAMDA_SSL.Algorithm.Classifier.FixMatch import Fixmatch
 
 model = Fixmatch(train_dataset=train_dataset, valid_dataset=valid_dataset, test_dataset=test_dataset,
                  train_sampler=train_sampler, valid_sampler=valid_sampler, test_sampler=test_sampler,
@@ -359,7 +359,7 @@ model.predict(test_X)
 
 ## Search Params
 
-Semi-sklearn supports the parameter search mechanism in sklearn.
+LAMDA-SSL supports the parameter search mechanism in sklearn.
 Firstly initialize a model with incomplete parameters.
 
 ```python
@@ -399,7 +399,7 @@ Distributed training can be used to train models simultaneously with multiple GP
 Import and initialize the DataParallel module. The GPUs required for distributed training need to be set up.
 
 ```python
-from lamda_ssl.Distributed.DataParallel import DataParallel
+from LAMDA_SSL.Distributed.DataParallel import DataParallel
 parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
 ```
 
@@ -463,7 +463,7 @@ SSGMM model was proposed by Shahshahani et al. SSGMM is a semi-supervised Gaussi
 
 Support vector machine is one of the most representative algorithms in the field of machine learning. This class of algorithms treats the binary classification problem as finding a suitable partitioning hyperplane in the feature space. In the case of linear separability, among all the hyperplanes that can complete the correct classification, the optimal dividing hyperplane should be located in the middle of the samples from different classes, which can improve the robustness of the model for predicting unknown samples. In each class, the sample closest to the hyperplane is called the support vector. Support vectors of different classes are equidistant from the hyperplane. The purpose of the support vector machine algorithm is to find the hyperplane closest to its corresponding support vectors. However, in real tasks, there are often no hyperplanes that can correctly divide all training samples. Even if there are, it is most likely due to overfitting. Therefore, a class of support vector machine methods introduces Soft Margin mechanism , which allows the hyperplane to not necessarily classify all samples correctly, but adds a penalty for misclassifying samples in the optimization objective.
 
-Semi-supervised support vector machine is a generalization of the support vector machine algorithm in the field of semi-supervised learning. The semi-supervised support vector machine introduces a low-density assumption, that is, the learned hyperplane not only needs to separate the classifications as much as possible based on the labeled samples, but also needs to pass through the low-density regions of the distribution of all samples as much as possible. It make reasonable use of the unlabeled samples. Semi-sklearn includes two semi-supervised SVM methods: TSVM and LapSVM.
+Semi-supervised support vector machine is a generalization of the support vector machine algorithm in the field of semi-supervised learning. The semi-supervised support vector machine introduces a low-density assumption, that is, the learned hyperplane not only needs to separate the classifications as much as possible based on the labeled samples, but also needs to pass through the low-density regions of the distribution of all samples as much as possible. It make reasonable use of the unlabeled samples. LAMDA-SSL includes two semi-supervised SVM methods: TSVM and LapSVM.
 
 <!-- ##### <font color=blue size=16>TSVM</font> -->
 #### TSVM
@@ -634,22 +634,22 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 
 # API
 
-## Semi_sklearn.Algorithm
+## LAMDA_SSL.Algorithm
 
-### Semi_sklearn.Algorithm.Classifiar
+### LAMDA_SSL.Algorithm.Classifiar
 
-#### Semi_sklearn.Algorithm.Classifier.Assemble
+#### LAMDA_SSL.Algorithm.Classifier.Assemble
 
-> CLASS Semi_sklearn.Algorithm.Classifier.Assemble.Assemble(base_model=SVC(probability=True),T=100,alpha=1,beta=0.9)
+> CLASS LAMDA_SSL.Algorithm.Classifier.Assemble.Assemble(base_model=SVC(probability=True),T=100,alpha=1,beta=0.9)
 >> Parameter:
 >> - base_model: A base learner for ensemble learning.
 >> - T: the number of base learners. It is also the number of iterations.
 >> - alpha: the weight of each sample when the sampling distribution is updated.
 >> - Beta: used to initialize the sampling distribution of labeled data and unlabeled data.
 
-#### Semi_sklearn.Algorithm.Classifier.Co_training
+#### LAMDA_SSL.Algorithm.Classifier.Co_training
 
-> CLASS Semi_sklearn.Algorithm.Classifier.Co_training.Co_training(base_estimator, base_estimator_2=None, p=5, n=5, k=30, s=75)
+> CLASS LAMDA_SSL.Algorithm.Classifier.Co_training.Co_training(base_estimator, base_estimator_2=None, p=5, n=5, k=30, s=75)
 >> Parameter:
 >> - base_estimator: the first learner for co-training.
 >> - base_estimator_2: the second learner for co-training.
@@ -658,9 +658,9 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - k: iteration rounds.
 >> - s: the size of the buffer pool in each iteration.
 
-#### Semi_sklearn.Algorithm.Classifier.Fixmatch
+#### LAMDA_SSL.Algorithm.Classifier.Fixmatch
 
-> CLASS Semi_sklearn.Algorithm.Classifier.Fixmatch.Fixmatch(self,train_dataset=None,
+> CLASS LAMDA_SSL.Algorithm.Classifier.Fixmatch.Fixmatch(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -705,8 +705,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - lambda_u: The weight of unsupervised loss.
 >> - T: the sharpening temperature.
 
-#### Semi_sklearn.Algorithm.Classifier.Flexmatch
-> CLASS Semi_sklearn.Algorithm.Classifier.Flexmatch.Flexmatch(self,train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.Flexmatch
+> CLASS LAMDA_SSL.Algorithm.Classifier.Flexmatch.Flexmatch(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -760,8 +760,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - use_DA: Whether to perform distribution alignment for soft labels.
 >> - p_target: p(y) based on the labeled examples seen during training
 
-#### Semi_sklearn.Algorithm.Classifier.GCN
-> CLASS Semi_sklearn.Algorithm.Classifier.GCN(
+#### LAMDA_SSL.Algorithm.Classifier.GCN
+> CLASS LAMDA_SSL.Algorithm.Classifier.GCN(
                  epoch=1,
                  eval_epoch=None,
                  network=None,
@@ -780,8 +780,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - num_classes: Number of classes.
 >> - normalize: Whether to use symmetric normalization.
 
-#### Semi_sklearn.Algorithm.Classifier.ICT
-> CLASS Semi_sklearn.Algorithm.Classifier.ICT(train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.ICT
+> CLASS LAMDA_SSL.Algorithm.Classifier.ICT(train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -825,8 +825,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - lambda_u: The weight of unsupervised loss.
 >> - alpha: the parameter of Beta distribution in Mixup.
 
-#### Semi_sklearn.Algorithm.Classifier.ImprovedGAN
-> CLASS Semi_sklearn.Algorithm.Classifier.ImprovedGAN(
+#### LAMDA_SSL.Algorithm.Classifier.ImprovedGAN
+> CLASS LAMDA_SSL.Algorithm.Classifier.ImprovedGAN(
                  train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -883,8 +883,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - lambda_u: The weight of unsupervised loss.
 >> - num_labeled: The number of labeled samples.
 
-#### Semi_sklearn.Algorithm.Classifier.LabelPropagation
-> CLASS Semi_sklearn.Algorithm.Classifier.LabelPropagation(kernel="rbf",
+#### LAMDA_SSL.Algorithm.Classifier.LabelPropagation
+> CLASS LAMDA_SSL.Algorithm.Classifier.LabelPropagation(kernel="rbf",
         gamma=20,
         n_neighbors=7,
         max_iter=30,
@@ -899,8 +899,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - tol: Convergence tolerance.
 >> - n_jobs: The number of parallel jobs.
 
-#### Semi_sklearn.Algorithm.Classifier.LabelSpreading
-> CLASS Semi_sklearn.Algorithm.Classifier.LabelSpreading(
+#### LAMDA_SSL.Algorithm.Classifier.LabelSpreading
+> CLASS LAMDA_SSL.Algorithm.Classifier.LabelSpreading(
         kernel="rbf",
         gamma=10,
         n_neighbors=7,
@@ -919,8 +919,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - n_jobs: The number of parallel jobs.
 
 
-#### Semi_sklearn.Algorithm.Classifier.LadderNetwork
-> CLASS Semi_sklearn.Algorithm.Classifier.LadderNetwork(train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.LadderNetwork
+> CLASS LAMDA_SSL.Algorithm.Classifier.LadderNetwork(train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -969,8 +969,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - encoder_sizes: The dimension of each layer of the encoder.
 >> - encoder_activations: The activation function of each layer of the encoder.
 
-#### Semi_sklearn.Algorithm.Classifier.TSVM
-> CLASS Semi_sklearn.Algorithm.Classifier.TSVM（Cl=1.0,
+#### LAMDA_SSL.Algorithm.Classifier.TSVM
+> CLASS LAMDA_SSL.Algorithm.Classifier.TSVM（Cl=1.0,
             Cu=0.001,
             kernel=rbf_kernel,
             degree=3,
@@ -1003,8 +1003,8 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - break_ties: Whether to classify by calculating confidence in the event of a tie.
 >> - random_state: A random seed for data shuffling.
 
-#### Semi_sklearn.Algorithm.Classifier.LapSVM
-> CLASS Semi_sklearn.Algorithm.Classifier.LapSVM(
+#### LAMDA_SSL.Algorithm.Classifier.LapSVM
+> CLASS LAMDA_SSL.Algorithm.Classifier.LapSVM(
 distance_function = rbf_kernel,
            gamma_d=0.01,
            neighbor_mode =None,
@@ -1023,8 +1023,8 @@ distance_function = rbf_kernel,
 >> - gamma_A: Penalty weight for function complexity.
 >> - gamma_I: Penalty weight for smoothness of data distribution.
 
-#### Semi_sklearn.Algorithm.Classifier.MeanTeacher
-> CLASS Semi_sklearn.Algorithm.Classifier.MeanTeacher(
+#### LAMDA_SSL.Algorithm.Classifier.MeanTeacher
+> CLASS LAMDA_SSL.Algorithm.Classifier.MeanTeacher(
 train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
@@ -1068,8 +1068,8 @@ train_dataset=None,
 >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
 >> - lambda_u: The weight of unsupervised loss.
 
-#### Semi_sklearn.Algorithm.Classifier.Mixmatch
-> CLASS Semi_sklearn.Algorithm.Classifier.Mixmatch(train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.Mixmatch
+> CLASS LAMDA_SSL.Algorithm.Classifier.Mixmatch(train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -1117,8 +1117,8 @@ train_dataset=None,
 >> - num_classes: The number of classes.
 >> - alpha: The parameter of the beta distribution in Mixup.
 
-#### Semi_sklearn.Algorithm.Classifier.PiModel
-> CLASS Semi_sklearn.Algorithm.Classifier.PiModel(train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.PiModel
+> CLASS LAMDA_SSL.Algorithm.Classifier.PiModel(train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -1161,8 +1161,8 @@ train_dataset=None,
 >> - lambda_u: The weight of unsupervised loss.
 >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
 
-#### Semi_sklearn.Algorithm.Classifier.PseudoLabel
-> CLASS Semi_sklearn.Algorithm.Classifier.PseudoLabel(self,train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.PseudoLabel
+> CLASS LAMDA_SSL.Algorithm.Classifier.PseudoLabel(self,train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -1206,8 +1206,8 @@ train_dataset=None,
 >> - lambda_u: The weight of unsupervised loss.
 >> - threshold: Confidence threshold for selecting samples.
 
-#### Semi_sklearn.Algorithm.Classifier.ReMixmatch
-> CLASS Semi_sklearn.Algorithm.Classifier.ReMixmatch（train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.ReMixmatch
+> CLASS LAMDA_SSL.Algorithm.Classifier.ReMixmatch（train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -1265,8 +1265,8 @@ train_dataset=None,
 
 
 
-#### Semi_sklearn.Algorithm.Classifier.S4L
-> CLASS Semi_sklearn.Algorithm.Classifier.S4L(train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.S4L
+> CLASS LAMDA_SSL.Algorithm.Classifier.S4L(train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -1316,8 +1316,8 @@ train_dataset=None,
 >> - labeled_usp: Whether to use labeled data when computing the unsupervised loss.
 >> - all_rot: Whether to rotate samples by all angles in rotate_v_list.
 
-#### Semi_sklearn.Algorithm.Classifier.SDNE
-> CLASS Semi_sklearn.Algorithm.Classifier.SDNE(epoch=1,
+#### LAMDA_SSL.Algorithm.Classifier.SDNE
+> CLASS LAMDA_SSL.Algorithm.Classifier.SDNE(epoch=1,
                  eval_epoch=None,
                  optimizer=None,
                  scheduler=None,
@@ -1345,8 +1345,8 @@ train_dataset=None,
 >> - beta: The weight of the edges in the graph that are not 0 in the loss of consistency between the input and output of the autoencoder.
 >> - base_estimator: A supervised learner that classifies using the node features obtained by the encoder.
 
-#### Semi_sklearn.Algorithm.Classifier.Self_training
-> CLASS Semi_sklearn.Algorithm.Classifier.Self_training(base_estimator,
+#### LAMDA_SSL.Algorithm.Classifier.Self_training
+> CLASS LAMDA_SSL.Algorithm.Classifier.Self_training(base_estimator,
                 threshold=0.75,
                 criterion="threshold",
                 k_best=10,
@@ -1360,8 +1360,8 @@ train_dataset=None,
 >> - max_iter: The maximum number of iterations.
 >> - verbose: Whether to allow redundant output.
 
-#### Semi_sklearn.Algorithm.Classifier.SemiBoost
-> CLASS Semi_sklearn.Algorithm.Classifier.SemiBoost(base_estimator =SVC(),
+#### LAMDA_SSL.Algorithm.Classifier.SemiBoost
+> CLASS LAMDA_SSL.Algorithm.Classifier.SemiBoost(base_estimator =SVC(),
 similarity_kernel = 'rbf',
                         n_neighbors=4, 
                         gamma=0.1, 
@@ -1380,15 +1380,15 @@ similarity_kernel = 'rbf',
 >> - sample_percent: The number of samples sampled at each iteration as a proportion of the remaining unlabeled samples.
 >> - sigma_percentile: Scale parameter used in the 'rbf' kernel.
 
-#### Semi_sklearn.Algorithm.Classifier.SSGMM
-> CLASS Semi_sklearn.Algorithm.Classifier.SSGMM(num_classes, tolerance=1e-8, max_iterations=300)
+#### LAMDA_SSL.Algorithm.Classifier.SSGMM
+> CLASS LAMDA_SSL.Algorithm.Classifier.SSGMM(num_classes, tolerance=1e-8, max_iterations=300)
 >> Parameter
 >> - num_classes: The number of classes.
 >> - tolerance: Tolerance for iterative convergence.
 >> - max_iterations: The maximum number of iterations.
 
-#### Semi_sklearn.Algorithm.Classifier.SSVAE
-> CLASS Semi_sklearn.Algorithm.Classifier.SSVAE(
+#### LAMDA_SSL.Algorithm.Classifier.SSVAE
+> CLASS LAMDA_SSL.Algorithm.Classifier.SSVAE(
                  alpha,
                  dim_in,
                  num_classes=10,
@@ -1446,8 +1446,8 @@ similarity_kernel = 'rbf',
 >> - activations_en_z: The activation functions of the encoder for z.
 >> - num_labeled: The number of labeled samples.
 
-#### Semi_sklearn.Algorithm.Classifier.TemporalEnsembling
-> CLASS Semi_sklearn.Algorithm.Classifier.TemporalEnsembling(valid_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.TemporalEnsembling
+> CLASS LAMDA_SSL.Algorithm.Classifier.TemporalEnsembling(valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
                  valid_dataloader=None,
@@ -1495,16 +1495,16 @@ similarity_kernel = 'rbf',
 >> - num_classes: The number of classes.
 >> - num_samples: The number of samples.
 
-#### Semi_sklearn.Algorithm.Classifier.TriTraining
-> CLASS Semi_sklearn.Algorithm.Classifier.TriTraining(base_estimator,base_estimator_2=None,base_estimator_3=None)
+#### LAMDA_SSL.Algorithm.Classifier.TriTraining
+> CLASS LAMDA_SSL.Algorithm.Classifier.TriTraining(base_estimator,base_estimator_2=None,base_estimator_3=None)
 >> Parameter:
 >> - base_estimator: The first base learner in TriTraining.
 >> - base_estimator_2: The second base learner in TriTraining.
 >> - base_estimator_3: The third base learner in TriTraining.
 
 
-#### Semi_sklearn.Algorithm.Classifier.UDA
-> CLASS Semi_sklearn.Algorithm.Classifier.UDA(train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.UDA
+> CLASS LAMDA_SSL.Algorithm.Classifier.UDA(train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -1552,8 +1552,8 @@ similarity_kernel = 'rbf',
 >> - tsa_schedule: Threshold adjustment strategy, optional 'linear', 'exp' or 'log'.
 >> - T: Sharpening temperature for soft labels.
 
-#### Semi_sklearn.Algorithm.Classifier.VAT
-> CLASS Semi_sklearn.Algorithm.Classifier.VAT(train_dataset=None,
+#### LAMDA_SSL.Algorithm.Classifier.VAT
+> CLASS LAMDA_SSL.Algorithm.Classifier.VAT(train_dataset=None,
                  valid_dataset=None,
                  test_dataset=None,
                  train_dataloader=None,
@@ -1606,10 +1606,10 @@ similarity_kernel = 'rbf',
 >> - xi:The scale parameter used when initializing the disturbance variable r, $r=\xi d$. d is a random unit vector.
 >> - lambda_entmin: Entropy minimizes the weight of the loss.
 
-### Semi_sklearn.Algorithm.Regressor
+### LAMDA_SSL.Algorithm.Regressor
 
-#### Semi_sklearn.Algorithm.Regressor.CoReg
-> CLASS Semi_sklearn.Algorithm.Regressor.CoReg(k1=3, k2=3, p1=2, p2=5, max_iters=100, pool_size=100)
+#### LAMDA_SSL.Algorithm.Regressor.CoReg
+> CLASS LAMDA_SSL.Algorithm.Regressor.CoReg(k1=3, k2=3, p1=2, p2=5, max_iters=100, pool_size=100)
 >> Parameter
 >> - k1: The k value for the k-nearest neighbors in the first base learner.
 >> - k2: The k value for the k-nearest neighbors in the second base learner.
@@ -1618,16 +1618,16 @@ similarity_kernel = 'rbf',
 >> - max_iters: The maximum number of iterations.
 >> - pool_size: The size of the buffer pool.
 
-### Semi_sklearn.Algorithm
-#### Semi_sklearn.Algorithm.Cluster.Constrained_k_means
-> CLASS Semi_sklearn.Algorithm.Cluster.Constrained_k_means(k, tolerance=1e-7, max_iterations=300)
+### LAMDA_SSL.Algorithm
+#### LAMDA_SSL.Algorithm.Cluster.Constrained_k_means
+> CLASS LAMDA_SSL.Algorithm.Cluster.Constrained_k_means(k, tolerance=1e-7, max_iterations=300)
 >> Parameter
 >> - k: The k value for the k-means clustering algorithm.
 >> - tolerance: Tolerance of iterative convergence.
 >> - max_iterations: The maximum number of iterations.
 
-#### Semi_sklearn.Algorithm.Cluster.Constrained_Seed_k_means
-> CLASS Semi_sklearn.Algorithm.Cluster.Constrained_Seed_k_means(k, tolerance=0.00001, max_iterations=300)
+#### LAMDA_SSL.Algorithm.Cluster.Constrained_Seed_k_means
+> CLASS LAMDA_SSL.Algorithm.Cluster.Constrained_Seed_k_means(k, tolerance=0.00001, max_iterations=300)
 >> Parameter
 >> - k: The k value for the k-means clustering algorithm.
 >> - tolerance: Tolerance of iterative convergence.
@@ -1635,8 +1635,8 @@ similarity_kernel = 'rbf',
 
 ## Base
 
-### Semi_sklearn.DeepModelMixin.DeepModelMixin
-> CLASS Semi_sklearn.Base.DeepModelMixin.DeepModelMixin(train_dataset=None,
+### LAMDA_SSL.DeepModelMixin.DeepModelMixin
+> CLASS LAMDA_SSL.Base.DeepModelMixin.DeepModelMixin(train_dataset=None,
                  labeled_dataset=None,
                  unlabeled_dataset=None,
                  valid_dataset=None,
@@ -1705,28 +1705,28 @@ similarity_kernel = 'rbf',
 >> - parallel: Distributed training method.
 >> - file: Output file.
 
-### Semi_sklearn.SemiEstimator.SemiEstimator
-> CLASS Semi_sklearn.Base.SemiEstimator.SemiEstimator()
+### LAMDA_SSL.SemiEstimator.SemiEstimator
+> CLASS LAMDA_SSL.Base.SemiEstimator.SemiEstimator()
 >> fit(X,y,unlabeled_X): Train a SSL model.
 >> - X: Instances of labeled data.
 >> - y: Labels of labeled data.
 >> - unlabeled_X: Instances of unlabeled data.
 
-### Semi_sklearn.InductiveEstimator.InductiveEstimator
-> CLASS Semi_sklearn.Base.InductiveEstimator.InductiveEstimator()
+### LAMDA_SSL.InductiveEstimator.InductiveEstimator
+> CLASS LAMDA_SSL.Base.InductiveEstimator.InductiveEstimator()
 >> predict(X): Make predictions on the new data.
 >> - X: Samples to be predicted.
 
-### Semi_sklearn.TransductiveEstimator.TransductiveEstimator
-> CLASS Semi_sklearn.Base.TransductiveEstimator.TransductiveEstimator()
+### LAMDA_SSL.TransductiveEstimator.TransductiveEstimator
+> CLASS LAMDA_SSL.Base.TransductiveEstimator.TransductiveEstimator()
 >> predict(X=None,Transductive=True): Output the result of transductive learning or make predictions on the new data.
 >> - X: The samples to be predicted. It is only valid when Transductive is False.
 >> - Transductive: Whether to use transductive learning mechanism to directly output the prediction result of unlabeled_X input during fit.
 
 ## Dataloader
-### Semi_sklearn.DataLoader.LabeledDataLoader.
-#### Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader
-> CLASS Semi_sklearn.DataLoader.LabeledDataLoader.LabeledDataLoader(batch_size= 1, shuffle: bool = False,
+### LAMDA_SSL.DataLoader.LabeledDataLoader.
+#### LAMDA_SSL.DataLoader.LabeledDataLoader.LabeledDataLoader
+> CLASS LAMDA_SSL.DataLoader.LabeledDataLoader.LabeledDataLoader(batch_size= 1, shuffle: bool = False,
                  sampler = None, batch_sampler= None,
                  num_workers: int = 0, collate_fn= None,
                  pin_memory: bool = False, drop_last: bool = False,
@@ -1749,8 +1749,8 @@ similarity_kernel = 'rbf',
 >> - prefetch_factor: Number of samples loaded in advance by each worker. '2' means there will be a total of 2 * num_workers samples prefetched across all workers.
 >> - persistent_workers: If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the workers 'Dataset' instances alive.
 
-#### Semi_sklearn.DataLoader.TrainDataLoader.TrainDataLoader
-> CLASS Semi_sklearn.DataLoader.TrainDataLoader.TrainDataLoader(
+#### LAMDA_SSL.DataLoader.TrainDataLoader.TrainDataLoader
+> CLASS LAMDA_SSL.DataLoader.TrainDataLoader.TrainDataLoader(
 batch_size=1,
                  shuffle = False, sampler = None,
                  batch_sampler=None, Iterable = None,
@@ -1781,8 +1781,8 @@ batch_size=1,
 >> - labeled_dataloader: The dataloader of labeled data.
 >> - unlabeled_dataloader: The dataloader of unlabeled data.
 
-#### Semi_sklearn.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader
-> CLASS Semi_sklearn.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader(batch_size= 1,
+#### LAMDA_SSL.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader
+> CLASS LAMDA_SSL.DataLoader.UnlabeledDataLoader.UnlabeledDataLoader(batch_size= 1,
                  shuffle: bool = False, sampler = None,
                  batch_sampler= None,
                  num_workers: int = 0, collate_fn= None,
@@ -1809,25 +1809,25 @@ batch_size=1,
 
 ## Dataset
 
-### Semi_sklearn.Dataset.LabeledDataset.LabeledDataset
+### LAMDA_SSL.Dataset.LabeledDataset.LabeledDataset
 
-> CLASS Semi_sklearn.Dataset.LabeledDataset.LabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
+> CLASS LAMDA_SSL.Dataset.LabeledDataset.LabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
 >> Parameter
 >> - pre_transform: The way to preprocess X before augmentation.
 >> - transforms: The way to transform X and y at the same time after data augmentation.
 >> - transform: The way to transform X after data augmentation.
 >> - target_transform: The way to transform y after data augmentation.
 
-### Semi_sklearn.Dataset.UnlabeledDataset.UnlabeledDataset
+### LAMDA_SSL.Dataset.UnlabeledDataset.UnlabeledDataset
 
-> CLASS Semi_sklearn.Dataset.UnlabeledDataset.UnlabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
+> CLASS LAMDA_SSL.Dataset.UnlabeledDataset.UnlabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
 >> Parameter
 >> - pre_transform: The way to preprocess X before augmentation.
 >> - transform: The way to transform X after data augmentation.
 
-### Semi_sklearn.Dataset.TrainDataset.TrainDataset
+### LAMDA_SSL.Dataset.TrainDataset.TrainDataset
 
-> CLASS Semi_sklearn.Dataset.TrainDataset.TrainDataset(transforms=None,
+> CLASS LAMDA_SSL.Dataset.TrainDataset.TrainDataset(transforms=None,
                  transform=None,
                  pre_transform=None,
                  target_transform=None,
@@ -1852,9 +1852,9 @@ batch_size=1,
 >> - labeled_dataset: The labeled dataset.
 >> - unlabeled_dataset: The unlabeled dataset.
 
-### Semi_sklearn.Dataset.SemiDataset.SemiDataset
+### LAMDA_SSL.Dataset.SemiDataset.SemiDataset
 
-> CLASS Semi_sklearn.Dataset.SemiDataset.SemiDataset(transforms=None,
+> CLASS LAMDA_SSL.Dataset.SemiDataset.SemiDataset(transforms=None,
                  transform=None,
                  pre_transform=None,
                  target_transform=None,
@@ -1882,19 +1882,19 @@ batch_size=1,
 >> - shuffle: Whether to shuffle the data.
 >> - random_state: The random seed.
 
-### Semi_sklearn.Dataset.TableMixin.TableMixin
-> CLASS Semi_sklearn.Dataset.TableMixin.TableMixin():
+### LAMDA_SSL.Dataset.TableMixin.TableMixin
+> CLASS LAMDA_SSL.Dataset.TableMixin.TableMixin():
 >> init_transform: Initialize the data transformation method.
 
-### Semi_sklearn.Dataset.VisionMixin.VisionMixin
-> CLASS Semi_sklearn.Dataset.VisionMixin.VisionMixin(mean=None,std=None):
+### LAMDA_SSL.Dataset.VisionMixin.VisionMixin
+> CLASS LAMDA_SSL.Dataset.VisionMixin.VisionMixin(mean=None,std=None):
 >> Parameter
 >> - mean: Mean of the dataset.
 >> - std: Standard deviation of the dataset.
 >> init_transform: Initialize the data transformation method.
 
-### Semi_sklearn.Dataset.TextMixin.TextMixin
-> CLASS Semi_sklearn.Dataset.Text.Text(word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
+### LAMDA_SSL.Dataset.TextMixin.TextMixin
+> CLASS LAMDA_SSL.Dataset.Text.Text(word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
                  min_freq=1,special_first=True,default_index=None):
 >> parameter:
 >> - word_vocab: A map that converts words to indexes.
@@ -1907,20 +1907,20 @@ batch_size=1,
 >> - default_index: The default value that should be used when converting a word to an index if it cannot be converted.
 >> init_transform: Initialize the data transformation method.
 
-### Semi_sklearn.Dataset.GraphMixin.GraphMixin
-> CLASS Semi_sklearn.Dataset.GraphMixin.GraphMixin()
+### LAMDA_SSL.Dataset.GraphMixin.GraphMixin
+> CLASS LAMDA_SSL.Dataset.GraphMixin.GraphMixin()
 >> init_transform: Initialize the data transformation method.
 
 ## Distributed
-### Semi_sklearn.Distributed.DataParallel.DataParallel
-> CLASS Semi_sklearn.DataParallel.DataParallel(device_ids=None, output_device=None, dim=0)
+### LAMDA_SSL.Distributed.DataParallel.DataParallel
+> CLASS LAMDA_SSL.DataParallel.DataParallel(device_ids=None, output_device=None, dim=0)
 >> Parameter
 >> - device_ids: Available GPUs.
 >> - output_device: The GPU where the output result is stored.
 >> - dim: The dimension of data aggregation from each device.
 
-### Semi_sklearn.Distributed.DistributedDataParallel.DistributedDataParallel
-> CLASS Semi_sklearn.DistributedDataParallel.DistributedDataParallel(device_ids=None,
+### LAMDA_SSL.Distributed.DistributedDataParallel.DistributedDataParallel
+> CLASS LAMDA_SSL.DistributedDataParallel.DistributedDataParallel(device_ids=None,
         output_device=None,
         dim=0,
         broadcast_buffers=True,
@@ -1940,22 +1940,22 @@ batch_size=1,
 
 
 ## Evaluation
-### Semi_sklearn.Evaluation.Classification
-#### Semi_sklearn.Evaluation.Classification.EvaluationClassification
-> CLASS Semi_sklearn.Evaluation.Classification.EvaluationClassification()
+### LAMDA_SSL.Evaluation.Classification
+#### LAMDA_SSL.Evaluation.Classification.EvaluationClassification
+> CLASS LAMDA_SSL.Evaluation.Classification.EvaluationClassification()
 >> scoring(y_true,y_pred=None,y_score=None): Initialize the data transformation method.
 >> - y_true: Ground-truth labels.
 >> - y_pred: Hard labels for model predictions.
 >> - y_score: Soft labels for model predictions.
 
-#### Semi_sklearn.Evaluation.Classification.Accuracy
-> CLASS Semi_sklearn.Evaluation.Classification.Accuracy(normalize=True, sample_weight=None)
+#### LAMDA_SSL.Evaluation.Classification.Accuracy
+> CLASS LAMDA_SSL.Evaluation.Classification.Accuracy(normalize=True, sample_weight=None)
 >> Parameter
 >> - normalize: If False, returns the number of correctly classified samples.
 >> - sample_weight: The weight of each sample.
 
-#### Semi_sklearn.Evaluation.Classification.Recall
-> CLASS Semi_sklearn.Evaluation.Classification.Recall(labels=None,
+#### LAMDA_SSL.Evaluation.Classification.Recall
+> CLASS LAMDA_SSL.Evaluation.Classification.Recall(labels=None,
                  pos_label=1,
                  average="binary",
                  sample_weight=None,
@@ -1967,8 +1967,8 @@ batch_size=1,
 >> - sample_weight: The weight of each sample.
 >> - zero_division: The return value when the denominator is 0.
 
-#### Semi_sklearn.Evaluation.Classification.Precision
-> CLASS Semi_sklearn.Evaluation.Classification.Precision(labels=None,
+#### LAMDA_SSL.Evaluation.Classification.Precision
+> CLASS LAMDA_SSL.Evaluation.Classification.Precision(labels=None,
                 pos_label=1,
                 average="binary",
                 sample_weight=None,
@@ -1980,16 +1980,16 @@ batch_size=1,
 >> - sample_weight: The weight of each sample.
 >> - zero_division: The return value when the denominator is 0.
 
-#### Semi_sklearn.Evaluation.Classification.Top_k_accurary
-> CLASS Semi_sklearn.Evaluation.Classification.Top_k_accurary(k=2, normalize=True, sample_weight=None, labels=None)
+#### LAMDA_SSL.Evaluation.Classification.Top_k_accurary
+> CLASS LAMDA_SSL.Evaluation.Classification.Top_k_accurary(k=2, normalize=True, sample_weight=None, labels=None)
 >> Parameter
 >> - k: The k value of Top_k_accurary.
 >> - normalize: If False, returns the number of correctly classified samples.
 >> - sample_weight: The weight of each sample.
 >> - labels: The set of contained labels.
 
-#### Semi_sklearn.Evaluation.Classification.AUC
-> CLASS Semi_sklearn.Evaluation.Classification.AUC(average="macro",
+#### LAMDA_SSL.Evaluation.Classification.AUC
+> CLASS LAMDA_SSL.Evaluation.Classification.AUC(average="macro",
                  sample_weight=None,
                  max_fpr=None,
                  multi_class="raise",
@@ -2001,8 +2001,8 @@ batch_size=1,
 >> - multi_class: Method for handling multiple classes, optional 'raise', 'ovr', 'ovo'.
 >> - labels: The set of contained labels.
 
-#### Semi_sklearn.Evaluation.Classification.F1
-> CLASS Semi_sklearn.Evaluation.Classification.F1(
+#### LAMDA_SSL.Evaluation.Classification.F1
+> CLASS LAMDA_SSL.Evaluation.Classification.F1(
 labels=None,
                  pos_label=1,
                  average="binary",
@@ -2015,55 +2015,55 @@ labels=None,
 >> - sample_weight: The weight of each sample.
 >> - zero_division: The return value when the denominator is 0.
 
-### Semi_sklearn.Evaluation.Regression
+### LAMDA_SSL.Evaluation.Regression
 
-#### Semi_sklearn.Evaluation.Regression.EvaluationRegressor
-> CLASS Semi_sklearn.Evaluation.Regression.EvaluationRegressor()
+#### LAMDA_SSL.Evaluation.Regression.EvaluationRegressor
+> CLASS LAMDA_SSL.Evaluation.Regression.EvaluationRegressor()
 > scoring(y_true,y_pred=None): Score the performace of the model.
 >> - y_true: Ground-truth labels.
 >> - y_pred: The results of model's predictions.
 
-#### Semi_sklearn.Evaluation.Regression.Mean_absolute_error
-> CLASS Semi_sklearn.Evaluation.Regression.Mean_absolute_error(sample_weight=None, multioutput="uniform_average")
+#### LAMDA_SSL.Evaluation.Regression.Mean_absolute_error
+> CLASS LAMDA_SSL.Evaluation.Regression.Mean_absolute_error(sample_weight=None, multioutput="uniform_average")
 >> Parameter
 >> - sample_weight: The weight of each sample.
 >> - multioutput: Aggregation method for multiple outputs.
 
-#### Semi_sklearn.Evaluation.Regression.Mean_Squared_Error
-> CLASS Semi_sklearn.Evaluation.Regression.Mean_Squared_Error(sample_weight=None, multioutput="uniform_average",squared=True)
+#### LAMDA_SSL.Evaluation.Regression.Mean_Squared_Error
+> CLASS LAMDA_SSL.Evaluation.Regression.Mean_Squared_Error(sample_weight=None, multioutput="uniform_average",squared=True)
 >> Parameter
 >> - sample_weight: The weight of each sample.
 >> - multioutput: Aggregation method for multiple outputs.
 >> - squared: If True, output the MSE loss, otherwise output the RMSE loss.
 
 
-#### Semi_sklearn.Evaluation.Regression.Mean_squared_log_error
-> CLASS Semi_sklearn.Evaluation.Regression.Mean_squared_log_error(sample_weight=None, multioutput="uniform_average")
+#### LAMDA_SSL.Evaluation.Regression.Mean_squared_log_error
+> CLASS LAMDA_SSL.Evaluation.Regression.Mean_squared_log_error(sample_weight=None, multioutput="uniform_average")
 >> Parameter
 >> - sample_weight: The weight of each sample.
 >> - multioutput: Aggregation method for multiple outputs.
 >> - squared: If True, output the MSLE loss, otherwise output the RMSLE loss.
 
-### Semi_sklearn.Evaluation.Cluster
+### LAMDA_SSL.Evaluation.Cluster
 
-#### Semi_sklearn.Evaluation.Cluster.EvaluationCluster
-> CLASS Semi_sklearn.Evaluation.Regression.EvaluationCluster()
+#### LAMDA_SSL.Evaluation.Cluster.EvaluationCluster
+> CLASS LAMDA_SSL.Evaluation.Regression.EvaluationCluster()
 > scoring(y_true=None,clusters=None,X=None): Initialize the data transformation method.
 >> - y_true: Ground-truth labels.
 >> - clusters: Clustering results.
 >> - X: Sample features used in clustering.
 
-#### Semi_sklearn.Evaluation.Cluster.Davies_Bouldin_Score
-> CLASS Semi_sklearn.Evaluation.Davies_Bouldin_Score.Davies_Bouldin_Score()
+#### LAMDA_SSL.Evaluation.Cluster.Davies_Bouldin_Score
+> CLASS LAMDA_SSL.Evaluation.Davies_Bouldin_Score.Davies_Bouldin_Score()
 
-#### Semi_sklearn.Evaluation.Cluster.Fowlkes_Mallows_Score
-> CLASS Semi_sklearn.Evaluation.Fowlkes_Mallows_Score.Fowlkes_Mallows_Score(sparse=False)
+#### LAMDA_SSL.Evaluation.Cluster.Fowlkes_Mallows_Score
+> CLASS LAMDA_SSL.Evaluation.Fowlkes_Mallows_Score.Fowlkes_Mallows_Score(sparse=False)
 >> Parameter
 >> - sparse: Whether to use sparse matrices for computation.
 
 ## Loss
-### Semi_sklearn.LOSS.Consistency
-> CLASS Semi_sklearn.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
+### LAMDA_SSL.LOSS.Consistency
+> CLASS LAMDA_SSL.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
 >> Parameter
 >> - reduction: How to handle the output.
 >> - activation_1: The activation function to process on the first input.
@@ -2072,8 +2072,8 @@ labels=None,
 >> - logits_1: The first input to compute consistency.
 >> - logits_2: The second input to compute consistency.
 
-### Semi_sklearn.LOSS.Cross_Entropy
-> CLASS Semi_sklearn.LOSS.Cross_Entropy(use_hard_labels=True, reduction='none')
+### LAMDA_SSL.LOSS.Cross_Entropy
+> CLASS LAMDA_SSL.LOSS.Cross_Entropy(use_hard_labels=True, reduction='none')
 >> Parameter
 >> - use_hard_labels: Whether the target is hard labels.
 >> - reduction: How to handle the output.
@@ -2081,8 +2081,8 @@ labels=None,
 >> - logits: The result of the model output.
 >> - logits_2: The target result.
 
-### Semi_sklearn.LOSS.KL_div
-> CLASS Semi_sklearn.LOSS.KL_div(softmax_1=True, softmax_2=True)
+### LAMDA_SSL.LOSS.KL_div
+> CLASS LAMDA_SSL.LOSS.KL_div(softmax_1=True, softmax_2=True)
 >> Parameter
 >> - softmax_1: Whether to softmax the first input.
 >> - softmax_2: Whether to softmax the second input.
@@ -2090,8 +2090,8 @@ labels=None,
 >> - logits_1: The first input for KL Divergence calculation.
 >> - logits_2: The second input for KL Divergence calculation.
 
-### Semi_sklearn.LOSS.Semi_supervised_loss
-> CLASS Semi_sklearn.LOSS.Semi_supervised_loss(lambda_u)
+### LAMDA_SSL.LOSS.Semi_supervised_loss
+> CLASS LAMDA_SSL.LOSS.Semi_supervised_loss(lambda_u)
 >> Parameter
 >> - lambda_u: The weight of unsupervised loss.
 >> forward(sup_loss,unsup_loss): Perform loss calculations.
@@ -2099,16 +2099,16 @@ labels=None,
 >> - unsup_loss: The unsupervised loss.
 
 ## Network
-### Semi_sklearn.Network.GCN
-> CLASS Semi_sklearn.Network.GCN(num_features,num_classes,normalize=False)
+### LAMDA_SSL.Network.GCN
+> CLASS LAMDA_SSL.Network.GCN(num_features,num_classes,normalize=False)
 >> Parameter
 >> - num_features: The number of features.
 >> - num_classes: The number of classes.
 >> - normalize: Whether to add self-loops and compute symmetric normalization coefficients on the fly.
 
-### Semi_sklearn.Network.ImprovedGAN
+### LAMDA_SSL.Network.ImprovedGAN
 
-> CLASS Semi_sklearn.Network.ImprovedGAN
+> CLASS LAMDA_SSL.Network.ImprovedGAN
 (G=None, D=None,dim_in = 28 ** 2,
                  hidden_G=[1000,500,250,250,250],
                  hidden_D=[1000,500,250,250,250],
@@ -2128,9 +2128,9 @@ labels=None,
 >> - z_dim: The dimension of the hidden variable used to generate data.
 >> - device: The device to train the model.
 
-### Semi_sklearn.Network.Ladder
+### LAMDA_SSL.Network.Ladder
 
-> CLASS Semi_sklearn.Network.Ladder
+> CLASS LAMDA_SSL.Network.Ladder
 (encoder_sizes=[1000, 500, 250, 250, 250],
                  encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  noise_std=0.2,dim_in=28*28,num_classes=10,device='cpu')
@@ -2142,17 +2142,17 @@ labels=None,
 >> - num_classes: The number of classes.
 >> - device: The device to train the model.
 
-### Semi_sklearn.Network.MLP_Reg
+### LAMDA_SSL.Network.MLP_Reg
 
-> CLASS Semi_sklearn.Network.MLP_Reg(input_dim = 28 ** 2,hidden_dim=[10],activations=[nn.ReLU()])
+> CLASS LAMDA_SSL.Network.MLP_Reg(input_dim = 28 ** 2,hidden_dim=[10],activations=[nn.ReLU()])
 >> Parameter
 >> - input_dim: The dimension of input samples.
 >> - hidden_dim: The dimension of hidden layers.
 >> - activations: The activation functions used in the hidden layers.
 
-### Semi_sklearn.Network.ResNet50
+### LAMDA_SSL.Network.ResNet50
 
-> CLASS Semi_sklearn.Network.ResNet50(block= Bottleneck,
+> CLASS LAMDA_SSL.Network.ResNet50(block= Bottleneck,
             layers = [3, 4, 6, 3],
             num_classes = 1000,
             zero_init_residual= False,
@@ -2170,15 +2170,15 @@ labels=None,
 >> - replace_stride_with_dilation: A list or tuple of 3 bool variables. It represents whether to perform convolution expansion for 64, 128, and 256-dimensional modules.
 >> - norm_layer: Regularization method. The default is BatchNorm2d.
 
-### Semi_sklearn.Network.SDNE
-> CLASS Semi_sklearn.Network.SDNE(input_dim, hidden_layers, device="cpu")
+### LAMDA_SSL.Network.SDNE
+> CLASS LAMDA_SSL.Network.SDNE(input_dim, hidden_layers, device="cpu")
 >> Parameter:
 >> - input_dim: The dimension of the input samples.
 >> - hidden_layers: The dimension of the hidden layers.
 >> - device: The device to train the model.
 
-### Semi_sklearn.Network.SSVAE
-> CLASS Semi_sklearn.Network.SSVAE(dim_in,num_classes,dim_z,dim_hidden_de=[500,500],
+### LAMDA_SSL.Network.SSVAE
+> CLASS LAMDA_SSL.Network.SSVAE(dim_in,num_classes,dim_z,dim_hidden_de=[500,500],
                  dim_hidden_en_y=[500,500],dim_hidden_en_z=[500,500],
                  activations_de=[nn.Softplus(),nn.Softplus()],
                  activations_en_y=[nn.Softplus(),nn.Softplus()],
@@ -2196,8 +2196,8 @@ labels=None,
 >> - activations_en_z: The activation functions of the encoder for z.
 >> - device: The device to train the model.
 
-### Semi_sklearn.Network.TextRCNN
-> CLASS Semi_sklearn.Network.TextRCNN(n_vocab,embedding_dim=300,len_seq=300, padding_idx=None, hidden_size=256, num_layers=1,
+### LAMDA_SSL.Network.TextRCNN
+> CLASS LAMDA_SSL.Network.TextRCNN(n_vocab,embedding_dim=300,len_seq=300, padding_idx=None, hidden_size=256, num_layers=1,
                  dropout=0.0, pretrained_embeddings=None,num_class=2)
 >> Parameter:
 >> - n_vocab: The size of the dictionary.
@@ -2209,8 +2209,8 @@ labels=None,
 >> - dropout: The dropout rate.
 >> - pretrained_embeddings: The pretrained word embeddings.
 
-### Semi_sklearn.Network.WideResNet
-> CLASS Semi_sklearn.Network.WideResNet(num_classes=10, depth=28, widen_factor=2, drop_rate=0.0)
+### LAMDA_SSL.Network.WideResNet
+> CLASS LAMDA_SSL.Network.WideResNet(num_classes=10, depth=28, widen_factor=2, drop_rate=0.0)
 >> Parameter:
 >> - num_classes: The number of classes.
 >> - depth: The depth of network.
@@ -2219,15 +2219,15 @@ labels=None,
 
 ## Optimizer
 
-### Semi_sklearn.Optimizer.BaseOptimizer
-> CLASS Semi_sklearn.Optimizer.BaseOptimizer(defaults)
+### LAMDA_SSL.Optimizer.BaseOptimizer
+> CLASS LAMDA_SSL.Optimizer.BaseOptimizer(defaults)
 >> Parameter:
 >> - defaults: A dict containing default values of optimization options (used when a parameter group doesn't specify them).
 >> init_optimizer(params): Put the parameters that need to be optimized into the optimizer.
 >> - params: The parameters to be optimized.
 
-### Semi_sklearn.Optimizer.Adam
-> CLASS Semi_sklearn.Optimizer.Adam(lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False)
+### LAMDA_SSL.Optimizer.Adam
+> CLASS LAMDA_SSL.Optimizer.Adam(lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False)
 >> Parameter:
 >> - lr: learning rate.
 >> - betas: Coefficients used for computing running averages of gradient and its square.
@@ -2235,8 +2235,8 @@ labels=None,
 >> - weight_decay: Weight decay (L2 penalty)
 >> - amsgrad: whether to use the AMSGrad variant of this algorithm from the paper 'On the Convergence of Adam and Beyond'.
 
-### Semi_sklearn.Optimizer.SGD
-> CLASS Semi_sklearn.Optimizer.SGD(lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False)
+### LAMDA_SSL.Optimizer.SGD
+> CLASS LAMDA_SSL.Optimizer.SGD(lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False)
 >> Parameter:
 >> - lr: Learning rate.
 >> - momentum: Momentum factor.
@@ -2246,26 +2246,26 @@ labels=None,
 
 ## Sampler
 
-### Semi_sklearn.Sampler.BaseSampler
-> CLASS Semi_sklearn.Sampler.BaseSampler()
+### LAMDA_SSL.Sampler.BaseSampler
+> CLASS LAMDA_SSL.Sampler.BaseSampler()
 >> init_sampler(data_source):  Initialize the sampler with data.
 >> - data_source: The data to be sampled.
 
-### Semi_sklearn.Sampler.BatchSampler
-> CLASS Semi_sklearn.Sampler.BatchSampler(batch_size, drop_last)
+### LAMDA_SSL.Sampler.BatchSampler
+> CLASS LAMDA_SSL.Sampler.BatchSampler(batch_size, drop_last)
 >> Parameter:
 >> - batch_size: The number of samples in each batch.
 >> - drop_last: Whether to discard samples less than one batch.
 >> init_sampler(sampler): Initialize batch sampler with sampler.
 >> sampler: The sampler used to initial batch sampler.
 
-### Semi_sklearn.Sampler.SequentialSampler
-> CLASS Semi_sklearn.Sampler.SequentialSampler()
+### LAMDA_SSL.Sampler.SequentialSampler
+> CLASS LAMDA_SSL.Sampler.SequentialSampler()
 >> init_sampler(data_source):  Initialize the sampler with data.
 >> - data_source: The data to be sampled.
 
-### Semi_sklearn.Sampler.RandomSampler
-> CLASS Semi_sklearn.Sampler.RandomSampler(replacement: bool = False, num_samples = None, generator=None)
+### LAMDA_SSL.Sampler.RandomSampler
+> CLASS LAMDA_SSL.Sampler.RandomSampler(replacement: bool = False, num_samples = None, generator=None)
 >> Parameter:
 >> - replacement: samples are drawn on-demand with replacement if True.
 >> - num_samples: The number of samples
@@ -2274,39 +2274,39 @@ labels=None,
 >> - data_source: The data to be sampled.
 
 ## Scheduler
-### Semi_sklearn.Scheduler.BaseScheduler
-> CLASS Semi_sklearn.Scheduler.BaseScheduler(last_epoch=-1, verbose=False)
+### LAMDA_SSL.Scheduler.BaseScheduler
+> CLASS LAMDA_SSL.Scheduler.BaseScheduler(last_epoch=-1, verbose=False)
 >> Parameter:
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
 >> init_scheduler(optimizer): Initialize the scheduler with the optimizer.
 >> - optimizer: The optimizer used by the model.
 
-### Semi_sklearn.Scheduler.BaseScheduler.LambdaLR
-> CLASS Semi_sklearn.Scheduler.BaseScheduler.LambdaLR(lr_lambda, last_epoch=-1,verbose=False)
+### LAMDA_SSL.Scheduler.BaseScheduler.LambdaLR
+> CLASS LAMDA_SSL.Scheduler.BaseScheduler.LambdaLR(lr_lambda, last_epoch=-1,verbose=False)
 >> Parameter:
 >> - lr_lambda: A function which computes a multiplicative factor given an integer parameter epoch, or a list of such functions, one for each group in optimizer.param_groups.
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
 
-### Semi_sklearn.Scheduler.CosineAnnealingLR
-> CLASS Semi_sklearn.Scheduler.CosineAnnealingLR(T_max, eta_min=0, last_epoch=-1, verbose=False)
+### LAMDA_SSL.Scheduler.CosineAnnealingLR
+> CLASS LAMDA_SSL.Scheduler.CosineAnnealingLR(T_max, eta_min=0, last_epoch=-1, verbose=False)
 >> Parameter:
 >> - T_max: Maximum number of iterations.
 >> - eta_min: Minimum learning rate.
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
 
-### Semi_sklearn.Scheduler.StepLR
-> CLASS Semi_sklearn.Scheduler.StepLR(step_size, gamma=0.1, last_epoch=-1, verbose=False)
+### LAMDA_SSL.Scheduler.StepLR
+> CLASS LAMDA_SSL.Scheduler.StepLR(step_size, gamma=0.1, last_epoch=-1, verbose=False)
 >> Parameter:
 >> - step_size: Period of learning rate decay.
 >> - gamma: Multiplicative factor of learning rate decay.
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
 
-### Semi_sklearn.Scheduler.Linear_warmup
-> CLASS Semi_sklearn.Scheduler.Linear_warmup(num_training_steps,
+### LAMDA_SSL.Scheduler.Linear_warmup
+> CLASS LAMDA_SSL.Scheduler.Linear_warmup(num_training_steps,
                  num_warmup_steps=0,
                  start_factor=0,
                  end_factor=1,
@@ -2321,8 +2321,8 @@ labels=None,
 
 
 ## Split
-### Semi_sklearn.Scheduler.Split.SemiSplit
-> Function Semi_sklearn.Scheduler.Split.SemiSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
+### LAMDA_SSL.Scheduler.Split.SemiSplit
+> Function LAMDA_SSL.Scheduler.Split.SemiSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
 >> Parameter
 >> - stratified: Whether to stratify by classes.
 >> - shuffle: Whether to shuffle the data. 
@@ -2333,8 +2333,8 @@ labels=None,
 
 ## Transform
 
-### Semi_sklearn.Transform.Transformer
-> CLASS Semi_sklearn.Transform.Transformer()
+### LAMDA_SSL.Transform.Transformer
+> CLASS LAMDA_SSL.Transform.Transformer()
 >> fit(X,y=None): Obtain the processing function through existing data.
 >> - X: Samples for learning the function of transformation.
 >> - y: Labels for learning the function of transformation.
@@ -2347,27 +2347,27 @@ labels=None,
 >> - X: Samples for learning and transformation.
 >> - y: labels for learning.
 
-### Semi_sklearn.Transform.Normalization
-> CLASS Semi_sklearn.Transform.Normalization(mean=None,std=None)
+### LAMDA_SSL.Transform.Normalization
+> CLASS LAMDA_SSL.Transform.Normalization(mean=None,std=None)
 >> - mean: The mean of normalization.
 >> - std: The standard deviation of normalization.
 
-### Semi_sklearn.Transform.MinMaxScalar
-> CLASS Semi_sklearn.Transform.MinMaxScalar(min_val=None,max_val=None)
+### LAMDA_SSL.Transform.MinMaxScalar
+> CLASS LAMDA_SSL.Transform.MinMaxScalar(min_val=None,max_val=None)
 >> Parameter:
 >> - min_val: The minimum value.
 >> - max_val: The maximum value.
 
-### Semi_sklearn.Transform.Noise
-> CLASS Semi_sklearn.Transform.Noise(noise_level)
+### LAMDA_SSL.Transform.Noise
+> CLASS LAMDA_SSL.Transform.Noise(noise_level)
 >> Parameter:
 >> - noise_level: the level of noise.
 
-### Semi_sklearn.Transform.AutoContrast
-> CLASS Semi_sklearn.Transform.AutoContrast()
+### LAMDA_SSL.Transform.AutoContrast
+> CLASS LAMDA_SSL.Transform.AutoContrast()
 
-### Semi_sklearn.Transform.Brightness
-> CLASS Semi_sklearn.Transform.Brightness(min_v,max_v,num_bins,magnitude,v=None)
+### LAMDA_SSL.Transform.Brightness
+> CLASS LAMDA_SSL.Transform.Brightness(min_v,max_v,num_bins,magnitude,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2375,8 +2375,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.Color
-> CLASS Semi_sklearn.Transform.Color(min_v,max_v,num_bins,magnitude,v=None)
+### LAMDA_SSL.Transform.Color
+> CLASS LAMDA_SSL.Transform.Color(min_v,max_v,num_bins,magnitude,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2384,8 +2384,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### CLASS Semi_sklearn.Transform.Contrast
-> CLASS Semi_sklearn.Transform.Contrast(min_v,max_v,num_bins,magnitude,v=None)
+### CLASS LAMDA_SSL.Transform.Contrast
+> CLASS LAMDA_SSL.Transform.Contrast(min_v,max_v,num_bins,magnitude,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2393,17 +2393,17 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### CLASS Semi_sklearn.Transform.Equalize
-> CLASS Semi_sklearn.Transform.Equalize()
+### CLASS LAMDA_SSL.Transform.Equalize
+> CLASS LAMDA_SSL.Transform.Equalize()
 
-### Semi_sklearn.Transform.Identity
-> CLASS Semi_sklearn.Transform.Identity()
+### LAMDA_SSL.Transform.Identity
+> CLASS LAMDA_SSL.Transform.Identity()
 
-### Semi_sklearn.Transform.Invert
-> CLASS Semi_sklearn.Transform.Invert()
+### LAMDA_SSL.Transform.Invert
+> CLASS LAMDA_SSL.Transform.Invert()
 
-### Semi_sklearn.Transform.Posterize
-> CLASS Semi_sklearn.Transform.Posterize(min_v,max_v,num_bins,magnitude,v=None)
+### LAMDA_SSL.Transform.Posterize
+> CLASS LAMDA_SSL.Transform.Posterize(min_v,max_v,num_bins,magnitude,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2411,8 +2411,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.Rotate
-> CLASS Semi_sklearn.Transform.Rotate(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+### LAMDA_SSL.Transform.Rotate
+> CLASS LAMDA_SSL.Transform.Rotate(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2420,8 +2420,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.Sharpness
-> CLASS Semi_sklearn.Transform.Sharpness(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+### LAMDA_SSL.Transform.Sharpness
+> CLASS LAMDA_SSL.Transform.Sharpness(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2429,8 +2429,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.ShearX
-> CLASS Semi_sklearn.Transform.ShearX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+### LAMDA_SSL.Transform.ShearX
+> CLASS LAMDA_SSL.Transform.ShearX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2438,8 +2438,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.ShearY
-> CLASS Semi_sklearn.Transform.ShearY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+### LAMDA_SSL.Transform.ShearY
+> CLASS LAMDA_SSL.Transform.ShearY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2447,8 +2447,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.Solarize
-> CLASS Semi_sklearn.Transform.Solarize(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+### LAMDA_SSL.Transform.Solarize
+> CLASS LAMDA_SSL.Transform.Solarize(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2456,8 +2456,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.TranslateX
-> CLASS Semi_sklearn.Transform.TranslateX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+### LAMDA_SSL.Transform.TranslateX
+> CLASS LAMDA_SSL.Transform.TranslateX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2465,8 +2465,8 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.TranslateY
-> CLASS Semi_sklearn.Transform.TranslateY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
+### LAMDA_SSL.Transform.TranslateY
+> CLASS LAMDA_SSL.Transform.TranslateY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
 >> Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
@@ -2474,33 +2474,33 @@ labels=None,
 >> - magnitude: The level of the augmentation.
 >> - v: Specify the value of the augmentation directly.
 
-### Semi_sklearn.Transform.RandomCrop
-> CLASS Semi_sklearn.Transform.RandomCrop(padding=None, pad_if_needed=False, fill=0, padding_mode="constant")
+### LAMDA_SSL.Transform.RandomCrop
+> CLASS LAMDA_SSL.Transform.RandomCrop(padding=None, pad_if_needed=False, fill=0, padding_mode="constant")
 >> Parameter:
 >> - padding: Optional padding on each border of the image. Default is None. If a single int is provided this is used to pad all borders. If sequence of length 2 is provided this is the padding on left/right and top/bottom respectively. If a sequence of length 4 is provided this is the padding for the left, top, right and bottom borders respectively.
 >> - pad_if_needed: It will pad the image if smaller than the desired size to avoid raising an exception. Since cropping is done after padding, the padding seems to be done at a random offset.
 >> - fill: Pixel fill value for constant fill. Default is 0. If a tuple of length 3, it is used to fill R, G, B channels respectively. This value is only used when the padding_mode is constant. Only number is supported for torch Tensor. Only int or str or tuple value is supported for PIL Image.
 >> - padding_mode: Type of padding. Should be: constant, edge, reflect or symmetric. Default is constant.
 
-### Semi_sklearn.Transform.RandomHorizontalFlip
-> CLASS Semi_sklearn.Transform.RandomHorizontalFlip()
+### LAMDA_SSL.Transform.RandomHorizontalFlip
+> CLASS LAMDA_SSL.Transform.RandomHorizontalFlip()
 
-### Semi_sklearn.Transform.CutoutAbs
-> CLASS Semi_sklearn.Transform.CutoutAbs(v,fill,random_v)
+### LAMDA_SSL.Transform.CutoutAbs
+> CLASS LAMDA_SSL.Transform.CutoutAbs(v,fill,random_v)
 >> Parameter:
 >> - v: The absolute value of the crop size.
 >> - fill: The padding value.
 >> - random_v: Whether to randomly determine the crop size.
 
-### Semi_sklearn.Transform.Cutout
-> CLASS Semi_sklearn.Transform.Cutout(v,fill,random_v=True)
+### LAMDA_SSL.Transform.Cutout
+> CLASS LAMDA_SSL.Transform.Cutout(v,fill,random_v=True)
 >> Parameter:
 >> - v: The relative value of crop size.
 >> - fill: The padding value.
 >> - random_v: Whether to randomly determine the crop size.
 
-### Semi_sklearn.Transform.RandAugment
-> CLASS Semi_sklearn.Transform.RandAugment(n, m, num_bins,random=False,augment_list=None)
+### LAMDA_SSL.Transform.RandAugment
+> CLASS LAMDA_SSL.Transform.RandAugment(n, m, num_bins,random=False,augment_list=None)
 >> Parameter:
 >> - n: The times of Random augmentation.
 >> - m: The magnitude of Random augmentation.
@@ -2508,14 +2508,14 @@ labels=None,
 >> - random: Whether to use random value for augmentation.
 >> - augment_list: The list of augmentations and their minimum and maximum values.
 
-### Semi_sklearn.Transform.Tokenizer
-> CLASS Semi_sklearn.Transform.Tokenizer(tokenizer, language='en')
+### LAMDA_SSL.Transform.Tokenizer
+> CLASS LAMDA_SSL.Transform.Tokenizer(tokenizer, language='en')
 >> Parameter:
 >> - tokenizer: Function name for word segmentation, such as basic_english, spacy, moses, toktok, revtok, subword, etc.
 >> - language: The language of the text.
 
-### Semi_sklearn.Transform.Vocab
-> CLASS Semi_sklearn.Transform.Vocab(word_vocab=None,vectors=None,text=None,min_freq=1,specials=["<unk>","<pad>"],special_first=True,default_index=None,tokenizer=None)
+### LAMDA_SSL.Transform.Vocab
+> CLASS LAMDA_SSL.Transform.Vocab(word_vocab=None,vectors=None,text=None,min_freq=1,specials=["<unk>","<pad>"],special_first=True,default_index=None,tokenizer=None)
 >> Parameter:
 >> - word_vocab: A map that converts words to indexes.
 >> - vectors: Word vectors. 
@@ -2526,8 +2526,8 @@ labels=None,
 >> - default_index: The default value that should be used when converting a word to an index if it cannot be converted.
 >> - tokenizer: The word segmentation method used.
 
-### Semi_sklearn.Transform.Vectors
-> CLASS Semi_sklearn.Transform.Vectors(name, cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True, pad_token='<pad>',unk_token='<unk>')
+### LAMDA_SSL.Transform.Vectors
+> CLASS LAMDA_SSL.Transform.Vectors(name, cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True, pad_token='<pad>',unk_token='<unk>')
 >> Parameter:
 >> - name: The name of the word vector.
 >> - cache: Directory for cached vectors。
@@ -2539,8 +2539,8 @@ labels=None,
 >> - pad_token: The default padding token.
 >> - unk_token: The default token represents unknown words.
 
-### Semi_sklearn.Transform.CharNGram
-> CLASS Semi_sklearn.Transform.CharNGram(lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+### LAMDA_SSL.Transform.CharNGram
+> CLASS LAMDA_SSL.Transform.CharNGram(lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
 >> Parameter:
 >> - lower_case_backup: Whether to convert all to lowercase when looking up words.
 >> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
@@ -2548,8 +2548,8 @@ labels=None,
 >> - pad_token: The default padding token.
 >> - unk_token: The default token represents unknown words.
 
-### Semi_sklearn.Transform.FastText
-> CLASS Semi_sklearn.Transform.FastText(language="en",lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+### LAMDA_SSL.Transform.FastText
+> CLASS LAMDA_SSL.Transform.FastText(language="en",lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
 >> Parameter:
 >> - language: Language type.
 >> - lower_case_backup: Whether to convert all to lowercase when looking up words.
@@ -2558,8 +2558,8 @@ labels=None,
 >> - pad_token: The default padding token.
 >> - unk_token: The default token represents unknown words.
 
-### Semi_sklearn.Transform.GloVe
-> CLASS Semi_sklearn.Transform.GloVe(name="840B", dim=300,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
+### LAMDA_SSL.Transform.GloVe
+> CLASS LAMDA_SSL.Transform.GloVe(name="840B", dim=300,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
 >> Parameter:
 >> - name: The name of the word vector.
 >> - dim: The dimension of the word vector.
@@ -2569,58 +2569,58 @@ labels=None,
 >> - pad_token: The default padding token.
 >> - unk_token: The default token represents unknown words.
 
-### Semi_sklearn.Transform.Truncate
-> CLASS Semi_sklearn.Transform.Truncate(length=100,pos=0)
+### LAMDA_SSL.Transform.Truncate
+> CLASS LAMDA_SSL.Transform.Truncate(length=100,pos=0)
 >> Paraameter:
 >> - length: The length of the truncated text .
 >> - pos: The position to start truncating.
 
-### Semi_sklearn.Transform.Pad_sequence
-> CLASS Semi_sklearn.Transform.Pad_sequence(length,pad_val=None)
+### LAMDA_SSL.Transform.Pad_sequence
+> CLASS LAMDA_SSL.Transform.Pad_sequence(length,pad_val=None)
 >> Parameter:
 >> - length: The length of the text after padding.
 >> - pad_val: The padding value for insufficient length of text.
 
-### Semi_sklearn.Transform.Adjust_length
-> CLASS Semi_sklearn.Transform.Adjust_length(length, pad_val=None, pos=0)
+### LAMDA_SSL.Transform.Adjust_length
+> CLASS LAMDA_SSL.Transform.Adjust_length(length, pad_val=None, pos=0)
 >> Parameter:
 >> - length: Length of adjusted sentence.
 >> - pad_val: The padding value for insufficient length of text.
 >> - pos；If the sentence is too long and needs to be cut, this parameter specifies the position to start cutting.
 
-### Semi_sklearn.Transform.Random_deletion
-> CLASS Semi_sklearn.Transform.Random_deletion(p,tokenizer=None)
+### LAMDA_SSL.Transform.Random_deletion
+> CLASS LAMDA_SSL.Transform.Random_deletion(p,tokenizer=None)
 >> Parameter:
 >> - p: The proportion of random deletions.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
 
-### Semi_sklearn.Transform.Random_insertion
-> CLASS Semi_sklearn.Transform.Random_insertion(n=1,tokenizer=None)
+### LAMDA_SSL.Transform.Random_insertion
+> CLASS LAMDA_SSL.Transform.Random_insertion(n=1,tokenizer=None)
 >> Parameter:
 >> - n: The number of times to add words.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
 
-### Semi_sklearn.Transform.Random_swap
-> CLASS Semi_sklearn.Transform.Random_swap(n=1,tokenizer=None)
+### LAMDA_SSL.Transform.Random_swap
+> CLASS LAMDA_SSL.Transform.Random_swap(n=1,tokenizer=None)
 >> Parameter:
 >> - n: The number of times to swap words.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
 
-### Semi_sklearn.Transform.TFIDF_replacement
-> CLASS Semi_sklearn.Transform.TFIDF_replacement(text,p=0.7,tokenizer=None,cache_len=100000)
+### LAMDA_SSL.Transform.TFIDF_replacement
+> CLASS LAMDA_SSL.Transform.TFIDF_replacement(text,p=0.7,tokenizer=None,cache_len=100000)
 >> Parameter:
 >> - text: The text that needs to be augmented.
 >> - p: Basic replacement probability.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
 >> - cache_len: buffer size of Random numbers.
 
-### Semi_sklearn.Transform.NormalizeFeatures
-> CLASS Semi_sklearn.Transform.NormalizeFeatures(attrs=["x"])
+### LAMDA_SSL.Transform.NormalizeFeatures
+> CLASS LAMDA_SSL.Transform.NormalizeFeatures(attrs=["x"])
 >> Parameter:
 >> - attrs: Properties that require regularization.
 
-### Semi_sklearn.Transform.GDC
-> CLASS Semi_sklearn.Transform.GDC(self_loop_weight=1, normalization_in='sym',
+### LAMDA_SSL.Transform.GDC
+> CLASS LAMDA_SSL.Transform.GDC(self_loop_weight=1, normalization_in='sym',
                  normalization_out='col',
                  diffusion_kwargs=dict(method='ppr', alpha=0.15),
                  sparsification_kwargs=dict(method='threshold',avg_degree=64),
@@ -2633,24 +2633,24 @@ labels=None,
 >> - sparsification_kwargs: Dictionary containing the parameters for sparsification.
 >> - exact: Whether to accurately calculate the diffusion matrix.
 
-### Semi_sklearn.Transform.Mixup
-> CLASS Semi_sklearn.Transform.Mixup(alpha)
+### LAMDA_SSL.Transform.Mixup
+> CLASS LAMDA_SSL.Transform.Mixup(alpha)
 >> Parameter:
 >> - alpha: The parameter of the beta distribution.
 
-### Semi_sklearn.Transform.ToImage
-> CLASS Semi_sklearn.Transform.ToImage()
+### LAMDA_SSL.Transform.ToImage
+> CLASS LAMDA_SSL.Transform.ToImage()
 
-### Semi_sklearn.Transform.ImageToTensor
-> CLASS Semi_sklearn.Transform.ImageToTensor()
+### LAMDA_SSL.Transform.ImageToTensor
+> CLASS LAMDA_SSL.Transform.ImageToTensor()
 
-### Semi_sklearn.Transform.ToTensor
-> CLASS Semi_sklearn.Transform.ToTensor()
+### LAMDA_SSL.Transform.ToTensor
+> CLASS LAMDA_SSL.Transform.ToTensor()
 
 # FAQ
-1. What is the difference of interfaces between Semi-sklearn and the semi-supervised learning module of sklearn?
+1. What is the difference of interfaces between LAMDA-SSL and the semi-supervised learning module of sklearn?
 
-The fit() method of sklearn generally has two items, X and y. The label y corresponding to the unlabeled X is represented by -1. But in many binary classification tasks, -1 represents a negative class, which is easy to conflict. So the fit() method of Semi-sklearn has three inputs of X, y and unlabeled_X.
+The fit() method of sklearn generally has two items, X and y. The label y corresponding to the unlabeled X is represented by -1. But in many binary classification tasks, -1 represents a negative class, which is easy to conflict. So the fit() method of LAMDA-SSL has three inputs of X, y and unlabeled_X.
 
 2. How to understand the DeepModelMixin module?
 

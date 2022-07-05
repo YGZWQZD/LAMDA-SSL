@@ -1,10 +1,10 @@
-from lamda_ssl.Algorithm.Cluster.Constrained_k_means import Constrained_k_means
-from lamda_ssl.Evaluation.Cluster.Davies_Bouldin_Score import Davies_Bouldin_Score
-from lamda_ssl.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallows_Score
-from lamda_ssl.Evaluation.Cluster.Jaccard_Score import Jaccard_Score
-from lamda_ssl.Evaluation.Cluster.Silhouette_Score import Silhouette_Score
-from lamda_ssl.Evaluation.Cluster.Rand_Score import Rand_Score
-from lamda_ssl.Dataset.Table.Wine import Wine
+from LAMDA_SSL.Algorithm.Cluster.Constrained_k_means import Constrained_k_means
+from LAMDA_SSL.Evaluation.Cluster.Davies_Bouldin_Score import Davies_Bouldin_Score
+from LAMDA_SSL.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallows_Score
+from LAMDA_SSL.Evaluation.Cluster.Jaccard_Score import Jaccard_Score
+from LAMDA_SSL.Evaluation.Cluster.Silhouette_Score import Silhouette_Score
+from LAMDA_SSL.Evaluation.Cluster.Rand_Score import Rand_Score
+from LAMDA_SSL.Dataset.Table.Wine import Wine
 import numpy as np
 
 file = open("../Result/Constrained_k_means_Wine.txt", "w")
