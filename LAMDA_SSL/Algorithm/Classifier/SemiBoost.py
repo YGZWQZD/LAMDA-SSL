@@ -19,7 +19,15 @@ class SemiBoost(InductiveEstimator,ClassifierMixin):
                         sigma_percentile = config.sigma_percentile,
                         similarity_kernel = config.similarity_kernel,gamma=config.gamma,
                         evaluation=config.evaluation,verbose=config.verbose,file=config.file):
-
+        # >> Parameter:
+        # >> - base_estimator: The base supervised learner used in the algorithm.
+        # >> - similarity_kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
+        # >> - n_neighbors: It is valid when the kernel function is 'knn', indicating the value of k in the k nearest neighbors.
+        # >> - n_jobs: It is valid when the kernel function is 'knn', indicating the number of parallel jobs.
+        # >> - gamma: It is valid when the kernel function is 'rbf', indicating the gamma value of the rbf kernel.
+        # >> - max_models: The most number of models in the ensemble.
+        # >> - sample_percent: The number of samples sampled at each iteration as a proportion of the remaining unlabeled samples.
+        # >> - sigma_percentile: Scale parameter used in the 'rbf' kernel.
         self.BaseModel = base_estimator
         self.n_neighbors=n_neighbors
         self.n_jobs=n_jobs

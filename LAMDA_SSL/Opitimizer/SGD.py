@@ -1,9 +1,14 @@
-import torch
 from LAMDA_SSL.Opitimizer.BaseOptimizer import BaseOptimizer
 from torch.optim import  sgd
 
 class SGD(BaseOptimizer):
     def __init__(self, lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False):
+        # >> Parameter:
+        # >> - lr: Learning rate.
+        # >> - momentum: Momentum factor.
+        # >> - dampening: Dampening for momentum.
+        # >> - weight_decay: Weight decay (L2 penalty).
+        # >> - nesterov: Enables Nesterov momentum.
         self.lr=lr
         self.momentum=momentum
         self.dampening=dampening

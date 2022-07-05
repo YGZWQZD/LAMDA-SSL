@@ -29,6 +29,10 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter:
+        # >> - num_features: Node feature dimension.
+        # >> - num_classes: Number of classes.
+        # >> - normalize: Whether to use symmetric normalization.
         DeepModelMixin.__init__(self,
                                     epoch=epoch,
                                     weight_decay=weight_decay,

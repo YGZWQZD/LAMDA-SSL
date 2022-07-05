@@ -11,6 +11,10 @@ import torch
 
 class CutoutAbs(Transformer):
     def __init__(self, v=16,fill=(127,127,127),random_v=True):
+        # >> Parameter:
+        # >> - v: The absolute value of the crop size.
+        # >> - fill: The padding value.
+        # >> - random_v: Whether to randomly determine the crop size.
         super().__init__()
         self.v=v
         self.random_v=random_v

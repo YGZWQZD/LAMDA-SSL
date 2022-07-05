@@ -11,6 +11,14 @@ class Co_Training(InductiveEstimator,ClassifierMixin):
     def __init__(self, base_estimator=config.base_estimator, base_estimator_2=config.base_estimator_2,
                  p=config.p, n=config.n, k=config.k, s=config.s, evaluation=config.evaluation,
                  verbose=config.verbose, file=config.file):
+        # >> Parameter:
+        # >> - base_estimator: the first learner for co-training.
+        # >> - base_estimator_2: the second learner for co-training.
+        # >> - p: In each round, each base learner selects at most p positive samples to assign pseudo-labels.
+        # >> - n: In each round, each base learner selects at most n negative samples to assign pseudo-labels.
+        # >> - k: iteration rounds.
+        # >> - s: the size of the buffer pool in each iteration.
+
         self.base_estimator = base_estimator
         self.base_estimator_2=base_estimator_2
         self.p=p

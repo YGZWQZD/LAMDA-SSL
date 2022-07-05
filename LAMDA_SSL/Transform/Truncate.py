@@ -1,6 +1,9 @@
 from LAMDA_SSL.Transform.Transformer import Transformer
 class Truncate(Transformer):
     def __init__(self,length=300,pos=0):
+        # >> Paraameter:
+        # >> - length: The length of the truncated text .
+        # >> - pos: The position to start truncating.
         super().__init__()
         self.length=length
         self.pos=pos

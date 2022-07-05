@@ -4,6 +4,11 @@ from sklearn.metrics import top_k_accuracy_score
 from LAMDA_SSL.utils import class_status
 class Top_k_Accurary(EvaluationClassification):
     def __init__(self,k=2, normalize=True, sample_weight=None, labels=None):
+        # >> Parameter
+        # >> - k: The k value of Top_k_accurary.
+        # >> - normalize: If False, returns the number of correctly classified samples.
+        # >> - sample_weight: The weight of each sample.
+        # >> - labels: The set of contained labels.
         super().__init__()
         self.k=k
         self.normalize=normalize

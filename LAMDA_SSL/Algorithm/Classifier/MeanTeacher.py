@@ -52,6 +52,10 @@ class MeanTeacher(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter:
+        # >> - ema_decay: Update weights for the exponential moving average.
+        # >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+        # >> - lambda_u: The weight of unsupervised loss.
         DeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

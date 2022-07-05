@@ -21,6 +21,20 @@ class SemiDataset(Dataset):
                  stratified=False,
                  shuffle=True,
                  random_state=None):
+        # >> Parameter
+        # >> - pre_transform: The way to preprocess X before augmentation.
+        # >> - transforms: The way to transform X and y at the same time after data augmentation.
+        # >> - transform: The way to transform X after data augmentation.
+        # >> - target_transform: The way to transform y after data augmentation.
+        # >> - unlabeled_transform: The way to transform unlabeled_X after data augmentation.
+        # >> - valid_transform: The way to transform valid X after data augmentation.
+        # >> - test_transform: The way to transform test X after data augmentation.
+        # >> - test_size: The number or proportion of test samples.
+        # >> - valid_size: The number or proportion of valid samples.
+        # >> - labeled_size: The number or proportion of labeled samples.
+        # >> - stratified: Whether to sample by class scale.
+        # >> - shuffle: Whether to shuffle the data.
+        # >> - random_state: The random seed.
         self.transforms=transforms
         self.transform = transform
         self.pre_transform=pre_transform

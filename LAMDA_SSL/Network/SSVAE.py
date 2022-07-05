@@ -19,6 +19,17 @@ class SSVAE(nn.Module):
                  activations_en_y=[nn.Softplus(),nn.Softplus()],
                  activations_en_z=[nn.Softplus(),nn.Softplus()],
                  device='cpu'):
+        # >> Parameter:
+        # >> - dim_in: The dimension of the input sample.
+        # >> - num_classes: The number of classes.
+        # >> - dim_z: The dimension of the hidden variable z.
+        # >> - dim_hidden_de: The hidden layer dimension of the decoder.
+        # >> - dim_hidden_en_y: The hidden layer dimension of the encoder for y.
+        # >> - dim_hidden_en_z: The hidden layer dimension of the encoder for z.
+        # >> - activations_de: The activation functions of the decoder.
+        # >> - activations_en_y: The activation functions of the encoder for y.
+        # >> - activations_en_z: The activation functions of the encoder for z.
+        # >> - device: The device to train the model.
         super().__init__()
         if isinstance(dim_in,numbers.Number):
             input_dim = dim_in

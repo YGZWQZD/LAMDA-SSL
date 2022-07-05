@@ -10,6 +10,21 @@ class LabeledDataLoader:
                  timeout: float = 0, worker_init_fn = None,
                  multiprocessing_context=None, generator=None,
                  prefetch_factor: int = 2, persistent_workers: bool = False):
+        # >> Parameter
+        # >> - batch_size: How many samples per batch to load.
+        # >> - shuffle: Whether to shuffle the data.
+        # >> - sampler: The sampler used when loading data.
+        # >> - batch_sampler: set to True to have the data reshuffled at every epoch.
+        # >> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
+        # >> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
+        # >> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+        # >> - drop_last: Whether to discard redundant data that is not enough for a batch.
+        # >> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
+        # >> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
+        # >> - multiprocessing_context: The context of multiprocessing.
+        # >> - generator: If not None, this RNG will be used by RandomSampler to generate random indexes and multiprocessing to generate base_seed for workers.
+        # >> - prefetch_factor: Number of samples loaded in advance by each worker. '2' means there will be a total of 2 * num_workers samples prefetched across all workers.
+        # >> - persistent_workers: If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the workers 'Dataset' instances alive.
         self.batch_size=batch_size
         self.shuffle=shuffle
         self.sampler=sampler

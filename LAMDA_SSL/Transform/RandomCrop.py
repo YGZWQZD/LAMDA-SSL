@@ -7,6 +7,11 @@ import torch
 
 class RandomCrop(Transformer):
     def __init__(self, padding=None, pad_if_needed=False, fill=0, padding_mode="constant"):
+        # >> Parameter:
+        # >> - padding: Optional padding on each border of the image. Default is None. If a single int is provided this is used to pad all borders. If sequence of length 2 is provided this is the padding on left/right and top/bottom respectively. If a sequence of length 4 is provided this is the padding for the left, top, right and bottom borders respectively.
+        # >> - pad_if_needed: It will pad the image if smaller than the desired size to avoid raising an exception. Since cropping is done after padding, the padding seems to be done at a random offset.
+        # >> - fill: Pixel fill value for constant fill. Default is 0. If a tuple of length 3, it is used to fill R, G, B channels respectively. This value is only used when the padding_mode is constant. Only number is supported for torch Tensor. Only int or str or tuple value is supported for PIL Image.
+        # >> - padding_mode: Type of padding. Should be: constant, edge, reflect or symmetric. Default is constant.
         super().__init__()
         self.padding=padding
         self.pad_if_needed=pad_if_needed

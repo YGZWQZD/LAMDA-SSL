@@ -26,6 +26,23 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
             random_state=config.random_state,evaluation=config.evaluation,
             verbose=config.verbose,file=config.file
     ):
+        # >> Parameter:
+        # >> - Cl: The weight of labeled samples.
+        # >> - Cu: The weight of unlabeled samples.
+        # >> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
+        # >> - degree: The polynomial order corresponding to the 'poly' kernel.
+        # >> - gamma: The gamma parameter corresponding to the kernel. It is valid when kernel is 'rbf', 'poly' or 'sigmoid'.
+        # >> - coef0: The constant term of the kernel function. It is valid when kernel is 'poly' or 'sigmoid'.
+        # >> - shrinking: Whether to use the shrinking heuristic method.
+        # >> - probability: Weights for rotation angle classification loss.
+        # >> - tol: Tolerance to stop training, default is 1e-3.
+        # >> - cache_size: The cache size of the Kernel function.
+        # >> - class_weight: The weights of different classes.
+        # >> - verbose: Whether to allow redundant output.
+        # >> - max_iter: The maximum number of iterations. -1 for unlimited.
+        # >> - decision_function_shape: {'ovo', 'ovr'}, default='ovr'. Whether to return a one-vs-rest ('ovr') decision function of shape(n_samples, n_classes) as all other classifiers, or the original one-vs-one ('ovo') decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). However, one-vs-one ('ovo') is always used as multi-class strategy. The parameter is ignored for binary classification.
+        # >> - break_ties: Whether to classify by calculating confidence in the event of a tie.
+        # >> - random_state: A random seed for data shuffling.
         self.Cl = Cl
         self.Cu = Cu
         self.kernel = kernel
@@ -57,7 +74,6 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
                     decision_function_shape = self.decision_function_shape,
                     break_ties = self.break_ties,
                     random_state = self.random_state)
-        self._estimator_type = ClassifierMixin._estimator_type
         self.unlabeled_X=None
         self.unlabeled_y=None
         self.class_dict=None

@@ -56,6 +56,11 @@ class ICTReg(DeepModelMixin,InductiveEstimator,RegressorMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter:
+        # >> - warmup: Warm up ratio for unsupervised loss.
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - alpha: the parameter of Beta distribution in Mixup.
+        # >> - dim_in: the dim of the instances.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

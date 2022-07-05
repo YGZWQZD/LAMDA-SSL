@@ -7,8 +7,12 @@ class Cosine_Warmup(LambdaLR):
                  num_cycles=7./16,
                  last_epoch=-1,
                  verbose=False):
-        self.num_cycles=num_cycles # upper bound
+        # >> Parameter:
+        # >> - num_training_steps: The total number of iterations for training.
+        # >> - num_warmup_steps: The number of iterations to warm up.
+        # >> - num_cycles: The upperbound of the multiplicative factor is 7./16 Pi
         self.num_warmup_steps=num_warmup_steps
+        self.num_cycles=num_cycles
         self.num_training_steps=num_training_steps
         self.verbose=verbose
         super().__init__(lr_lambda=self._lr_lambda,last_epoch=last_epoch,verbose=self.verbose)

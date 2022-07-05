@@ -8,6 +8,13 @@ class Linear_Warmup(LambdaLR):
                  end_factor=1,
                  last_epoch=-1,
                  verbose=False):
+        # >> Parameter:
+        # >> - num_training_steps: The total number of iterations for training.
+        # >> - num_warmup_steps: The number of iterations to warm up.
+        # >> - start_factor: The initialchange factor of the learning rate.
+        # >> - end_factor: The final change factor of the learning rate.
+        # >> - last_epoch: The index of the last epoch.
+        # >> - verbose: Whether to output redundant information.
         self.start_factor=start_factor
         self.end_factor=end_factor
         self.num_warmup_steps=num_warmup_steps

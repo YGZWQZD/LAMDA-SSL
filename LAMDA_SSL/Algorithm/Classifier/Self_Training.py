@@ -12,6 +12,13 @@ class Self_Training(InductiveEstimator,ClassifierMixin):
                 k_best=config.k_best,
                 max_iter=config.max_iter,
                 evaluation=config.evaluation,verbose=config.verbose,file=config.verbose):
+        # >> Parameter:
+        # >> - base_estimator: The base supervised learner used in the Self_training algorithm.
+        # >> - criterion: There are two forms: 'threshold' and 'k_best', the former selects samples according to the threshold, and the latter selects samples according to the ranking.
+        # >> - threshold: When criterion is 'threshold', the threshold used for selecting samples during training.
+        # >> - k_best: When criterion is 'k_best', select the top k samples of confidence from training.
+        # >> - max_iter: The maximum number of iterations.
+        # >> - verbose: Whether to allow redundant output.
         self.base_estimator=base_estimator
         self.threshold=threshold
         self.criterion=criterion

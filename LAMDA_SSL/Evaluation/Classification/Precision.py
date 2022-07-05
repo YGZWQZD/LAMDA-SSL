@@ -7,6 +7,12 @@ class Precision(EvaluationClassification):
                 average="binary",
                 sample_weight=None,
                 zero_division="warn"):
+        # >> Parameter
+        # >> - labels: The set of contained labels.
+        # >> - pos_label: Positive label for binary classification.
+        # >> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
+        # >> - sample_weight: The weight of each sample.
+        # >> - zero_division: The return value when the denominator is 0.
         super().__init__()
         self.labels=labels
         self.pos_label=pos_label

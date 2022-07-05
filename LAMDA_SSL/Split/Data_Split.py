@@ -93,18 +93,24 @@ def get_split_index(y,num_1,num_2,stratified,shuffle,random_state=None):
     return ind_labeled,ind_unlabeled
 
 def Data_Split(stratified=True,shuffle=True,random_state=None, X=None, y=None,size_split=None):
-        num_1, num_2 = get_split_num(X, size_split)
-        ind_1, ind_2 = get_split_index(y=y, num_1=num_1, num_2=num_2,
-                                                   stratified=stratified, shuffle=shuffle,
-                                                   random_state=random_state
-                                                   )
-        X_indexing = get_indexing_method(X)
-        y_indexing = get_indexing_method(y)
-        X_1 = indexing(X, ind_1, X_indexing)
-        y_1 = indexing(y, ind_1, y_indexing)
-        X_2 = indexing(X, ind_2, X_indexing)
-        y_2 = indexing(y, ind_2, y_indexing)
-        return X_1, y_1, X_2, y_2
+    # >> Parameter
+    # >> - stratified: Whether to stratify by classes.
+    # >> - shuffle: Whether to shuffle the data.
+    # >> - random_state: The random seed.
+    # >> - X: Samples of the data to be split.
+    # >> - y: Labels of the data to be split.
+    # >> - labeled_size: The scale or size of the labeled data.
+    num_1, num_2 = get_split_num(X, size_split)
+    ind_1, ind_2 = get_split_index(y=y, num_1=num_1, num_2=num_2,
+                                   stratified=stratified, shuffle=shuffle,
+                                   random_state=random_state)
+    X_indexing = get_indexing_method(X)
+    y_indexing = get_indexing_method(y)
+    X_1 = indexing(X, ind_1, X_indexing)
+    y_1 = indexing(y, ind_1, y_indexing)
+    X_2 = indexing(X, ind_2, X_indexing)
+    y_2 = indexing(y, ind_2, y_indexing)
+    return X_1, y_1, X_2, y_2
 
 
         

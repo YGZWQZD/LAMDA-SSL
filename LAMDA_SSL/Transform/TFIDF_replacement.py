@@ -5,6 +5,11 @@ from collections import Counter,defaultdict
 from LAMDA_SSL.Transform.Tokenizer import Tokenizer
 class TFIDF_replacement(Transformer):
     def __init__(self,text,p=0.7,tokenizer=None,cache_len=100000):
+        # >> Parameter:
+        # >> - text: The text that needs to be augmented.
+        # >> - p: Basic replacement probability.
+        # >> - tokenizer: The tokenizer used when the text is not untokenized.
+        # >> - cache_len: buffer size of Random numbers.
         super(TFIDF_replacement, self).__init__()
         self.text=text
         self.p=p

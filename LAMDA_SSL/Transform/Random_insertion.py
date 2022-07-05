@@ -5,6 +5,9 @@ from LAMDA_SSL.Transform.Tokenizer import Tokenizer
 
 class Random_insertion(Transformer):
     def __init__(self,n=1,tokenizer=None):
+        # >> Parameter:
+        # >> - n: The number of times to add words.
+        # >> - tokenizer: The tokenizer used when the text is not untokenized.
         super(Random_insertion, self).__init__()
         self.n=n
         self.tokenizer=tokenizer if tokenizer is not None else Tokenizer('basic_english','en')

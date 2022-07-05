@@ -60,7 +60,18 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  parallel=config.parallel,
                  file=config.file,
                  verbose=config.verbose):
-
+        # >> Parameter
+        # >> - alpha: The weight of classification loss.
+        # >> - dim_in: The dimension of the input sample.
+        # >> - num_classes: The number of classes.
+        # >> - dim_z: The dimension of the hidden variable z.
+        # >> - dim_hidden_de: The hidden layer dimension of the decoder.
+        # >> - dim_hidden_en_y: The hidden layer dimension of the encoder for y.
+        # >> - dim_hidden_en_z: The hidden layer dimension of the encoder for z.
+        # >> - activations_de: The activation functions of the decoder.
+        # >> - activations_en_y: The activation functions of the encoder for y.
+        # >> - activations_en_z: The activation functions of the encoder for z.
+        # >> - num_labeled: The number of labeled samples.
         DeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     labeled_dataset=labeled_dataset,
                                     unlabeled_dataset=unlabeled_dataset,

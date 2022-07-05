@@ -17,7 +17,14 @@ class LabelSpreading(TransductiveEstimator,ClassifierMixin):
         n_jobs=config.n_jobs,evaluation=config.evaluation,
         verbose=config.verbose,file=config.file
     ):
-
+        # >> Parameter:
+        # >> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
+        # >> - gamma: The gamma value when the kernel function is rbf kernel.
+        # >> - n_neighbors: The n value when the kernel function is n_neighbors kernel.
+        # >> - alpha: The proportion of labels updates in each iteration.
+        # >> - max_iter: The maximum number of iterations.
+        # >> - tol: Convergence tolerance.
+        # >> - n_jobs: The number of parallel jobs.
         self.max_iter = max_iter
         self.tol = tol
 

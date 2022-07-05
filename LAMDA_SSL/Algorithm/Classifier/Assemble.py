@@ -10,6 +10,12 @@ import LAMDA_SSL.Config.Assemble as config
 class Assemble(InductiveEstimator,ClassifierMixin):
     def __init__(self, base_estimater=config.base_estimater,T=config.T,alpha=config.alpha,
                  beta=config.beta,evaluation=config.evaluation,verbose=config.verbose,file=config.file):
+        # >> Parameter:
+        # >> - base_model: A base learner for ensemble learning.
+        # >> - T: the number of base learners. It is also the number of iterations.
+        # >> - alpha: the weight of each sample when the sampling distribution is updated.
+        # >> - Beta: used to initialize the sampling distribution of labeled data and unlabeled data.
+
         self.base_estimater=base_estimater
         self.T=T
         self.alpha=alpha

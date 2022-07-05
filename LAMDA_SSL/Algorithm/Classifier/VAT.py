@@ -58,6 +58,14 @@ class VAT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  parallel=config.parallel,
                  file=config.file,
                  verbose=config.verbose):
+        # >> Parameter
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - num_classes: The number of classes.
+        # >> - tsa_schedule: Threshold adjustment strategy, optional 'linear', 'exp' or 'log'.
+        # >> - eps: noise level.
+        # >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+        # >> - xi:The scale parameter used when initializing the disturbance variable r, $r=\xi d$. d is a random unit vector.
+        # >> - lambda_entmin: Entropy minimizes the weight of the loss.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

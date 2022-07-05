@@ -61,6 +61,17 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  parallel=config.parallel,
                  file=config.file,
                  verbose=config.verbose):
+        # >> Parameter:
+        # >> - dim_in: The dimension of a single instance.
+        # >> - num_classes: The number of classes.
+        # >> - dim_z: The dimension of the latent variables used to generate the data.
+        # >> - hidden_G: The hidden layer dimension of the neural network as the generator. If there are multiple hidden layers, it is represented by a list.
+        # >> - hidden_D: The hidden layer dimension of the neural network as the discriminator. If there are multiple hidden layers, it is represented by a list.。
+        # >> - noise_level: The noise level of each layer of the discriminator.
+        # >> - activations_G: The activation function of each layer of the generator.
+        # >> - activations_D: The activation function of each layer of the discriminator.
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - num_labeled: The number of labeled samples.
         DeepModelMixin.__init__(self, train_dataset=train_dataset,
                                     labeled_dataset=labeled_dataset,
                                     unlabeled_dataset=unlabeled_dataset,

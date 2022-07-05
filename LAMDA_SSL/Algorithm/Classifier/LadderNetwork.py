@@ -58,7 +58,13 @@ class Ladder_Network(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose,
                  ):
-
+        # >> Parameter:
+        # >> - dim_in: The dimension of a single instance.
+        # >> - num_classes: The number of classes.
+        # >> - noise_std: The noise level of each layer of the discriminator.
+        # >> - lambda_u: The proportion of consistency loss of each layer in LadderNetwork.
+        # >> - encoder_sizes: The dimension of each layer of the encoder.
+        # >> - encoder_activations: The activation function of each layer of the encoder.
         DeepModelMixin.__init__(self, train_dataset=train_dataset,
                                 labeled_dataset=labeled_dataset,
                                 unlabeled_dataset=unlabeled_dataset,

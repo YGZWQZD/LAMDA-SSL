@@ -8,6 +8,10 @@ import LAMDA_SSL.Config.Constrained_k_means as config
 class Constrained_k_means(TransductiveEstimator,ClusterMixin):
     def __init__(self,k=config.k, tolerance=config.tolerance, max_iterations=config.max_iterations,
                  evaluation=config.evaluation,verbose=config.verbose,file=config.file):
+        # >> Parameter
+        # >> - k: The k value for the k-means clustering algorithm.
+        # >> - tolerance: Tolerance of iterative convergence.
+        # >> - max_iterations: The maximum number of iterations.
         self.k=k
         self.tolerance=tolerance
         self.max_iterations=max_iterations

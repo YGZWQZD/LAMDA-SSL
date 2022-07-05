@@ -54,6 +54,10 @@ class ICT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  evaluation=config.evaluation,
                  file=config.file,
                  verbose=config.verbose):
+        # >> Parameter:
+        # >> - warmup: Warm up ratio for unsupervised loss.
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - alpha: the parameter of Beta distribution in Mixup.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

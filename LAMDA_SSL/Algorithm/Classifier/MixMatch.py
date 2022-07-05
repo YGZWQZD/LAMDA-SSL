@@ -58,6 +58,11 @@ class MixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter:
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - T: Sharpening temperature for soft labels.
+        # >> - num_classes: The number of classes.
+        # >> - alpha: The parameter of the beta distribution in Mixup.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

@@ -62,6 +62,15 @@ class ReMixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter:
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - T: Sharpening temperature for soft labels.
+        # >> - num_classes: The number of classes.
+        # >> - alpha: The parameter of the beta distribution in Mixup.
+        # >> - p_target: The target distribution of labeled data.
+        # >> - lambda_s: The weight for unsupervised loss computed based on pre-mixup data.
+        # >> - lambda_rot: The weight of rotation angle classification loss.
+        # >> - rotate_v_list: A list of rotation angles.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

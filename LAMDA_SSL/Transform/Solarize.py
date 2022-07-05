@@ -6,6 +6,12 @@ import torchvision.transforms.functional as F
 
 class Solarize(Transformer):
     def __init__(self, min_v=0,max_v=255,num_bins=10,magnitude=5,v=None,scale=255):
+        # >> Parameter:
+        # >> - min_v: The minimum value of the augmentation.
+        # >> - max_v: The maximum value of the augmentation.
+        # >> - num_bins: The number of intervals  division for the value of the augmentation.
+        # >> - magnitude: The level of the augmentation.
+        # >> - v: Specify the value of the augmentation directly.
         super().__init__()
         self.max_v=max_v
         self.min_v=min_v

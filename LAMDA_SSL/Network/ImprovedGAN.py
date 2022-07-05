@@ -109,6 +109,17 @@ class ImprovedGAN(nn.Module):
                  activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus(),nn.Softplus(), nn.Softplus(), nn.Softplus()],
                  activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  dim_out = 10,dim_z=100,device='cpu'):
+        # >> Parameter
+        # >> - G: The neural network of generator.
+        # >> - D: The neural network of discriminator
+        # >> - dim_in: The dimension of the inputted samples.
+        # >> - hidden_G: The dimension of the generator's hidden layers.
+        # >> - hidden_D: The dimension of the discriminator's hidden layers.
+        # >> - activations_G: The activation functions for each layer of the generator.
+        # >> - activations_D: The activation functions for each layer of the discriminator.
+        # >> - output_dim: The dimension of outputs.
+        # >> - z_dim: The dimension of the hidden variable used to generate data.
+        # >> - device: The device to train the model.
         super(ImprovedGAN, self).__init__()
         if isinstance(dim_in,numbers.Number):
             input_dim = dim_in

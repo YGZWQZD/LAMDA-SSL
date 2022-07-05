@@ -49,6 +49,9 @@ class PseudoLabel(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter:
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - threshold: Confidence threshold for selecting samples.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

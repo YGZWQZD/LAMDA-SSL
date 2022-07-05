@@ -10,6 +10,11 @@ class LabeledDataset(Dataset):
                  target_transform=None,
                  pre_transform=None
                  ):
+        # >> Parameter
+        # >> - pre_transform: The way to preprocess X before augmentation.
+        # >> - transforms: The way to transform X and y at the same time after data augmentation.
+        # >> - transform: The way to transform X after data augmentation.
+        # >> - target_transform: The way to transform y after data augmentation.
         self.transforms=transforms
         self.transform=transform
         self.pre_transform=pre_transform

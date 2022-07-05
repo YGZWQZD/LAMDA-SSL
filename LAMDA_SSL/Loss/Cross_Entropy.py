@@ -3,11 +3,16 @@ import torch.nn.functional as F
 import torch
 class Cross_Entropy(nn.Module):
     def __init__(self, use_hard_labels=True, reduction='mean'):
+        # >> Parameter
+        # >> - use_hard_labels: Whether to use hard labels in the consistency regularization.
+        # >> - reduction: How to handle the output.
         super(Cross_Entropy, self).__init__()
         self.use_hard_labels=use_hard_labels
         self.reduction=reduction
 
     def forward(self,logits, targets):
+        # >> - logits: The output of the model.
+        # >> - targets: The target result.
         if self.use_hard_labels:
             log_pred = F.log_softmax(logits, dim=-1)
             return F.nll_loss(log_pred, targets, reduction=self.reduction)

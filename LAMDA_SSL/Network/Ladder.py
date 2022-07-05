@@ -291,6 +291,13 @@ class Ladder(torch.nn.Module):
     def __init__(self, dim_encoder=[1000, 500, 250, 250, 250],
                  encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  noise_std=0.2,dim_in=28*28,num_classes=10,device='cpu'):
+        # >> Parameter
+        # >> - encoder_sizes: The neural network of generator.
+        # >> - encoder_activations: The activation functions of the encoder.
+        # >> - noise_std: The standard deviation of the noise.
+        # >> - dim_in: The dimension of the input samples。
+        # >> - num_classes: The number of classes.
+        # >> - device: The device to train the model.
         super(Ladder, self).__init__()
         if isinstance(dim_in,numbers.Number):
             input_dim = dim_in

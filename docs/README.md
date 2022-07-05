@@ -969,40 +969,6 @@ GCN was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector of 
 >> - encoder_sizes: The dimension of each layer of the encoder.
 >> - encoder_activations: The activation function of each layer of the encoder.
 
-#### LAMDA_SSL.Algorithm.Classifier.TSVM
-> CLASS LAMDA_SSL.Algorithm.Classifier.TSVM（Cl=1.0,
-            Cu=0.001,
-            kernel=rbf_kernel,
-            degree=3,
-            gamma="scale",
-            shrinking=True,
-            probability=False,
-            tol=1e-3,
-            cache_size=200,
-            class_weight=None,
-            verbose=False,
-            max_iter=-1,
-            decision_function_shape="ovr",
-            break_ties=False,
-            random_state=None)
->> Parameter:
->> - Cl: The weight of labeled samples.
->> - Cu: The weight of unlabeled samples.
->> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
->> - degree: The polynomial order corresponding to the 'poly' kernel.
->> - gamma: The gamma parameter corresponding to the kernel. It is valid when kernel is 'rbf', 'poly' or 'sigmoid'.
->> - coef0: The constant term of the kernel function. It is valid when kernel is 'poly' or 'sigmoid'.
->> - shrinking: Whether to use the shrinking heuristic method.
->> - probability: Weights for rotation angle classification loss.
->> - tol: Tolerance to stop training, default is 1e-3.
->> - cache_size: The cache size of the Kernel function.
->> - class_weight: The weights of different classes. 
->> - verbose: Whether to allow redundant output.
->> - max_iter: The maximum number of iterations. -1 for unlimited.
->> - decision_function_shape: {'ovo', 'ovr'}, default='ovr'. Whether to return a one-vs-rest ('ovr') decision function of shape(n_samples, n_classes) as all other classifiers, or the original one-vs-one ('ovo') decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). However, one-vs-one ('ovo') is always used as multi-class strategy. The parameter is ignored for binary classification.
->> - break_ties: Whether to classify by calculating confidence in the event of a tie.
->> - random_state: A random seed for data shuffling.
-
 #### LAMDA_SSL.Algorithm.Classifier.LapSVM
 > CLASS LAMDA_SSL.Algorithm.Classifier.LapSVM(
 distance_function = rbf_kernel,
@@ -1502,6 +1468,39 @@ similarity_kernel = 'rbf',
 >> - base_estimator_2: The second base learner in TriTraining.
 >> - base_estimator_3: The third base learner in TriTraining.
 
+#### LAMDA_SSL.Algorithm.Classifier.TSVM
+> CLASS LAMDA_SSL.Algorithm.Classifier.TSVM（Cl=1.0,
+            Cu=0.001,
+            kernel=rbf_kernel,
+            degree=3,
+            gamma="scale",
+            shrinking=True,
+            probability=False,
+            tol=1e-3,
+            cache_size=200,
+            class_weight=None,
+            verbose=False,
+            max_iter=-1,
+            decision_function_shape="ovr",
+            break_ties=False,
+            random_state=None)
+>> Parameter:
+>> - Cl: The weight of labeled samples.
+>> - Cu: The weight of unlabeled samples.
+>> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
+>> - degree: The polynomial order corresponding to the 'poly' kernel.
+>> - gamma: The gamma parameter corresponding to the kernel. It is valid when kernel is 'rbf', 'poly' or 'sigmoid'.
+>> - coef0: The constant term of the kernel function. It is valid when kernel is 'poly' or 'sigmoid'.
+>> - shrinking: Whether to use the shrinking heuristic method.
+>> - probability: Weights for rotation angle classification loss.
+>> - tol: Tolerance to stop training, default is 1e-3.
+>> - cache_size: The cache size of the Kernel function.
+>> - class_weight: The weights of different classes. 
+>> - verbose: Whether to allow redundant output.
+>> - max_iter: The maximum number of iterations. -1 for unlimited.
+>> - decision_function_shape: {'ovo', 'ovr'}, default='ovr'. Whether to return a one-vs-rest ('ovr') decision function of shape(n_samples, n_classes) as all other classifiers, or the original one-vs-one ('ovo') decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). However, one-vs-one ('ovo') is always used as multi-class strategy. The parameter is ignored for binary classification.
+>> - break_ties: Whether to classify by calculating confidence in the event of a tie.
+>> - random_state: A random seed for data shuffling.
 
 #### LAMDA_SSL.Algorithm.Classifier.UDA
 > CLASS LAMDA_SSL.Algorithm.Classifier.UDA(train_dataset=None,
@@ -1617,6 +1616,145 @@ similarity_kernel = 'rbf',
 >> - p2: The order of the distance calculated in the second base learner.
 >> - max_iters: The maximum number of iterations.
 >> - pool_size: The size of the buffer pool.
+
+#### LAMDA_SSL.Algorithm.Regressor.ICTReg
+> CLASS LAMDA_SSL.Algorithm.Regressor.ICTReg(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 ema_decay=None,
+                 mu=None,
+                 parallel=None,
+                 file=None,
+                 warmup=None,
+                 lambda_u=None,
+                 alpha=None,
+                 dim_in=None)
+>> Parameter:
+>> - warmup: Warm up ratio for unsupervised loss.
+>> - lambda_u: The weight of unsupervised loss.
+>> - alpha: the parameter of Beta distribution in Mixup.
+>> - dim_in: the dim of the instances.
+
+#### LAMDA_SSL.Algorithm.Regressor.MeanTeacherReg
+> CLASS LAMDA_SSL.Algorithm.Regressor.MeanTeacherReg(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 ema_decay=None,
+                 mu=None,
+                 parallel=None,
+                 file=None,
+                 warmp=0.4,
+                 lamda_u=0.001,
+                 dim_in=None)
+>> Parameter:
+>> - ema_decay: Update weights for the exponential moving average.
+>> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+>> - lambda_u: The weight of unsupervised loss.
+>> - dim_in: the dim of the instances.
+
+#### LAMDA_SSL.Algorithm.Regressor.PiModelReg
+> CLASS LAMDA_SSL.Algorithm.Regressor.PiModelReg(train_dataset=None,
+                 valid_dataset=None,
+                 test_dataset=None,
+                 train_dataloader=None,
+                 valid_dataloader=None,
+                 test_dataloader=None,
+                 augmentation=None,
+                 network=None,
+                 train_sampler=None,
+                 train_batch_sampler=None,
+                 valid_sampler=None,
+                 valid_batch_sampler=None,
+                 test_sampler=None,
+                 test_batch_sampler=None,
+                 labeled_dataset=None,
+                 unlabeled_dataset=None,
+                 labeled_dataloader=None,
+                 unlabeled_dataloader=None,
+                 labeled_sampler=None,
+                 unlabeled_sampler=None,
+                 labeled_batch_sampler=None,
+                 unlabeled_batch_sampler=None,
+                 eval_epoch=None,
+                 eval_it=None,
+                 optimizer=None,
+                 weight_decay=None,
+                 scheduler=None,
+                 device='cpu',
+                 evaluation=None,
+                 epoch=1,
+                 num_it_epoch=None,
+                 num_it_total=None,
+                 ema_decay=None,
+                 mu=None,
+                 parallel=None,
+                 file=None,
+                 warmp=0.4,
+                 lamda_u=0.001,
+                 dim_in=None)
+>> Parameter:
+>> - lambda_u: The weight of unsupervised loss.
+>> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4,
+                then warmup is performed in the first 40 iterations.
+>> - dim_in: the dim of the instances.
 
 ### LAMDA_SSL.Algorithm
 #### LAMDA_SSL.Algorithm.Cluster.Constrained_k_means
@@ -1884,14 +2022,14 @@ batch_size=1,
 
 ### LAMDA_SSL.Dataset.TableMixin.TableMixin
 > CLASS LAMDA_SSL.Dataset.TableMixin.TableMixin():
->> init_transform: Initialize the data transformation method.
+>> init_default_transform: Initialize the data transformation method.
 
 ### LAMDA_SSL.Dataset.VisionMixin.VisionMixin
 > CLASS LAMDA_SSL.Dataset.VisionMixin.VisionMixin(mean=None,std=None):
 >> Parameter
 >> - mean: Mean of the dataset.
 >> - std: Standard deviation of the dataset.
->> init_transform: Initialize the data transformation method.
+>> init_default_transform: Initialize the default data transformation method.
 
 ### LAMDA_SSL.Dataset.TextMixin.TextMixin
 > CLASS LAMDA_SSL.Dataset.Text.Text(word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
@@ -1905,11 +2043,11 @@ batch_size=1,
 >> - min_freq: The minimum frequency required for a word to be used as a token in the word_vocab. It is valid when word_vocab is None and a mapping table needs to be constructed. 
 >> - special_first: Whether to put special characters at the top of the mapping table.
 >> - default_index: The default value that should be used when converting a word to an index if it cannot be converted.
->> init_transform: Initialize the data transformation method.
+>> init_default_transform: Initialize the data transformation method.
 
 ### LAMDA_SSL.Dataset.GraphMixin.GraphMixin
 > CLASS LAMDA_SSL.Dataset.GraphMixin.GraphMixin()
->> init_transform: Initialize the data transformation method.
+>> init_default_transform: Initialize the data transformation method.
 
 ## Distributed
 ### LAMDA_SSL.Distributed.DataParallel.DataParallel
@@ -2061,13 +2199,46 @@ labels=None,
 >> Parameter
 >> - sparse: Whether to use sparse matrices for computation.
 
+#### LAMDA_SSL.Evaluation.Cluster.Jaccard_Score
+> CLASS LAMDA_SSL.Evaluation.Fowlkes_Mallows_Score.Fowlkes_Mallows_Score(sparse=False)
+
+>> Parameter
+>> - The set of labels to include when ``average != 'binary'``, and their order if ``average is None``. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class, while labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in ``y_true`` and ``y_pred`` are used in sorted order.
+
+>> - pos_label : The class to report if ``average='binary'`` and the data is binary. If the data are multiclass or multilabel, this will be ignored;
+setting ``labels=[pos_label]`` and ``average != 'binary'`` will report scores for that label only.
+>>- average : {'micro', 'macro', 'samples', 'weighted', 'binary'} or None. If ``None``, the scores for each class are returned. Otherwise, this determines the type of averaging performed on the data:
+    ``'binary'``:
+        Only report results for the class specified by ``pos_label``.
+        This is applicable only if targets (``y_{true,pred}``) are binary.
+    ``'micro'``:
+        Calculate metrics globally by counting the total true positives,
+        false negatives and false positives.
+    ``'macro'``:
+        Calculate metrics for each label, and find their unweighted
+        mean.  This does not take label imbalance into account.
+    ``'weighted'``:
+        Calculate metrics for each label, and find their average, weighted
+        by support (the number of true instances for each label). This
+        alters 'macro' to account for label imbalance.
+    ``'samples'``:
+        Calculate metrics for each instance, and find their average (only
+        meaningful for multilabel classification).
+>> - sample_weight : array-like of shape (n_samples,), Sample weights.
+>> - zero_division : "warn", {0.0, 1.0}, default="warn" Sets the value to return when there is a zero division, i.e. when there are no negative values in predictions and labels. If set to "warn", this acts like 0, but a warning is also raised.
+
+#### LAMDA_SSL.Evaluation.Cluster.Silhouette_Score
+> CLASS LAMDA_SSL.Evaluation.Fowlkes_Mallows_Score.Fowlkes_Mallows_Score(sparse=False)
+>> Parameter
+>> - metric : The metric to use when calculating distance between instances in a feature array. If metric is a string, it must be one of the options allowed by <sklearn.metrics.pairwise.pairwise_distances>. If ``X`` of the `scoring` method is the distance array itself, use ``metric="precomputed"``.
+>> - sample_size: The size of the sample to use when computing the Silhouette Coefficient on a random subset of the data.
+>> - random_state : Determines random number generation for selecting a subset of samples.
+
 ## Loss
 ### LAMDA_SSL.LOSS.Consistency
 > CLASS LAMDA_SSL.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
 >> Parameter
 >> - reduction: How to handle the output.
->> - activation_1: The activation function to process on the first input.
->> - activation_2: The activation function to process on the second input.
 >> forward(logits_1,logits_2): Perform loss calculations.
 >> - logits_1: The first input to compute consistency.
 >> - logits_2: The second input to compute consistency.
@@ -2089,6 +2260,25 @@ labels=None,
 >> forward(logits_1,logits_2): Perform loss calculations.
 >> - logits_1: The first input for KL Divergence calculation.
 >> - logits_2: The second input for KL Divergence calculation.
+
+### LAMDA_SSL.LOSS.MSE
+> CLASS LAMDA_SSL.LOSS.MSE(reduction='mean',activation_1=None,activation_2=None)
+>> Parameter
+>> - reduction: How to handle the output.
+>> - softmax_1: Whether to softmax the first input.
+>> - softmax_2: Whether to softmax the second input.
+>> forward(logits_1,logits_2): Perform loss calculations.
+>> - logits_1: The first input for KL Divergence calculation.
+>> - logits_2: The second input for KL Divergence calculation.
+
+### LAMDA_SSL.LOSS.EntMin
+> CLASS LAMDA_SSL.LOSS.EntMin(reduction='mean', activation=None)
+>> Parameter
+>> - reduction: How to handle the output.
+>> - reduction: How to handle the output.
+>> - activation: The activation function to process on the logits.
+>> forward(logits): Perform loss calculations.
+>> -logits: The logits to calculate the loss.
 
 ### LAMDA_SSL.LOSS.Semi_supervised_loss
 > CLASS LAMDA_SSL.LOSS.Semi_supervised_loss(lambda_u)
@@ -2305,7 +2495,7 @@ labels=None,
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
 
-### LAMDA_SSL.Scheduler.Linear_warmup
+### LAMDA_SSL.Scheduler.Linear_Warmup
 > CLASS LAMDA_SSL.Scheduler.Linear_warmup(num_training_steps,
                  num_warmup_steps=0,
                  start_factor=0,
@@ -2321,8 +2511,8 @@ labels=None,
 
 
 ## Split
-### LAMDA_SSL.Scheduler.Split.SemiSplit
-> Function LAMDA_SSL.Scheduler.Split.SemiSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
+### LAMDA_SSL.Scheduler.Split.Split
+> Function LAMDA_SSL.Scheduler.Split.Data_Split(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
 >> Parameter
 >> - stratified: Whether to stratify by classes.
 >> - shuffle: Whether to shuffle the data. 
@@ -2330,6 +2520,14 @@ labels=None,
 >> - X: Samples of the data to be split.
 >> - y: Labels of the data to be split.
 >> - labeled_size: The scale or size of the labeled data.
+
+### LAMDA_SSL.Scheduler.Split.Split
+> Function LAMDA_SSL.Scheduler.Split.View_Split(X,num_splits=2,axis=1,mode='random')
+>> Parameter
+>> - X: Samples of the data to be split.
+>> - num_splits: The number of views 
+>> - axis: The axis of the dimension to be splited.
+>> - mode: The mode to split, 'random' or 'sequential'.
 
 ## Transform
 
@@ -2343,9 +2541,6 @@ labels=None,
 >> fit_transform(X,y=None): Firstly perform fit() on the existing samples X and labels y, and then directly transform y.
 >> - X: Samples for learning and transformation.
 >> - y: Labels fo learning
->> \_\_call\_\_(X,y=None): It is the same as fit_transform.
->> - X: Samples for learning and transformation.
->> - y: labels for learning.
 
 ### LAMDA_SSL.Transform.Normalization
 > CLASS LAMDA_SSL.Transform.Normalization(mean=None,std=None)

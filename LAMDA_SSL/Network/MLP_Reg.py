@@ -4,6 +4,10 @@ class MLP_Reg(torch.nn.Module):
     # define model elements
     def __init__(self, dim_in = 28 ** 2,hidden_dim=[10],
                  activations=[nn.ReLU()]):
+        # >> Parameter
+        # >> - input_dim: The dimension of input samples.
+        # >> - hidden_dim: The dimension of hidden layers.
+        # >> - activations: The activation functions used in the hidden layers.
         super(MLP_Reg, self).__init__()
         # input to first hidden layer
         self.num_hidden=len(hidden_dim)

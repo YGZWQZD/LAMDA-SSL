@@ -29,6 +29,7 @@ class BasicBlock(nn.Module):
             dilation: int = 1,
             norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
+
         super(BasicBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -135,6 +136,15 @@ class ResNet50(nn.Module):
             replace_stride_with_dilation: Optional[List[bool]] = None,
             norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
+        # >> Parameter:
+        # >> - block: The basic network module.
+        # >> - layers: The number of repetitions of modules with hidden layers of 64, 128, 256, and 512 dimensions.
+        # >> - num_classes: The number of classes.
+        # >> - zero_init_residual: Whether to initialize residual with 0.
+        # >> - groups: The number of groups to compute in parallel.
+        # >> - width_per_group: The number of convolution kernels in each group.
+        # >> - replace_stride_with_dilation: A list or tuple of 3 bool variables. It represents whether to perform convolution expansion for 64, 128, and 256-dimensional modules.
+        # >> - norm_layer: Regularization method. The default is BatchNorm2d.
         super(ResNet50, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d

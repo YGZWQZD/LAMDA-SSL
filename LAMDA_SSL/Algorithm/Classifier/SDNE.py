@@ -31,7 +31,15 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
-
+        # >> Parameter:
+        # >> - xeqs: Whether to use the adjacency matrix as the feature matrix of the node.
+        # >> - input_dim: The dimension of node features. It is valid when xeqs is False.
+        # >> - num_nodes: The number of nodes.
+        # >> - hidden_layers: Encoder hidden layer dimension.
+        # >> - alpha: The weight of Laplacian regularization.
+        # >> - gamma: The weight of L2 regularation.
+        # >> - beta: The weight of the edges in the graph that are not 0 in the loss of consistency between the input and output of the autoencoder.
+        # >> - base_estimator: A supervised learner that classifies using the node features obtained by the encoder.
         DeepModelMixin.__init__(self,
                                     epoch=epoch,
                                     weight_decay=weight_decay,

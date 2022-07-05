@@ -69,6 +69,11 @@ class NetworkBlock(nn.Module):
 
 class WideResNet(nn.Module):
     def __init__(self,  num_classes=10, depth=28, widen_factor=2, drop_rate=0.0, channel_in=3):
+        # >> Parameter:
+        # >> - num_classes: The number of classes.
+        # >> - depth: The depth of network.
+        # >> - widen_factor: The width of the network.It is used to determine hidden layer dimensions.
+        # >> - dropout: The dropout rate.
         super(WideResNet, self).__init__()
         self.channels=channel_in
         channels = [16, 16 * widen_factor, 32 * widen_factor, 64 * widen_factor]

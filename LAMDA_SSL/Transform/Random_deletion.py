@@ -3,9 +3,13 @@ import random
 from LAMDA_SSL.Transform.Tokenizer import Tokenizer
 class Random_deletion(Transformer):
     def __init__(self,p=0.5,tokenizer=None):
+        # >> Parameter:
+        # >> - p: The proportion of random deletions.
+        # >> - tokenizer: The tokenizer used when the text is not untokenized.
         super(Random_deletion, self).__init__()
         self.p=p
         self.tokenizer=tokenizer if tokenizer is not None else Tokenizer('basic_english','en')
+
     def transform(self,X):
         tokenized=True
         if isinstance(X, str):

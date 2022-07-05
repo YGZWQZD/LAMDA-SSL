@@ -9,6 +9,10 @@ import LAMDA_SSL.Config.SSGMM as config
 class SSGMM(InductiveEstimator,ClassifierMixin):
     def __init__(self,tolerance=config.tolerance, max_iterations=config.max_iterations, num_classes=config.num_classes,
                  evaluation=config.evaluation,verbose=config.verbose,file=config.file):
+        # >> Parameter
+        # >> - num_classes: The number of classes.
+        # >> - tolerance: Tolerance for iterative convergence.
+        # >> - max_iterations: The maximum number of iterations.
         self.num_classes=num_classes
         self.tolerance=tolerance
         self.max_iterations=max_iterations

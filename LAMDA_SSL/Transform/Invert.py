@@ -5,7 +5,6 @@ import torch
 import numpy as np
 
 class Invert(Transformer):
-
     def __init__(self):
         super().__init__()
 

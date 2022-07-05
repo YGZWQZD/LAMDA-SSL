@@ -3,6 +3,12 @@ from LAMDA_SSL.Transform.Transformer import Transformer
 import torch
 class CharNGram(Transformer):
     def __init__(self,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>',cache=None):
+        # >> Parameter:
+        # >> - lower_case_backup: Whether to convert all to lowercase when looking up words.
+        # >> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+        # >> - pad_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+        # >> - pad_token: The default padding token.
+        # >> - unk_token: The default token represents unknown words.
         super().__init__()
         self.vec=vocab.CharNGram(cache=cache)
         self.unk_init = torch.Tensor.zero_ if unk_init is None else unk_init

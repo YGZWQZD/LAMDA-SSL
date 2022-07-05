@@ -4,6 +4,16 @@ import torch
 class Vectors(Transformer):
     def __init__(self,name='840B', cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True,
                  pad_token='<pad>',unk_token='<unk>'):
+        # >> Parameter:
+        # >> - name: The name of the word vector.
+        # >> - cache: Directory for cached vectors。
+        # >> - url: The download address of the word vector.
+        # >> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+        # >> - pad_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
+        # >> - max_vectors: The maximum number of word vectors.
+        # >> - lower_case_backup: Whether to convert all to lowercase when looking up words.
+        # >> - pad_token: The default padding token.
+        # >> - unk_token: The default token represents unknown words.
         super(Vectors, self).__init__()
         self.vec=vocab.Vectors(name,cache,url,unk_init,max_vectors)
         self.unk_init = torch.Tensor.zero_ if unk_init is None else unk_init

@@ -1,11 +1,7 @@
 import copy
-
 import torch
-
-# from LAMDA_SSL.exceptions import TransformError
 from LAMDA_SSL.utils import indexing
 from torch.utils.data.dataset import Dataset
-import os
 from LAMDA_SSL.utils import get_len,get_indexing_method
 
 class UnlabeledDataset(Dataset):
@@ -13,9 +9,9 @@ class UnlabeledDataset(Dataset):
                  pre_transform=None,
                  transform=None
                  ):
-        # if isinstance(root, (str, bytes)):
-        #     root = os.path.expanduser(root)
-        # self.root = root
+        # >> Parameter
+        # >> - pre_transform: The way to preprocess X before augmentation.
+        # >> - transform: The way to transform X after data augmentation.
         self.transform=transform
         self.pre_transform = pre_transform
         self.X=None

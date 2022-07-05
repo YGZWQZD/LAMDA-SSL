@@ -16,6 +16,24 @@ class TrainDataLoader:
                  prefetch_factor = 2,
                  persistent_workers= False,
                  batch_size_adjust=False,labeled_dataloader=None,unlabeled_dataloader=None):
+        # >> Parameter
+        # >> - batch_size: How many samples per batch to load.
+        # >> - shuffle: Whether to shuffle the data.
+        # >> - sampler: The sampler used when loading data.
+        # >> - batch_sampler: set to True to have the data reshuffled at every epoch.
+        # >> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
+        # >> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
+        # >> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+        # >> - drop_last: Whether to discard redundant data that is not enough for a batch.
+        # >> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
+        # >> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
+        # >> - multiprocessing_context: The context of multiprocessing.
+        # >> - generator: If not None, this RNG will be used by RandomSampler to generate random indexes and multiprocessing to generate base_seed for workers.
+        # >> - prefetch_factor: Number of samples loaded in advance by each worker. '2' means there will be a total of 2 * num_workers samples prefetched across all workers.
+        # >> - persistent_workers: If True, the data loader will not shutdown the worker processes after a dataset has been consumed once. This allows to maintain the workers 'Dataset' instances alive.
+        # >> - batch_size_adjust: Whether to automatically adjust the batch_size of labeled_dataloader and unlabeled_dataloader according to the ratio of unlabeled samples to labeled samples.
+        # >> - labeled_dataloader: The dataloader of labeled data.
+        # >> - unlabeled_dataloader: The dataloader of unlabeled data.
         self.labeled_dataloader=labeled_dataloader
         self.unlabeled_dataloader=unlabeled_dataloader
         if self.labeled_dataloader is None and self.unlabeled_dataloader is None:

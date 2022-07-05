@@ -55,6 +55,12 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
+        # >> - ema_weight: Update weight for exponential moving average pseudo labels。
+        # >> - num_classes: The number of classes.
+        # >> - num_samples: The number of samples.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

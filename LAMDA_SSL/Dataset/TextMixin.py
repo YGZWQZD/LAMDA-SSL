@@ -10,6 +10,16 @@ from LAMDA_SSL.Transform.ToTensor import ToTensor
 class TextMixin:
     def __init__(self,word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
                  min_freq=1,special_first=True,default_index=None):
+        # >> parameter:
+        # >> - word_vocab: A map that converts words to indexes.
+        # >> - vectors: Word vectors.
+        # >> - length: Length of each sentence.
+        # >> - unk_token: The token used to represent unknown words.
+        # >> - pad_token: The token used to represent padding.
+        # >> - min_freq: The minimum frequency required for a word to be used as a token in the word_vocab. It is valid when word_vocab is None and a mapping table needs to be constructed.
+        # >> - special_first: Whether to put special characters at the top of the mapping table.
+        # >> - default_index: The default value that should be used when converting a word to an index if it cannot be converted.
+        # >> init_default_transform: Initialize the data transformation method.
         self.vectors=vectors
         self.word_vocab=word_vocab
         self.length=length

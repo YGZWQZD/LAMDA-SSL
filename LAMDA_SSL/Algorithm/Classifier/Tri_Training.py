@@ -10,7 +10,10 @@ class Tri_Training(InductiveEstimator,ClassifierMixin):
     def __init__(self, base_estimator=config.base_estimator,base_estimator_2=config.base_estimator_2,
                  base_estimator_3=config.base_estimator_3,evaluation=config.evaluation,
                  verbose=config.verbose,file=config.file):
-
+        # >> Parameter:
+        # >> - base_estimator: The first base learner in TriTraining.
+        # >> - base_estimator_2: The second base learner in TriTraining.
+        # >> - base_estimator_3: The third base learner in TriTraining.
         if isinstance(base_estimator,(list,tuple)):
             self.estimators=base_estimator
         else:

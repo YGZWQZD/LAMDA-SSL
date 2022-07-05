@@ -22,6 +22,15 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
            gamma_A= config.gamma_A,
            gamma_I= config.gamma_I,evaluation=config.evaluation,
            verbose=config.verbose,file=config.file):
+        # >> Parameter:
+        # >> - distance_function: The distance function for building the graph. This Pamater is valid when neighbor_mode is None.
+        # >> - gamma_d: Kernel parameters related to distance_function.
+        # >> - neighbor_mode: The edge weight after constructing the graph model by k-nearest neighbors. There are two options 'connectivity' and 'distance', 'connectivity' returns a 0-1 matrix, and 'distance' returns a distance matrix.
+        # >> - n_neighbor: k value of k-nearest neighbors.
+        # >> - kernel_function: The kernel function corresponding to SVM.
+        # >> - gamma_k: The gamma parameter corresponding to kernel_function.
+        # >> - gamma_A: Penalty weight for function complexity.
+        # >> - gamma_I: Penalty weight for smoothness of data distribution.
         self.distance_function=distance_function
         self.neighbor_mode=neighbor_mode
         self.n_neighbor=n_neighbor

@@ -11,7 +11,13 @@ class CoReg(InductiveEstimator,RegressorMixin):
     def __init__(self, k1=config.k1, k2=config.k2, p1=config.p1, p2=config.p2,
                  max_iters=config.max_iters, pool_size=config.pool_size,
                  evaluation=config.evaluation,verbose=config.verbose,file=config.file):
-        super(CoReg, self).__init__()
+        # >> Parameter
+        # >> - k1: The k value for the k-nearest neighbors in the first base learner.
+        # >> - k2: The k value for the k-nearest neighbors in the second base learner.
+        # >> - p1: The order of the distance calculated in the first base learner.
+        # >> - p2: The order of the distance calculated in the second base learner.
+        # >> - max_iters: The maximum number of iterations.
+        # >> - pool_size: The size of the buffer pool.
         self.k1=k1
         self.k2=k2
         self.p1=p1

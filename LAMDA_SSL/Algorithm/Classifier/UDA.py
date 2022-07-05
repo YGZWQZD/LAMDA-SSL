@@ -54,6 +54,12 @@ class UDA(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - threshold: The confidence threshold for choosing samples.
+        # >> - num_classes: The number of classes.
+        # >> - tsa_schedule: Threshold adjustment strategy, optional 'linear', 'exp' or 'log'.
+        # >> - T: Sharpening temperature for soft labels.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

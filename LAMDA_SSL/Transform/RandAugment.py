@@ -17,6 +17,12 @@ import random
 
 class RandAugment(Transformer):
     def __init__(self, n=2, m=5, num_bins=10, random=True,augment_list=None):
+        # >> Parameter:
+        # >> - n: The times of Random augmentation.
+        # >> - m: The magnitude of Random augmentation.
+        # >> - num_bins: The number of intervals  division for the value of the augmentation.
+        # >> - random: Whether to use random value for augmentation.
+        # >> - augment_list: The list of augmentations and their minimum and maximum values.
         super().__init__()
         self.n = n
         self.m = m

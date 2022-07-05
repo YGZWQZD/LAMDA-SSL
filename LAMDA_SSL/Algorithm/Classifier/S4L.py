@@ -57,6 +57,13 @@ class S4L(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
+        # >> Parameter:
+        # >> - lambda_u: The weight of unsupervised loss.
+        # >> - num_classes: The number of classes.
+        # >> - p_target: The target distribution of labeled data.
+        # >> - rotate_v_list: A list of rotation angles.
+        # >> - labeled_usp: Whether to use labeled data when computing the unsupervised loss.
+        # >> - all_rot: Whether to rotate samples by all angles in rotate_v_list.
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,
                                     test_dataset=test_dataset,

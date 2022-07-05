@@ -1,5 +1,4 @@
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 
 
@@ -7,6 +6,15 @@ class TextRCNN(nn.Module):
 
     def __init__(self, n_vocab,embedding_dim=300,len_seq=300, padding_idx=None, hidden_size=256, num_layers=1,
                  dropout=0.0, pretrained_embeddings=None,num_classes=2):
+        # >> Parameter:
+        # >> - n_vocab: The size of the dictionary.
+        # >> - embedding_dim: The dimension of the word embedding.
+        # >> - len_seq: The length of the sentence.
+        # >> - padding_idx: If specified, the entries at 'padding_idx' do not contribute to the gradient; therefore, the embedding vector at 'padding_idx' is not updated during training, i.e. it remains as a fixed "pad". For a newly constructed Embedding, the embedding vector at 'padding_idx' will default to all zeros, but can be updated to another value to be used as the padding vector.
+        # >> - hidden_size: The dimension of the hidden layer.
+        # >> - num_layers: The number of network layers.
+        # >> - dropout: The dropout rate.
+        # >> - pretrained_embeddings: The pretrained word embeddings.
         super(TextRCNN, self).__init__()
 
         if pretrained_embeddings is not None:

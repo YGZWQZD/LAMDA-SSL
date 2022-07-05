@@ -3,6 +3,10 @@ from sklearn.metrics import mean_squared_error
 from LAMDA_SSL.utils import partial
 class Mean_Squared_Error(EvaluationRegressor):
     def __init__(self,sample_weight=None, multioutput="uniform_average",squared=True):
+        # >> Parameter
+        # >> - sample_weight: The weight of each sample.
+        # >> - multioutput: Aggregation method for multiple outputs.
+        # >> - squared: If True, output the MSE loss, otherwise output the RMSE loss.
         super().__init__()
         self.sample_weight=sample_weight
         self.multioutput=multioutput

@@ -7,6 +7,10 @@ import numpy as np
 
 class Cutout(Transformer):
     def __init__(self, v=0.5,fill=(127,127,127),random_v=True):
+        # >> Parameter:
+        # >> - v: The relative value of crop size.
+        # >> - fill: The padding value.
+        # >> - random_v: Whether to randomly determine the crop size.
         super().__init__()
         self.v=v
         self.fill=fill

@@ -7,8 +7,11 @@ class VisionMixin:
     def __init__(self,mean=None,std=None):
         self.mean=mean
         self.std=std
-
+        # >> Parameter
+        # >> - mean: Mean of the dataset.
+        # >> - std: Standard deviation of the dataset.
     def init_default_transforms(self):
+        # >> init_default_transform: Initialize the default data transformation method.
         self.transforms=None
         self.target_transform=None
         self.pre_transform=ToImage()

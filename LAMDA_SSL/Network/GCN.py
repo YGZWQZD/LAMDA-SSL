@@ -3,6 +3,10 @@ from torch_geometric.nn import  GCNConv
 import torch.nn.functional as F
 class GCN(torch.nn.Module):
     def __init__(self,num_features,num_classes,normalize=False):
+        # >> Parameter
+        # >> - num_features: The number of features.
+        # >> - num_classes: The number of classes.
+        # >> - normalize: Whether to add self-loops and compute symmetric normalization coefficients on the fly.
         super().__init__()
         self.conv1 = GCNConv(num_features, 16, cached=True,
                              normalize=normalize)

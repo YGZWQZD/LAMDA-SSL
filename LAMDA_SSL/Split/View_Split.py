@@ -3,6 +3,11 @@ import copy
 import numpy as np
 
 def View_Split(X,num_splits=2,axis=1,mode='random'):
+    # >> Parameter
+    # >> - X: Samples of the data to be split.
+    # >> - num_splits: The number of views
+    # >> - axis: The axis of the dimension to be splited.
+    # >> - mode: The mode to split, 'random' or 'sequential'.
     shape=X.shape
     range_shape=tuple(i for i in range(len(shape)))
     pre=range_shape[:axis]

@@ -17,11 +17,18 @@ class TrainDataset(Dataset):
                  labeled_dataset=None,
                  unlabeled_dataset=None
                  ):
-        # self.pre_transform=pre_transform
-        # self.transforms=transforms
-        # self.transform = transform
-        # self.target_transform=target_transform
-        # self.unlabeled_transform = unlabeled_transform
+        # >> Parameter
+        # >> - pre_transform: The way to preprocess X before augmentation.
+        # >> - transforms: The way to transform X and y at the same time after data augmentation.
+        # >> - transform: The way to transform X after data augmentation.
+        # >> - target_transform: The way to transform y after data augmentation.
+        # >> - unlabeled_transform: The way to transform unlabeled_X after data augmentation.
+        # >> - labeled_size: The number or proportion of labeled samples.
+        # >> - stratified: Whether to sample by class scale.
+        # >> - shuffle: Whether to shuffle the data.
+        # >> - random_state: The random seed.
+        # >> - labeled_dataset: The labeled dataset.
+        # >> - unlabeled_dataset: The unlabeled dataset.
 
         self.labeled_size=labeled_size
         self.stratified=stratified

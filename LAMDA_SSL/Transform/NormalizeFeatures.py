@@ -6,6 +6,7 @@ import numpy as np
 import torch_geometric.transforms as gt
 class NormalizeFeatures(Transformer):
     def __init__(self,attrs=["x"]):
+        # >> - attrs: Properties that require regularization.
         super().__init__()
         self.attrs=attrs
         self.normalize=gt.NormalizeFeatures(attrs)
