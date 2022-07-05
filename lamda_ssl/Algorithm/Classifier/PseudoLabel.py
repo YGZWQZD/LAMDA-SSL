@@ -1,12 +1,12 @@
-import copy
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import torch
-from lamda_ssl.utils import cross_entropy
 import numpy as np
 import lamda_ssl.Config.PseudoLabel as config
 from lamda_ssl.utils import Bn_Controller
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 
 class PseudoLabel(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
@@ -112,16 +112,13 @@ class PseudoLabel(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')  # CE_loss for labeled data
-
+        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)  # CE_loss for labeled data
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
         pseudo_label = torch.softmax(logits_x_ulb, dim=-1)
         max_probs, max_idx = torch.max(pseudo_label, dim=-1)
         mask = max_probs.ge(self.threshold).float()
-
-        unsup_loss = (cross_entropy(logits_x_ulb, max_idx.detach())*mask ).mean() # MSE loss for unlabeled data
-
-        loss = sup_loss + self.lambda_u * unsup_loss * _warmup
+        unsup_loss = _warmup*(Cross_Entropy(reduction='none')(logits_x_ulb, max_idx.detach())*mask).mean() # MSE loss for unlabeled data
+        loss = Semi_supervised_loss(self.lambda_u)(sup_loss, unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

@@ -1,7 +1,7 @@
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import RegressorMixin
-from lamda_ssl.Loss.Consistency import Consistency
+from lamda_ssl.Loss.MSE import MSE
 import numpy as np
 import torch
 from lamda_ssl.Transform.Mixup import Mixup
@@ -10,6 +10,7 @@ from lamda_ssl.Network.MLP_Reg import MLP_Reg
 import torch.nn as nn
 import copy
 import lamda_ssl.Config.ICTReg as config
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 
 class ICTReg(DeepModelMixin,InductiveEstimator,RegressorMixin):
     def __init__(self,
@@ -144,11 +145,12 @@ class ICTReg(DeepModelMixin,InductiveEstimator,RegressorMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam=train_result
-        sup_loss = Consistency(reduction='mean')(logits_x_lb, lb_y)  # CE_loss for labeled data
-        unsup_loss = lam*Consistency(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_1) +\
-                     (1.0 - lam)*Consistency(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_2)
+        sup_loss = MSE(reduction='mean')(logits_x_lb, lb_y)  # CE_loss for labeled data
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        loss = sup_loss + self.lambda_u * _warmup * unsup_loss
+        unsup_loss = _warmup * (lam*MSE(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_1)+
+                                (1.0 - lam)*MSE(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_2))
+
+        loss =Semi_supervised_loss(self.lambda_u)(sup_loss ,   unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

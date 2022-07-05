@@ -2,11 +2,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 class KL_div(nn.Module):
-    def __init__(self,softmax_1=True,softmax_2=True):
+    def __init__(self,softmax_1=True,softmax_2=True,reduction='mean'):
         super(KL_div, self).__init__()
         self.softmax_1=softmax_1
         self.softmax_2=softmax_2
-    def foward(self,logits_1,logits_2):#KL(p||q)
+        self.reduction=reduction
+
+    def forward(self,logits_1,logits_2):#KL(p||q)
         if self.softmax_1:
             p = F.softmax(logits_1, dim=1)
             logp = F.log_softmax(logits_1, dim=1)
@@ -19,6 +21,11 @@ class KL_div(nn.Module):
         else:
             logq=torch.log(logits_2)
 
-        plogp = ( p *logp).sum(dim=1).mean(dim=0)
-        plogq = ( p *logq).sum(dim=1).mean(dim=0)
-        return plogp - plogq
+        plogp = ( p *logp).sum(dim=1)
+        plogq = ( p *logq).sum(dim=1)
+        kl_div=plogp - plogq
+        if self.reduction=='mean':
+            kl_div=kl_div.mean()
+        elif self.reduction=='sum':
+            kl_div=kl_div.sum()
+        return kl_div

@@ -10,13 +10,13 @@ from lamda_ssl.Opitimizer.Adam import Adam
 num_features=None
 num_classes=None
 normalize=True
-weight_decay=0.05,
-epoch=1000
-eval_epoch=100
+weight_decay=5e-4,
+epoch=2000
+eval_epoch=None
 device='cpu'
 network=None
 parallel=None
-optimizer=Adam(lr=0.02)
+optimizer=Adam(lr=0.01)
 scheduler=None
 evaluation={
     'accuracy':Accuracy(),

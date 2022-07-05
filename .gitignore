@@ -1,7 +1,7 @@
-/lamda_ssl/Test/
+/Test/
 *.pyc
 /.idea
-/lamda_ssl/Download/
-/lamda_ssl/Unused/
+/Download/
+/Unused/
 /Save
 /Result

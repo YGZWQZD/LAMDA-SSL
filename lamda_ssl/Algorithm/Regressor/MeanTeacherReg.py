@@ -1,6 +1,7 @@
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
-from lamda_ssl.Loss.Consistency import Consistency
+from lamda_ssl.Loss.MSE import MSE
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 from sklearn.base import RegressorMixin
 import numpy as np
 from lamda_ssl.utils import Bn_Controller
@@ -137,11 +138,10 @@ class MeanTeacherReg(DeepModelMixin,InductiveEstimator,RegressorMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
-        sup_loss = Consistency()(logits_x_lb, lb_y)  # CE_loss for labeled data
-
+        sup_loss = MSE()(logits_x_lb, lb_y)  # CE_loss for labeled data
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = Consistency()(logits_x_ulb_2, logits_x_ulb_1.detach())  # MSE loss for unlabeled data
-        loss = sup_loss + _warmup * self.lambda_u *unsup_loss
+        unsup_loss = _warmup *MSE()(logits_x_ulb_2, logits_x_ulb_1.detach())  # MSE loss for unlabeled data
+        loss = Semi_supervised_loss(self.lambda_u)(sup_loss ,unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

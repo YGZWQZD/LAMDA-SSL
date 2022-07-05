@@ -357,8 +357,8 @@ class DeepModelMixin(SemiEstimator):
         if isinstance(X,Dataset) and y is None:
             y=getattr(X,'y')
 
-        self.y_pred=self.predict(X,valid=valid).cpu()
-        self.y_score=self.y_score.cpu()
+        self.y_pred=self.predict(X,valid=valid)
+        self.y_score=self.y_score
 
         if self.evaluation is None:
             return None
@@ -451,11 +451,13 @@ class DeepModelMixin(SemiEstimator):
     @torch.no_grad()
     def get_predict_result(self,y_est,*args,**kwargs):
         if self._estimator_type=='classifier' or 'classifier' in self._estimator_type:
-            self.y_score = Softmax(dim=-1)(y_est)
-            max_probs, y_pred = torch.max(self.y_score, dim=-1)
+            y_score = Softmax(dim=-1)(y_est)
+            max_probs, y_pred = torch.max(y_score, dim=-1)
+            y_pred=y_pred.cpu().detach().numpy()
+            self.y_score=y_score.cpu().detach().numpy()
             return y_pred
         else:
-            self.y_score=y_est
+            self.y_score=y_est.cpu().detach().numpy()
             y_pred=self.y_score
             return y_pred
 

@@ -2,7 +2,6 @@ from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 
-from lamda_ssl.utils import cross_entropy
 import numpy as np
 
 from lamda_ssl.utils import Bn_Controller
@@ -11,7 +10,7 @@ import torch.nn as nn
 import torch
 from lamda_ssl.Transform.Mixup import Mixup
 import lamda_ssl.Config.ICT as config
-from lamda_ssl.utils import class_status
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 
 class ICT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
@@ -106,8 +105,6 @@ class ICT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
 
     def start_fit(self):
-        self.num_classes = self.num_classes if self.num_classes is not None else \
-            class_status(self._train_dataset.labeled_dataset.y).num_classes
         self._network.zero_grad()
         self._network.train()
 
@@ -135,11 +132,12 @@ class ICT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y).mean()  # CE_loss for labeled data
-        unsup_loss = Cross_Entropy(use_hard_labels=False, reduction='mean')(logits_x_ulb_mix,lam * nn.Softmax(dim=-1)(logits_x_ulb_1)+(1-lam)*
-                                                                            nn.Softmax(dim=-1)(logits_x_ulb_2))
+        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)  # CE_loss for labeled data
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        loss = sup_loss + self.lambda_u * _warmup * unsup_loss
+        unsup_loss = _warmup *Cross_Entropy(use_hard_labels=False, reduction='mean')(logits_x_ulb_mix,lam * nn.Softmax(dim=-1)(logits_x_ulb_1)+(1-lam)*
+                                                                            nn.Softmax(dim=-1)(logits_x_ulb_2))
+
+        loss=Semi_supervised_loss(lambda_u =self.lambda_u)(sup_loss,unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

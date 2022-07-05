@@ -7,10 +7,10 @@ from lamda_ssl.Opitimizer.BaseOptimizer import BaseOptimizer
 import lamda_ssl.Network.GCN as GCNNET
 from torch.utils.data.dataset import Dataset
 from torch_geometric.data.data import Data
-import torch.nn.functional as F
 import torch
 from lamda_ssl.utils import class_status
 import lamda_ssl.Config.GCN as config
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
 
 class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
@@ -148,7 +148,7 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         lb_logits, lb_y=train_result
-        loss=F.nll_loss(F.log_softmax(lb_logits,dim=1), lb_y)
+        loss=Cross_Entropy(reduction='mean')(lb_logits,lb_y)
         return loss
 
 
@@ -174,9 +174,9 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     @torch.no_grad()
     def evaluate(self,X=None,y=None,valid=False):
-        y_pred=self.predict(X,valid=valid).cpu()
-        y_score=self.y_score.cpu()
-        y =self.data.y[X] if y is None else y
+        y_pred=self.predict(X,valid=valid)
+        y_score=self.y_score
+        y =self.data.y[X].cpu().detach().numpy() if y is None else y
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation,(list,tuple)):
@@ -202,6 +202,3 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                 print(result,file=self.file)
             self.result = result
             return result
-
-
-

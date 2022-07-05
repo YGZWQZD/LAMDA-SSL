@@ -2,10 +2,10 @@ import copy
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
-import torch.nn.functional as F
 from collections import Counter
 from lamda_ssl.utils import class_status
-from lamda_ssl.utils import cross_entropy
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 import lamda_ssl.Config.FlexMatch as config
 import torch
 
@@ -173,13 +173,9 @@ class FlexMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask = train_result
-        log_pred = F.log_softmax(logits_x_lb, dim=-1)
-        Lx = F.nll_loss(log_pred, lb_y, reduction='mean')
-        if self.use_hard_labels:
-            Lu = (cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels, reduction='none') * mask).mean()
-        else:
-            Lu = (cross_entropy(logits_x_ulb_s, pseudo_label, self.use_hard_labels) * mask).mean()
-        loss = Lx + self.lambda_u * Lu
+        sup_loss=Cross_Entropy(reduction='mean')(logits=logits_x_lb,targets=lb_y)
+        unsup_loss =(Cross_Entropy(reduction='none',use_hard_labels=self.use_hard_labels)(logits_x_ulb_s, pseudo_label) * mask).mean()
+        loss = Semi_supervised_loss(self.lambda_u)(sup_loss ,unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

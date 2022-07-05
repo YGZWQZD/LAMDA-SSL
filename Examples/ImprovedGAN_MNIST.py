@@ -17,7 +17,7 @@ from lamda_ssl.Algorithm.Classifier.ImprovedGAN import ImprovedGAN
 import torch.nn as nn
 from lamda_ssl.Dataset.Vision.Mnist import Mnist
 
-dataset=Mnist(root='..\lamda_ssl\Download\mnist',labeled_size=6000,shuffle=True,download=False,random_state=0,default_transforms=True)
+dataset=Mnist(root='..\Download\mnist',labeled_size=6000,shuffle=True,download=False,random_state=0,default_transforms=True)
 
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -49,7 +49,7 @@ test_sampler=SequentialSampler()
 valid_sampler=SequentialSampler()
 
 # optimizer
-optimizer=Adam(lr=0.02)
+optimizer=Adam(lr=3e-4)
 
 # evalutation
 evaluation={

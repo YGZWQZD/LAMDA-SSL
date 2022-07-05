@@ -7,7 +7,6 @@ from lamda_ssl.Algorithm.Classifier.FixMatch import FixMatch
 from lamda_ssl.Sampler.RandomSampler import RandomSampler
 from lamda_ssl.Sampler.SequentialSampler import SequentialSampler
 from lamda_ssl.Evaluation.Classification.Accuracy import Accuracy
-from lamda_ssl.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
 from lamda_ssl.Evaluation.Classification.Precision import Precision
 from lamda_ssl.Evaluation.Classification.Recall import Recall
 from lamda_ssl.Evaluation.Classification.F1 import F1
@@ -21,7 +20,7 @@ from lamda_ssl.Transform.Random_swap import Random_swap
 from lamda_ssl.Transform.GloVe import Glove
 
 # dataset
-dataset=SST2(root='..\lamda_ssl\Download\SST2',stratified=True,shuffle=True,download=False,vectors=Glove(),length=50,default_transforms=True)
+dataset=SST2(root='..\Download\SST2',stratified=True,shuffle=True,download=False,vectors=Glove(cache='..\Download\Glove\.vector_cache'),length=50,default_transforms=True)
 
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -79,7 +78,6 @@ network=TextRCNN(n_vocab=dataset.vectors.vec.vectors.shape[0],embedding_dim=data
 # evalutation
 evaluation={
     'accuracy':Accuracy(),
-    'top_5_accuracy':Top_k_Accurary(k=5),
     'precision':Precision(average='macro'),
     'Recall':Recall(average='macro'),
     'F1':F1(average='macro'),

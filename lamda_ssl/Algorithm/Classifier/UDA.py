@@ -3,9 +3,10 @@ from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import torch
-from lamda_ssl.utils import cross_entropy
 from lamda_ssl.utils import class_status
 import math
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 import lamda_ssl.Config.UDA as config
 
 class UDA(InductiveEstimator,DeepModelMixin,ClassifierMixin):
@@ -161,13 +162,13 @@ class UDA(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         logits_x_lb,lb_y,logits_x_ulb_w, logits_x_ulb_s=train_result
         tsa = self.get_tsa()
         sup_mask = torch.max(torch.softmax(logits_x_lb, dim=-1), dim=-1)[0].le(tsa).float().detach()
-        sup_loss = (cross_entropy(logits_x_lb, lb_y, reduction='none')* sup_mask).mean()  # CE_loss for labeled data
+        sup_loss = (Cross_Entropy(reduction='none')(logits_x_lb, lb_y)* sup_mask).mean()  # CE_loss for labeled data
         pseudo_label = torch.softmax(logits_x_ulb_w, dim=-1)
         max_probs, max_idx = torch.max(pseudo_label, dim=-1)
         mask = max_probs.ge(self.threshold).float()
         pseudo_label = torch.softmax(logits_x_ulb_w / self.T, dim=-1)
-        unsup_loss = (cross_entropy(logits_x_ulb_s, pseudo_label,use_hard_labels=False)*mask ).mean() # MSE loss for unlabeled data
-        loss = sup_loss + self.lambda_u * unsup_loss
+        unsup_loss = (Cross_Entropy(reduction='none',use_hard_labels=False)(logits_x_ulb_s, pseudo_label)*mask ).mean() # MSE loss for unlabeled data
+        loss = Semi_supervised_loss(self.lambda_u)(sup_loss , unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

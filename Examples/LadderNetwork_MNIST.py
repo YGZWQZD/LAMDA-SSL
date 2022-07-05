@@ -17,7 +17,7 @@ from lamda_ssl.Scheduler.Linear_Warmup import Linear_Warmup
 from lamda_ssl.Dataset.Vision.Mnist import Mnist
 import torch.nn as nn
 
-dataset=Mnist(root='..\lamda_ssl\Download\mnist',labeled_size=6000,stratified=True,shuffle=True,download=False,random_state=0,default_transforms=True)
+dataset=Mnist(root='..\Download\mnist',labeled_size=6000,stratified=True,shuffle=True,download=False,random_state=0,default_transforms=True)
 
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y

@@ -3,7 +3,9 @@ from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import torch
 from lamda_ssl.utils import class_status
-from lamda_ssl.utils import cross_entropy,consistency_loss
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.Consistency import Consistency
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 from lamda_ssl.utils import Bn_Controller
 import numpy as np
 import lamda_ssl.Config.TemporalEnsembling as config
@@ -136,9 +138,6 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
-
-        # _ulb_idx=ulb_idx.tolist() if ulb_idx is not None else ulb_idx
-
         lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
         lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
         ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
@@ -147,14 +146,10 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
         logits_x_ulb = self._network(ulb_X)
         self.bn_controller.unfreeze_bn(self._network)
         iter_unlab_pslab = self.epoch_pslab[ulb_idx]
-        # with torch.no_grad():
-        #     print(self.epoch_pslab.dtype)
-        #     iter_unlab_pslab = self.update_ema_predictions(logits_x_ulb.clone().detach(),ulb_X)
         with torch.no_grad():
             self.epoch_pslab[ulb_idx] = logits_x_ulb.clone().detach()
 
         return logits_x_lb,lb_y,logits_x_ulb,iter_unlab_pslab
-        # return logits_x_lb,lb_y
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()
@@ -162,30 +157,15 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
         self._optimizer.step()
         if self.ema is not None:
             self.ema.update()
-        # if self._scheduler is not None:
-        #     self._scheduler.step()
-    # # def optimize(self,loss,*args,**kwargs):
-    #     self._network.zero_grad()
-    #     loss.backward()
-    #     self._optimizer.step()
-    #     if self._scheduler is not None:
-    #         self._scheduler.step()
-
-
-
-
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb,iter_unlab_pslab  = train_result
-        # logits_x_lb, lb_y=train_result
-        # print(logits_x_lb[0])
-        # print(lb_y[0])
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
+        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb,iter_unlab_pslab)
-        loss = sup_loss + _warmup * self.lambda_u *unsup_loss
+        unsup_loss = _warmup *Consistency(reduction='mean')(logits_x_ulb,iter_unlab_pslab)
+        loss = Semi_supervised_loss(self.lambda_u)(sup_loss ,  unsup_loss)
         return loss
-        # return sup_loss
+
     def predict(self,X=None,valid=None):
         return DeepModelMixin.predict(self,X=X,valid=valid)
 

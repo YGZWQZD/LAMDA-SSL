@@ -14,7 +14,6 @@ from lamda_ssl.Evaluation.Classification.AUC import AUC
 from lamda_ssl.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
 from lamda_ssl.Dataset.LabeledDataset import LabeledDataset
 from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
-from lamda_ssl.Scheduler.Linear_Warmup import Linear_warmup
 from lamda_ssl.Transform.ImageToTensor import ImageToTensor
 from sklearn.pipeline import Pipeline
 from lamda_ssl.Transform.MinMaxScaler import MinMaxScaler
@@ -93,7 +92,7 @@ epoch=500
 num_it_epoch=540
 num_it_total=540*500
 eval_epoch=None
-eval_it=2000
+eval_it=None
 device='cpu'
 
 parallel=None

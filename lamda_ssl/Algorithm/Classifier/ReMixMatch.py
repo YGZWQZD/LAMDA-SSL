@@ -3,7 +3,6 @@ from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import torch
-from lamda_ssl.utils import cross_entropy
 import numpy as np
 from lamda_ssl.utils import class_status
 from lamda_ssl.utils import one_hot
@@ -11,6 +10,7 @@ from lamda_ssl.Transform.Mixup import Mixup
 from lamda_ssl.Transform.Rotate import Rotate
 from lamda_ssl.utils import Bn_Controller
 import lamda_ssl.Config.ReMixMatch as config
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
 
 
 class ReMixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
@@ -149,12 +149,9 @@ class ReMixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         num_lb = lb_x_w.shape[0]
 
         with torch.no_grad():
-            # self._network.apply(partial(fix_bn, train=True))
-            # self._network.apply(partial(fix_bn,train=False))
             self.bn_controller.freeze_bn(model=self._network)
             logits_x_ulb_w = self._network(ulb_x_w)[0]
             self.bn_controller.unfreeze_bn(model=self._network)
-            # print(torch.any(torch.isnan(logits_x_ulb_w)))
             prob_x_ulb = torch.softmax(logits_x_ulb_w, dim=1)
             if self.p_model is None:
                 self.p_model = torch.mean(prob_x_ulb.detach(), dim=0).to(self.device)
@@ -190,8 +187,8 @@ class ReMixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         logits_u = torch.cat(logits[1:])
         return logits_x,mixed_y[:num_lb],logits_u,mixed_y[num_lb:],u1_logits,sharpen_prob_x_ulb,logits_rot,rot_index
 
-    def interleave_offsets(self, batch, nu):
-        groups = [batch // (nu + 1)] * (nu + 1)
+    def interleave_offsets(self, batch, num):
+        groups = [batch // (num + 1)] * (num + 1)
         for x in range(batch - sum(groups)):
             groups[-x - 1] += 1
         offsets = [0]
@@ -201,23 +198,22 @@ class ReMixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         return offsets
 
     def interleave(self, xy, batch):
-        nu = len(xy) - 1
-        offsets = self.interleave_offsets(batch, nu)
-        xy = [[v[offsets[p]:offsets[p + 1]] for p in range(nu + 1)] for v in xy]
-        for i in range(1, nu + 1):
+        num = len(xy) - 1
+        offsets = self.interleave_offsets(batch, num)
+        xy = [[v[offsets[p]:offsets[p + 1]] for p in range(num + 1)] for v in xy]
+        for i in range(1, num + 1):
             xy[0][i], xy[i][i] = xy[i][i], xy[0][i]
         return [torch.cat(v, dim=0) for v in xy]
 
 
     def get_loss(self,train_result,*args,**kwargs):
         mix_lb_x,mix_lb_y,mix_ulb_x,mix_ulb_y,s_x,s_y,rot_x,rot_y=train_result
-        sup_loss = cross_entropy(mix_lb_x, mix_lb_y,use_hard_labels=False).mean()  # CE_loss for labeled data
-        unsup_loss=cross_entropy(mix_ulb_x, mix_ulb_y,use_hard_labels=False).mean()
-        s_loss=cross_entropy(s_x, s_y,use_hard_labels=False).mean()
-        # print(rot_y.dtype)
-        rot_loss = cross_entropy(rot_x, rot_y, reduction='mean').mean()
+        sup_loss = Cross_Entropy(use_hard_labels=False,reduction='mean')(mix_lb_x, mix_lb_y)  # CE_loss for labeled data
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        loss = sup_loss + self.lambda_u * _warmup * unsup_loss+self.lambda_s * _warmup *s_loss+self.lambda_rot*rot_loss
+        unsup_loss=_warmup *Cross_Entropy(use_hard_labels=False,reduction='mean')(mix_ulb_x, mix_ulb_y)
+        s_loss=_warmup *Cross_Entropy(use_hard_labels=False,reduction='mean')(s_x, s_y)
+        rot_loss = Cross_Entropy(reduction='mean')(rot_x, rot_y)
+        loss = sup_loss + self.lambda_u *  unsup_loss+self.lambda_s * s_loss+self.lambda_rot*rot_loss
         return loss
 
     def predict(self,X=None,valid=None):

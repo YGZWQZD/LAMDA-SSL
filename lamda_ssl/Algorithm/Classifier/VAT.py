@@ -6,10 +6,12 @@ from sklearn.base import ClassifierMixin
 import numpy as np
 import torch
 import lamda_ssl.Config.VAT as config
-from lamda_ssl.utils import _l2_normalize,kl_div_with_logit,cross_entropy
+from lamda_ssl.utils import _l2_normalize
 from torch.autograd import Variable
-import torch.nn.functional as F
 from lamda_ssl.utils import Bn_Controller
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.KL_div import KL_div
+from lamda_ssl.Loss.EntMin import EntMin
 
 class VAT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
@@ -116,20 +118,16 @@ class VAT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         _ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
 
         logits_x_lb = self._network(_lb_X)
-        # print(torch.any(torch.isnan(logits_x_lb)))
+
         self.bn_controller.freeze_bn(self._network)
         logits_x_ulb = self._network(_ulb_X)
 
-        # print(torch.any(torch.isnan(logits_x_lb)))
-        # print(torch.any(torch.isnan(logits_x_ulb)))
         d = torch.Tensor(_ulb_X.size()).normal_()
         for i in range(self.it_vat):
-            d = self.xi*_l2_normalize(d)# r=self.xi*_l2_normalize(d)
+            d = self.xi*_l2_normalize(d)
             d = Variable(d.to(self.device), requires_grad=True)
             y_hat = self._network(_ulb_X + d)
-            # print(torch.any(torch.isnan(y_hat)))
-            delta_kl = kl_div_with_logit(logits_x_ulb.detach(), y_hat)
-            # print(delta_kl)
+            delta_kl = KL_div(reduction='mean')(logits_x_ulb.detach(), y_hat)
             delta_kl.backward()
             d = d.grad.data.clone()
             self._network.zero_grad()
@@ -138,23 +136,21 @@ class VAT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         d = Variable(d)
         r_adv = self.eps * d
         y_hat = self._network(_ulb_X + r_adv.detach())
-        # print(torch.any(torch.isnan(y_hat)))
+
         self.bn_controller.unfreeze_bn(self._network)
         return logits_x_lb,lb_y,logits_x_ulb, y_hat
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb,y_hat=train_result
-        unsup_warmup = np.clip(self.it_total / (self.warmup * self.num_it_total),
+        _warmup = np.clip(self.it_total / (self.warmup * self.num_it_total),
                 a_min=0.0, a_max=1.0)
 
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
-        # print(sup_loss)
-        unsup_loss = kl_div_with_logit(logits_x_ulb.detach(), y_hat)
-        # print(unsup_loss)
-        p = F.softmax(logits_x_ulb, dim=1)
-        entmin_loss=-(p*F.log_softmax(logits_x_ulb, dim=1)).sum(dim=1).mean(dim=0)
-        # print(entmin_loss)
-        loss = sup_loss + self.lambda_u * unsup_loss * unsup_warmup + self.lambda_entmin * entmin_loss
+        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)
+
+        unsup_loss = _warmup*KL_div(reduction='mean')(logits_x_ulb.detach(), y_hat)
+        entmin_loss=EntMin(reduction='mean',activation=torch.nn.Softmax(dim=-1))(logits_x_ulb)
+
+        loss = sup_loss + self.lambda_u * unsup_loss  + self.lambda_entmin * entmin_loss
         return loss
 
     def predict(self,X=None,valid=None):

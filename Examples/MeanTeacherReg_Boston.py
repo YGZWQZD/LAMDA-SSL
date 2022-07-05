@@ -61,10 +61,10 @@ test_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # augmentation
 
-augmentation=Noise(noise_level=0.001)
+augmentation=Noise(noise_level=0.01)
 
 # optimizer
-optimizer=SGD(lr=0.0001,momentum=0.9,nesterov=True)
+optimizer=SGD(lr=0.001,momentum=0.9,nesterov=True)
 scheduler=CosineAnnealingLR(eta_min=0,T_max=4000)
 
 # network
@@ -76,7 +76,7 @@ evaluation={
     'Mean_Squared_Log_Error':Mean_Squared_Log_Error()
 }
 
-file = open("../Result/MeanTeacher_Boston.txt", "w")
+file = open("../Result/MeanTeacherReg_Boston.txt", "w")
 
 model=MeanTeacherReg(lambda_u=0,warmup=0.4,
                mu=1,weight_decay=5e-4,ema_decay=0.999,

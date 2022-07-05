@@ -1,5 +1,4 @@
 import copy
-
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from torch.utils.data.dataset import Dataset
@@ -152,8 +151,8 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         adjacency_matrix = sparse.csr_matrix((adjacency_matrix_data,
                                               (adjacency_matrix_row_index, adjacency_matrix_col_index)),
                                              shape=(self.num_node, self.num_node))
-        # L = D - A  有向图的度等于出度和入度之和; 无向图的领接矩阵是对称的，没有出入度之分直接为每行之和
-        # 计算度数
+        # L = D - A
+        # Calculate degrees
         adjacency_matrix_ = sparse.csr_matrix((adjacency_matrix_data+adjacency_matrix_data,
                                                (adjacency_matrix_row_index+adjacency_matrix_col_index,
                                                 adjacency_matrix_col_index+adjacency_matrix_row_index)),
@@ -201,7 +200,7 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         L_reg = 0
         for param in self._network.parameters():
             L_reg += self.gamma * torch.sum(param * param)
-        # loss_1st 一阶相似度损失函数 论文公式(9) alpha * 2 *tr(Y^T L Y)
+        # loss_1st: first-order similarity loss function alpha * 2 *tr(Y^T L Y)
         loss_1st =  self.alpha * 2 * torch.trace(torch.matmul(torch.matmul(Y.transpose(0,1), self.laplace_matrix), Y))
         return loss_1st+loss_2nd+L_reg
 
@@ -241,9 +240,9 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         if y is not None:
             y=y
         elif valid:
-            y = self.data.y[self.data.val_mask]
+            y = self.data.y[self.data.val_mask].cpu().detach().numpy()
         else:
-            y = self.data.y[X] if X is not None else self.data.y[self.data.test_mask]
+            y = self.data.y[X].cpu().detach().numpy() if X is not None else self.data.y[self.data.test_mask].cpu().detach().numpy()
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation, (list, tuple)):

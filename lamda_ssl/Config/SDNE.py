@@ -10,7 +10,7 @@ from lamda_ssl.Scheduler.StepLR import StepLR
 from lamda_ssl.Opitimizer.Adam import Adam
 
 epoch = 1000
-eval_epoch = 10
+eval_epoch = None
 optimizer = Adam(lr=0.001)
 scheduler = StepLR(step_size=10,gamma=0.9,verbose=False)
 device = 'cpu'
@@ -32,7 +32,7 @@ xeqs = True
 num_features = None
 num_nodes = None
 hidden_layers = [1000,1000]
-alpha = 1e-2
-beta = 5
+alpha = 1e-3
+beta = 10
 gamma = 1e-5
 base_estimator = LogisticRegression()

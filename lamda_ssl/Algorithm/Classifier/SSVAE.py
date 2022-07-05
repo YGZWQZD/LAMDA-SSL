@@ -1,6 +1,4 @@
 import copy
-
-import torch.nn as nn
 import torch.nn.functional as F
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin

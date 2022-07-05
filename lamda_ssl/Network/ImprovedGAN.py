@@ -47,7 +47,7 @@ class Discriminator(nn.Module):
 
 
     def forward(self, x):
-        x = x.view(-1, self.input_dim)
+        x = x.view(-1, self.dim_in)
         noise = torch.randn(x.size()).to(self.device) * self.noise_level[0] if self.training else torch.Tensor([0]).to(self.device)
 
         x = x + Variable(noise, requires_grad = False)
@@ -92,7 +92,7 @@ class Generator(nn.Module):
 
 
     def forward(self, batch_size=10,z=None):
-        z = Variable(torch.rand(batch_size, self.z_dim), requires_grad = False,volatile = not self.training).to(self.device) if z is None else z
+        z = Variable(torch.rand(batch_size, self.dim_z), requires_grad = False,volatile = not self.training).to(self.device) if z is None else z
         for _ in range(self.num_hidden):
             z = self.activations[_](self.bn_layers[_](self.layers[_](z)) + self.bn_b[_])
         if len(self.activations)==self.num_hidden+1:

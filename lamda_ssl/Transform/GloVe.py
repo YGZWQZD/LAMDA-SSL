@@ -2,9 +2,9 @@ from torchtext import vocab
 from lamda_ssl.Transform.Transformer import Transformer
 import torch
 class Glove(Transformer):
-    def __init__(self,name="840B", dim=300,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>'):
+    def __init__(self,name="840B", dim=300,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>',cache=None):
         super().__init__()
-        self.vec=vocab.GloVe(name,dim)
+        self.vec=vocab.GloVe(name,dim,cache=cache)
         self.unk_init = torch.Tensor.zero_ if unk_init is None else unk_init
         self.pad_init = torch.Tensor.zero_ if pad_init is None else pad_init
         self.lower_case_backup=lower_case_backup

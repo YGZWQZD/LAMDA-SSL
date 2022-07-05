@@ -12,12 +12,12 @@ from lamda_ssl.Algorithm.Classifier.SDNE import SDNE
 
 file = open("../Result/SDNE_Cora.txt", "w")
 
-dataset=Cora(labeled_size=0.2,root='..\lamda_ssl\Download\Cora',random_state=0,default_transforms=True)
+dataset=Cora(labeled_size=0.2,root='..\Download\Cora',random_state=0,default_transforms=True)
 data=dataset.transform.fit_transform(dataset.data)
 
 optimizer=Adam(lr=0.001)
 
-# scheduler=StepLR(step_size=10,gamma=0.9)
+scheduler=StepLR(step_size=10,gamma=0.9)
 
 evaluation={
     'accuracy':Accuracy(),
@@ -32,12 +32,14 @@ evaluation={
 model=SDNE(
     hidden_layers=[1000,1000],
     gamma=1e-5,
+    alpha=1e-3,
+    beta=10,
     epoch=1000,
-    eval_epoch=10,
+    eval_epoch=100,
     weight_decay=0,
     device='cpu',
     optimizer=optimizer,
-    # scheduler=scheduler,
+    scheduler=scheduler,
     evaluation=evaluation,
     verbose=True,
     file=file

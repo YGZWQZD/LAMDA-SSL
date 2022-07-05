@@ -82,7 +82,7 @@ ema_decay=None
 epoch=10
 num_it_epoch=540
 num_it_total=540*10
-eval_epoch=1
+eval_epoch=None
 eval_it=None
 device='cpu'
 

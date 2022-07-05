@@ -2,11 +2,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 class Cross_Entropy(nn.Module):
-    def __init__(self, use_hard_labels=True, reduction='none'):
+    def __init__(self, use_hard_labels=True, reduction='mean'):
         super(Cross_Entropy, self).__init__()
-
         self.use_hard_labels=use_hard_labels
         self.reduction=reduction
+
     def forward(self,logits, targets):
         if self.use_hard_labels:
             log_pred = F.log_softmax(logits, dim=-1)

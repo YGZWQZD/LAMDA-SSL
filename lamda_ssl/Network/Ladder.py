@@ -10,18 +10,6 @@ class Encoder(torch.nn.Module):
     def __init__(self, dim_in, dim_out, activation,
                  train_bn_scaling, noise_level,device='cpu'):
         super(Encoder, self).__init__()
-
-        # if isinstance(d_in,numbers.Number):
-        #     d_in = d_in
-        # elif len(d_in)==2:
-        #     H, W = d_in
-        #     d_in = H * W
-        # elif len(d_in)==3:
-        #     C, H, W = d_in
-        #     d_in = C * H * W
-        # else:
-        #     d_in = d_in
-
         self.dim_in=dim_in
         self.dim_out = dim_out
         self.activation = activation
@@ -40,19 +28,9 @@ class Encoder(torch.nn.Module):
         # batch-normalization bias
         self.bn_normalize_clean = torch.nn.BatchNorm1d(dim_out, affine=False)
         self.bn_normalize = torch.nn.BatchNorm1d(dim_out, affine=False)
-        # if self.use_cuda:
-        #     self.bn_beta = Parameter(torch.cuda.FloatTensor(1, d_out))
-        # else:
         self.bn_beta = Parameter(torch.FloatTensor(1, dim_out).to(self.device))
         self.bn_beta.data.zero_()
         if self.train_bn_scaling:
-            # batch-normalization scaling
-            # if self.use_cuda:
-            #     self.bn_gamma = Parameter(torch.cuda.FloatTensor(1, d_out))
-            #     self.bn_gamma.data = torch.ones(self.bn_gamma.size()).cuda()
-            # else:
-            #     self.bn_gamma = Parameter(torch.FloatTensor(1, d_out))
-            #     self.bn_gamma.data = torch.ones(self.bn_gamma.size())
             self.bn_gamma = Parameter(torch.FloatTensor(1, dim_out).to(self.device))
             self.bn_gamma.data = torch.ones(self.bn_gamma.size()).to(self.device)
 
@@ -65,10 +43,7 @@ class Encoder(torch.nn.Module):
         self.buffer_tilde_z = None
 
     def bn_gamma_beta(self, x):
-        # if self.use_cuda:
-        #     ones = Parameter(torch.ones(x.size()[0], 1).cuda())
-        # else:
-        #     ones = Parameter(torch.ones(x.size()[0], 1))
+
         ones = Parameter(torch.ones(x.size()[0], 1).to(self.device))
         t = x + ones.mm(self.bn_beta)
         if self.train_bn_scaling:
@@ -94,9 +69,7 @@ class Encoder(torch.nn.Module):
         z_pre_norm = self.bn_normalize(z_pre)
         # Add noise
         noise = np.random.normal(loc=0.0, scale=self.noise_level, size=z_pre_norm.size())
-        # if self.use_cuda:
-        #     noise = Variable(torch.cuda.FloatTensor(noise))
-        # else:
+
         noise = Variable(torch.FloatTensor(noise).to(self.device))
         # tilde_z will be used by decoder for reconstruction
         tilde_z = z_pre_norm + noise
@@ -148,9 +121,7 @@ class StackedEncoders(torch.nn.Module):
 
     def forward_noise(self, x):
         noise = np.random.normal(loc=0.0, scale=self.noise_level, size=x.size())
-        # if self.use_cuda:
-        #     noise = Variable(torch.cuda.FloatTensor(noise))
-        # else:
+
         noise = Variable(torch.FloatTensor(noise).to(self.device))
         h = x + noise
         self.buffer_tilde_z_bottom = h.clone()
@@ -222,9 +193,7 @@ class Decoder(torch.nn.Module):
         self.buffer_hat_z_l = None
 
     def g(self, tilde_z_l, u_l):
-        # if self.use_cuda:
-        #     ones = Parameter(torch.ones(tilde_z_l.size()[0], 1).cuda())
-        # else:
+
         ones = Parameter(torch.ones(tilde_z_l.size()[0], 1).to(self.device))
 
         b_a1 = ones.mm(self.a1)

@@ -2,12 +2,13 @@ from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import torch
-from lamda_ssl.utils import cross_entropy
 import numpy as np
 from lamda_ssl.utils import class_status
 from lamda_ssl.Transform.Rotate import Rotate
 from lamda_ssl.utils import Bn_Controller
 import lamda_ssl.Config.S4L as config
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 
 
 class S4L(InductiveEstimator,DeepModelMixin,ClassifierMixin):
@@ -124,8 +125,6 @@ class S4L(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
         logits_x_lb_w = self._network(lb_x_w)[0]
 
-        # print(logits_x_lb_w.shape)
-        # print(lb_y.shape)
         rot_x = torch.Tensor().to(self.device)
         rot_y = []
 
@@ -151,22 +150,16 @@ class S4L(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
         rot_y = torch.LongTensor(rot_y).to(self.device)
 
-        # self.bn_controller.freeze_bn(model=self._network)
         logits_x_rot = self._network(rot_x)[1]
-        # self.bn_controller.unfreeze_bn(model=self._network)
-        # print(torch.any(torch.isnan(logits_x_ulb_w)))
-        # prob_x_ulb = torch.softmax(logits_x_ulb_w, dim=1)
 
         return logits_x_lb_w,lb_y,logits_x_rot,rot_y
 
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb_w,lb_y,logits_x_rot,rot_y=train_result
-        sup_loss = cross_entropy(logits_x_lb_w, lb_y,use_hard_labels=True).mean()  # CE_loss for labeled data
-        # print(rot_y.dtype)
-        rot_loss = cross_entropy(logits_x_rot, rot_y, reduction='mean').mean()
-        # _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        loss = sup_loss +self.lambda_u*rot_loss
+        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb_w, lb_y)  # CE_loss for labeled data
+        rot_loss = Cross_Entropy(reduction='mean')(logits_x_rot, rot_y)
+        loss = Semi_supervised_loss(self.lambda_u)(sup_loss,rot_loss)
         return loss
 
     def predict(self,X=None,valid=None):

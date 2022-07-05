@@ -23,7 +23,7 @@ from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
 from lamda_ssl.Algorithm.Classifier.S4L import S4L
 
 # dataset
-dataset=CIFAR10(root='..\lamda_ssl\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False,default_transforms=True)
+dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False,default_transforms=True)
 
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y

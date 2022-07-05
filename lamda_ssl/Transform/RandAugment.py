@@ -22,7 +22,7 @@ class RandAugment(Transformer):
         self.m = m
         self.num_bins=num_bins
         self.random=random
-        self.augment_list =[[(AutoContrast, None, None),
+        self.augment_list =[(AutoContrast, None, None),
             (Brightness, 0.05, 0.95),
             (Color, 0.05, 0.95),
             (Contrast, 0.05, 0.95),
@@ -35,7 +35,7 @@ class RandAugment(Transformer):
             (ShearY, 0.0, 0.3),
             (Solarize,  0.0,255.0),
             (TranslateX, 0.0, 0.3),
-            (TranslateY, 0.0, 0.3)]] if augment_list is None else augment_list
+            (TranslateY, 0.0, 0.3)] if augment_list is None else augment_list
 
     def transform(self, X):
         ops = random.choices(self.augment_list, k=self.n)

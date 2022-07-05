@@ -3,12 +3,13 @@ from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import torch
-from lamda_ssl.utils import cross_entropy
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.Consistency import Consistency
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 import numpy as np
 from lamda_ssl.utils import class_status
 from lamda_ssl.utils import one_hot
 from lamda_ssl.Transform.Mixup import Mixup
-import torch.nn.functional as F
 from lamda_ssl.utils import Bn_Controller
 import lamda_ssl.Config.MixMatch as config
 
@@ -162,8 +163,8 @@ class MixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         logits_u = torch.cat(logits[1:], dim=0)
         return logits_x,mixed_y[:num_lb],logits_u,mixed_y[num_lb:]
 
-    def interleave_offsets(self, batch, nu):
-        groups = [batch // (nu + 1)] * (nu + 1)
+    def interleave_offsets(self, batch, num):
+        groups = [batch // (num + 1)] * (num + 1)
         for x in range(batch - sum(groups)):
             groups[-x - 1] += 1
         offsets = [0]
@@ -173,19 +174,19 @@ class MixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         return offsets
 
     def interleave(self, xy, batch):
-        nu = len(xy) - 1
-        offsets = self.interleave_offsets(batch, nu)
-        xy = [[v[offsets[p]:offsets[p + 1]] for p in range(nu + 1)] for v in xy]
-        for i in range(1, nu + 1):
+        num = len(xy) - 1
+        offsets = self.interleave_offsets(batch, num)
+        xy = [[v[offsets[p]:offsets[p + 1]] for p in range(num + 1)] for v in xy]
+        for i in range(1, num + 1):
             xy[0][i], xy[i][i] = xy[i][i], xy[0][i]
         return [torch.cat(v, dim=0) for v in xy]
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb,lb_y,logits_x_ulb,ulb_y=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y,use_hard_labels=False).mean()  # CE_loss for labeled data
-        unsup_loss=F.mse_loss(torch.softmax(logits_x_ulb, dim=-1), ulb_y, reduction='mean')
+        sup_loss = Cross_Entropy(use_hard_labels=False,reduction='mean')(logits_x_lb, lb_y)# CE_loss for labeled data
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        loss = sup_loss + self.lambda_u * _warmup * unsup_loss
+        unsup_loss=_warmup * Consistency(reduction='mean')(torch.softmax(logits_x_ulb, dim=-1), ulb_y)
+        loss = Semi_supervised_loss(self.lambda_u )(sup_loss ,  unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

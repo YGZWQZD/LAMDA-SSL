@@ -103,7 +103,7 @@ epoch=1
 num_it_total=2**20
 num_it_epoch=2**20
 eval_epoch=None
-eval_it=2000
+eval_it=None
 device='cpu'
 
 parallel=None

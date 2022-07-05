@@ -3,7 +3,6 @@ from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import lamda_ssl.Config.Fixmatch as config
-import torch.nn.functional as F
 from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
 from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 
@@ -117,15 +116,11 @@ class FixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x, lb_y, logits_u_w, logits_u_s = train_result
-        # Lx = F.cross_entropy(logits_x, lb_y, reduction='mean')
-        log_pred = F.log_softmax(logits_x, dim=-1)
-        Lx=F.nll_loss(log_pred, lb_y, reduction='mean')
+        Lx=Cross_Entropy(reduction='mean')(logits=logits_x,targets=lb_y)
         pseudo_label = torch.softmax(logits_u_w.detach() / self.T, dim=-1)
         max_probs, targets_u = torch.max(pseudo_label, dim=-1)
         mask = max_probs.ge(self.threshold).float()
-
-        Lu = (F.cross_entropy(logits_u_s, targets_u,
-                              reduction='none') * mask).mean()
+        Lu = (Cross_Entropy(reduction='none')(logits_u_s, targets_u) * mask).mean()
         loss=Semi_supervised_loss(lambda_u =self.lambda_u)(Lx,Lu)
         return loss
 

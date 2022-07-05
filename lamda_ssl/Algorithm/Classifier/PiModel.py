@@ -1,7 +1,9 @@
 from lamda_ssl.Base.DeepModelMixin import DeepModelMixin
 from lamda_ssl.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
-from lamda_ssl.utils import cross_entropy,consistency_loss
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.Consistency import Consistency
+from lamda_ssl.Loss.Semi_supervised_Loss import Semi_supervised_loss
 from lamda_ssl.utils import Bn_Controller
 import copy
 import numpy as np
@@ -112,10 +114,10 @@ class PiModel(DeepModelMixin,InductiveEstimator,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
-        sup_loss = cross_entropy(logits_x_lb, lb_y, reduction='mean')
+        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = consistency_loss(logits_x_ulb_1,logits_x_ulb_2.detach())
-        loss = sup_loss + _warmup * self.lambda_u *unsup_loss
+        unsup_loss = _warmup * Consistency(reduction='mean')(logits_x_ulb_1,logits_x_ulb_2.detach())
+        loss = Semi_supervised_loss(self.lambda_u)(sup_loss ,unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

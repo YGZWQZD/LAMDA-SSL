@@ -8,7 +8,7 @@ from lamda_ssl.Dataset.LabeledDataset import LabeledDataset
 from lamda_ssl.Dataset.UnlabeledDataset import UnlabeledDataset
 from lamda_ssl.Dataloader.LabeledDataloader import LabeledDataLoader
 from lamda_ssl.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
-from lamda_ssl.Algorithm.Regressor.PiModelReg import PiModelReg
+from lamda_ssl.Algorithm.Regressor.ICTReg import ICTReg
 from lamda_ssl.Sampler.RandomSampler import RandomSampler
 from lamda_ssl.Sampler.SequentialSampler import SequentialSampler
 from lamda_ssl.Evaluation.Regression.Mean_Absolute_Error import Mean_Absolute_Error
@@ -61,14 +61,14 @@ test_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # augmentation
 
-augmentation=Noise(noise_level=0.05)
+augmentation=Noise(noise_level=0.01)
 
 # optimizer
 optimizer=SGD(lr=0.001,momentum=0.9,nesterov=True)
 scheduler=CosineAnnealingLR(eta_min=0,T_max=4000)
 
 # network
-network=MLP_Reg(hidden_dim=[100,50,10],activations=[nn.ReLU(),nn.ReLU(),nn.ReLU()],dim_in=labeled_X.shape[-1])
+network=MLP_Reg(hidden_dim=[100,100],activations=[nn.ReLU(),nn.ReLU()],dim_in=labeled_X.shape[-1])
 
 evaluation={
     'Mean_Absolute_Error':Mean_Absolute_Error(),
@@ -76,9 +76,9 @@ evaluation={
     'Mean_Squared_Log_Error':Mean_Squared_Log_Error()
 }
 
-file = open("../Result/PiModel_Boston.txt", "w")
+file = open("../Result/ICTReg_Boston.txt", "w")
 
-model=PiModelReg(lambda_u=1,warmup=0.4,
+model=ICTReg(alpha=0.5,lambda_u=0.001,warmup=1/64,
                mu=1,weight_decay=5e-4,ema_decay=0.999,
                epoch=1,num_it_epoch=4000,
                num_it_total=4000,
@@ -108,8 +108,3 @@ result=model.y_pred
 print(result,file=file)
 
 print(performance,file=file)
-
-
-
-
-

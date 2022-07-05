@@ -37,8 +37,6 @@ class Self_Training(InductiveEstimator,ClassifierMixin):
         _X = np.vstack([X, unlabeled_X])
         unlabeled_y = np.ones(U)*-1
         _y = np.hstack([y, unlabeled_y])
-        # print(len(_X))
-        # print(len(_y))
         self.self_training=self.self_training.fit(_X,_y)
         return self
 

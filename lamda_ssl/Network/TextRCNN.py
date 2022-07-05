@@ -10,7 +10,7 @@ class TextRCNN(nn.Module):
         super(TextRCNN, self).__init__()
 
         if pretrained_embeddings is not None:
-            self.embedding = nn.Embedding.from_pretrained(pretrained_embeddings, freeze=False)
+            self.embedding = nn.Embedding.from_pretrained(pretrained_embeddings, freeze=True)
         else:
             self.embedding = nn.Embedding(n_vocab, embedding_dim, padding_idx=padding_idx)
         self.lstm = nn.LSTM(embedding_dim, hidden_size, num_layers,

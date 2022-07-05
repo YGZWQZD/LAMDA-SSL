@@ -10,6 +10,8 @@ import torch.nn as nn
 from lamda_ssl.Opitimizer.BaseOptimizer import BaseOptimizer
 import lamda_ssl.Config.LadderNetwork as config
 from lamda_ssl.utils import class_status
+from lamda_ssl.Loss.Cross_Entropy import Cross_Entropy
+from lamda_ssl.Loss.MSE import MSE
 
 class Ladder_Network(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
@@ -161,15 +163,12 @@ class Ladder_Network(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def get_loss(self,train_result,*args,**kwargs):
         output_noise_labeled, lb_y, z_layers_unlabeled, bn_hat_z_layers_unlabeled=train_result
-        loss_supervised = torch.nn.CrossEntropyLoss()
-        loss_unsupervised = torch.nn.MSELoss()
-        cost_supervised = loss_supervised(output_noise_labeled, lb_y)
+        cost_supervised = Cross_Entropy(reduction='mean')(output_noise_labeled, lb_y)
         cost_unsupervised = 0.
         for cost_lambda, z, bn_hat_z in zip(self.lambda_u, z_layers_unlabeled, bn_hat_z_layers_unlabeled):
-            c = cost_lambda * loss_unsupervised.forward(bn_hat_z, z)
+            c = cost_lambda * MSE(reduction='mean')(bn_hat_z, z)
             cost_unsupervised += c
         result = cost_supervised + cost_unsupervised
-        # result=cost_unsupervised
         return result
 
     def optimize(self,loss,*args,**kwargs):

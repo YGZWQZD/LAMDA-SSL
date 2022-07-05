@@ -53,7 +53,7 @@ valid_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False
 test_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # augmentation
-augmentation=Noise(noise_level=0.05)
+augmentation=Noise(noise_level=0.01)
 
 # optimizer
 optimizer=SGD(lr=0.001,momentum=0.9,nesterov=True)
@@ -77,7 +77,7 @@ epoch=1
 num_it_total=2**20
 num_it_epoch=2**20
 eval_epoch=None
-eval_it=2000
+eval_it=None
 device='cpu'
 
 parallel=None
@@ -86,6 +86,6 @@ verbose=False
 
 alpha=0.5
 dim_in=None
-lambda_u=100
+lambda_u=0.001
 warmup=1 / 64
 mu=1

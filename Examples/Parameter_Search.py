@@ -25,7 +25,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection._search import RandomizedSearchCV
 
 # dataset
-dataset=CIFAR10(root='..\lamda_ssl\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False,default_transforms=True)
+dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=False,shuffle=True,download=False,default_transforms=True)
 
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -83,9 +83,6 @@ augmentation={
     'strongly_augmentation':strongly_augmentation
 }
 
-# parallel
-parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
-
 # evalutation
 evaluation={
     'accuracy':Accuracy(),
@@ -117,7 +114,6 @@ model=FixMatch(T=0.5,mu=7,weight_decay=5e-4,ema_decay=0.999,
                network=network,
                optimizer=optimizer,
                scheduler=scheduler,
-               parallel=parallel,
                evaluation=evaluation,
                file=None,
                verbose=False)

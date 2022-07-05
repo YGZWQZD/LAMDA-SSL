@@ -1,11 +1,8 @@
-# pylint: disable=Unused-argument
 import copy
-from copy import deepcopy
 from distutils.version import LooseVersion
 from functools import partial
 from numbers import Number
 from reprlib import recursive_repr
-import PIL.Image
 import sklearn
 import torch
 from torch.utils.data import dataset
@@ -14,8 +11,6 @@ from scipy import sparse
 from torch.nn.utils.rnn import PackedSequence
 from collections.abc import Sequence
 from PIL import Image
-import torch.nn.functional as F
-from torch.autograd import Variable
 import torch.nn as nn
 
 
@@ -351,23 +346,6 @@ class EMA:
                 param.data = self.backup[name]
         self.backup = {}
 
-def cross_entropy(logits, targets, use_hard_labels=True, reduction='none'):
-    if use_hard_labels:
-        log_pred = F.log_softmax(logits, dim=-1)
-        # print(log_pred[0])
-        # print(targets[0])
-        return F.nll_loss(log_pred, targets, reduction=reduction)
-        # return F.cross_entropy(logits, targets, reduction=reduction) this is unstable
-    else:
-        assert logits.shape == targets.shape
-        log_pred = F.log_softmax(logits, dim=-1)
-        nll_loss = torch.sum(-targets * log_pred, dim=1)
-        return nll_loss
-
-def consistency_loss(logits_w1, logits_w2):
-    assert logits_w1.size() == logits_w2.size()
-    return F.mse_loss(torch.softmax(logits_w1,dim=-1), torch.softmax(logits_w2,dim=-1), reduction='mean')
-
 class class_status:
     def __init__(self,y):
         self.y=y
@@ -403,19 +381,7 @@ class class_status:
 def _l2_normalize(d):
     d /= (torch.sqrt(torch.sum(d ** 2, dim=(1, 2, 3))).reshape((-1, 1, 1, 1)) + 1e-16)
     return d
-# def _l2_normalize(d):
-#     d = d.numpy()
-#     d /= (np.sqrt(np.sum(d ** 2, axis=(1, 2, 3))).reshape((-1, 1, 1, 1)) + 1e-16)
-#     return torch.from_numpy(d)
 
-def kl_div_with_logit(q_logit, p_logit):
-    q = F.softmax(q_logit, dim=1)
-    logq = F.log_softmax(q_logit, dim=1)
-    logp = F.log_softmax(p_logit, dim=1)
-
-    qlogq = ( q *logq).sum(dim=1).mean(dim=0)
-    qlogp = ( q *logp).sum(dim=1).mean(dim=0)
-    return qlogq - qlogp
 
 def one_hot(targets, nClass,device):
     logits = torch.zeros(targets.size(0), nClass).to(device)
@@ -443,11 +409,3 @@ class Bn_Controller:
                 m.running_var.data = self.backup[name + '.running_var']
                 m.num_batches_tracked.data = self.backup[name + '.num_batches_tracked']
         self.backup = {}
-
-# def fix_bn(m,train=False):
-#     classname = m.__class__.__name__
-#     if classname.find('BatchNorm') != -1:
-#         if train:
-#             m.train()
-#         else:
-#             m.eval()

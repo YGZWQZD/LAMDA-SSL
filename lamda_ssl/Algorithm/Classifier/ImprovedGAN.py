@@ -305,11 +305,7 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def train_G(self, unlabeled_X):
         unlabeled_X = unlabeled_X.view(unlabeled_X.shape[0], -1)
-        # print(unlabeled_X,file=self.file)
-        # print(torch.mean(unlabeled_X), file=self.file)
         fake = self._network.G(unlabeled_X.size()[0]).view(unlabeled_X.size())
-        # print(fake,file=self.file)
-        # print(torch.mean(fake), file=self.file)
         output_fake = self._network.D(fake)
         mom_fake=self._network.D.feature
 
