@@ -1807,8 +1807,7 @@ similarity_kernel = 'rbf',
                  dim_in=None)
 >> Parameter:
 >> - lambda_u: The weight of unsupervised loss.
->> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4,
-                then warmup is performed in the first 40 iterations.
+>> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4,then warmup is performed in the first 40 iterations.
 >> - dim_in: the dim of the instances.
 
 ### LAMDA_SSL.Algorithm
@@ -1933,7 +1932,7 @@ similarity_kernel = 'rbf',
 >> - batch_sampler: set to True to have the data reshuffled at every epoch.
 >> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
 >> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
->> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+>> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your attr 'collate_fn' returns a batch that is a custom type, see the example below.
 >> - drop_last: Whether to discard redundant data that is not enough for a batch.
 >> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
 >> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
@@ -1962,7 +1961,7 @@ batch_size=1,
 >> - batch_sampler: set to True to have the data reshuffled at every epoch.
 >> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
 >> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
->> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+>> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your attr 'collate_fn' returns a batch that is a custom type, see the example below.
 >> - drop_last: Whether to discard redundant data that is not enough for a batch.
 >> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
 >> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
@@ -1991,7 +1990,7 @@ batch_size=1,
 >> - batch_sampler: set to True to have the data reshuffled at every epoch.
 >> - num_workers: How many subprocesses to use for data loading. 0 means that the data will be loaded in the main process.
 >> - collate_fn: Merges a list of samples to form a mini-batch of Tensor(s).  Used when using batched loading from a map-style dataset.
->> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your :attr:'collate_fn' returns a batch that is a custom type, see the example below.
+>> - pin_memory: If True, the data loader will copy Tensors into CUDA pinned memory before returning them.  If your data elements are a custom type, or your attr 'collate_fn' returns a batch that is a custom type, see the example below.
 >> - drop_last: Whether to discard redundant data that is not enough for a batch.
 >> - timeout: If positive, the timeout value for collecting a batch from workers. Should always be non-negative.
 >> - worker_init_fn: If not None, this will be called on each worker subprocess with the worker id (an int in [0, num_workers - 1]) as input, after seeding and before data loading.
@@ -2125,11 +2124,11 @@ batch_size=1,
 >> - device_ids: Available GPUs.
 >> - output_device: The GPU where the output result is stored.
 >> - dim: The dimension of data aggregation from each device.
->> - broadcast_buffers: Flag that enables syncing (broadcasting) buffers of the module at beginning of the 'forward' function. 
->> - process_group: The process group to be used for distributed data all-reduction. If None, the default process group, which is created by :func:'torch.distributed.init_process_group', will be used.
->> - bucket_cap_mb: 'DistributedDataParallel' will bucket parameters into multiple buckets so that gradient reduction of each bucket can potentially overlap with backward computation. :attr:'bucket_cap_mb' controls the bucket size in MegaBytes (MB).
+>> - broadcast_buffers: Flag that enables syncing (broadcasting) buffers of the module at beginning of the 'forward' function.
+>> - process_group: The process group to be used for distributed data all-reduction. If None, the default process group, which is created by func 'torch.distributed.init_process_group', will be used.
+>> - bucket_cap_mb: 'DistributedDataParallel' will bucket parameters into multiple buckets so that gradient reduction of each bucket can potentially overlap with backward computation. attr 'bucket_cap_mb' controls the bucket size in MegaBytes (MB).
 >> - find_unused_parameters: Traverse the autograd graph from all tensors contained in the return value of the wrapped module's 'forward' function. Parameters that don't receive gradients as part of this graph are preemptively marked as being ready to be reduced. In addition, parameters that may have been used in the wrapped module's 'forward' function but were not part of loss computation and thus would also not receive gradients are preemptively marked as ready to be reduced.
->> - gradient_as_bucket_view: When set to True, gradients will be views pointing to different offsets of 'allreduce' communication buckets. This can reduce peak memory usage, where the saved memory size will be equal to the total gradients size. Moreover, it avoids the overhead of copying between gradients and 'allreduce' communication buckets. When gradients are views, detach_() cannot be called on the gradients. If hitting such errors, please fix it by referring to the :meth: '~torch.optim.Optimizer.zero_grad' function in 'torch/optim/optimizer.py' as a solution.
+>> - gradient_as_bucket_view: When set to True, gradients will be views pointing to different offsets of 'allreduce' communication buckets. This can reduce peak memory usage, where the saved memory size will be equal to the total gradients size. Moreover, it avoids the overhead of copying between gradients and 'allreduce' communication buckets. When gradients are views, detach_() cannot be called on the gradients. If hitting such errors, please fix it by referring to the meth '~torch.optim.Optimizer.zero_grad' function in 'torch/optim/optimizer.py' as a solution.
 
 
 ## Evaluation
