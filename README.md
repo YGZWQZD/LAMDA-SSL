@@ -2,7 +2,7 @@
 <div align=center>
 <img width="500px" src="./Imgs/Logo.png"> 
 
-![](https://badgen.net/github/stars/YGZWQZD/Semi-sklearn)
+![](https://badgen.net/github/stars/YGZWQZD/LAMDA-SSL)
 
 </div>
 
@@ -10,7 +10,7 @@
 
 #  Introduction
 
-Semi-sklearn is An useful and efficient toolbox for semi-supervised learning.
+LAMDA-SSL is An useful and efficient toolbox for semi-supervised learning.
 
 
 
