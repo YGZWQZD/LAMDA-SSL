@@ -7,7 +7,7 @@ LAMDA-SSL is an useful and efficient toolbox for semi-supervised learning[1-3]. 
 The overall design idea of LAMDA-SSL is shown in the figure. LAMDA-SSL refers to the underlying implementation of sklearn[33]. All Algorithms in LAMDA-SSL have interfaces similar to that Algorithms in sklearn.The learners in sklearn all inherit the parent class Estimator. Estimator uses known data to build a model to make predictions on unknown data. There are usually two usual methods in Estimator: fit() and transform(). fit() method is an adaptation process using existing data to build a model, which corresponds to the training process in machine learning. transform() method is a transformation process using the fitted model to predict results of new instances, which corresponds to the predicting process in machine learning.
 
 <div align=center>
-<img width="500px"  src="./Imgs/Base.png" >
+<img width=500px height=500px src="./Imgs/Base.png" >
 </div>
 
 Learners in LAMDA-SSL indirectly inherits Estimator in sklearn by inheriting the semi-supervised predictor class SemiEstimator. Data used for fit() method in sklearn usually includes samples and labels.However, in semi-supervised learning, labeled samples, labels and unlabeled samples are used in the training process of the model, so Estimator's fit() method is inconvenient directly used in semi-supervised learning algorithms. Although sklearn also implements two types of semi-supervised learning algorithms, self-training methods and graph-based methods, which also inherit the Estimator class, in order to use the interface of the fit() method, sklearn combines labeled samples and unlabeled data samples as samples input of fit() method, mark the labels corresponding to the unlabeled samples as -1 in labels input of fit() method. Although this processing method can be adapted to the Estimator interface, it also has limitations, especially in some binary classification scenario using -1 to indicate negative labels of labeled samples, which will conflict with unlabeled samples. Therefore, it is necessary to re-establish a new class SemiEstimator on the basis of Estimator for semi-supervised learning. There are three parts in the input of SemiEstimator's fit() method: labeled samples, labels and unlabeled samples, which better adapts the application scenario of semi-supervised learning. It doesn't require users combining data by themselves, and avoids the conflict between marks of unlabeled samples and labels of negative samples in binary classification. Compared with Estimator it's more convenient.
@@ -657,7 +657,7 @@ Generative Adversarial Network is divided into two parts: the generator and the 
 
 ImprovedGAN[29] was proposed by Salimans et al. Classical GAN model can be trained only with unlabeled data, and its discriminator only needs to judge whether the sample is a real sample or a generated sample. ImprovedGAN adds the use of labeled data, requiring the discriminator not only to distinguish the authenticity of the samples, but also to complete the classification of the samples. So the discriminator is changed to a k+1 class classifier, where k is the number of classes in the original dataset. Both data generation and classification can be achieved through the alternate training of the generator and the discriminator.
 <div align=center>
-<img width="1000px"  src="./Imgs/ImprovedGAN.png" >
+<img width="300px" height='300px'  src="./Imgs/ImprovedGAN.png" >
 </div>
 
 #### SSVAE
@@ -666,7 +666,7 @@ Variational Autoencoder integrates the deep autoencoder into the generative mode
 
 SSVAE[30] was proposed by Kingma et al. Classical VAE model can be trained only with unlabeled data, and its goal is to complete the learning of data representation through the encoder, and realize data generation through the decoder. SSVAE adds the application of labeled samples, and divides the encoder into two parts. The first part encodes the original data to obtain the probability distribution of the soft labels of the samples, and the second part uses the raw data and soft labels as input to obtain probability distributions of the hidden variables. The encoder of the classical VAE model only learns the representation of the data. The encoder of the SSVAE can firstly classify the samples and then can combine the sample information and the category information to learn the representation of the samples.
 <div align=center>
-<img width="1000px"  src="./Imgs/SSVAE.png" >
+<img width="300px" height='300px'  src="./Imgs/SSVAE.png" >
 </div>
 
 ### Deep Graph Based Method
@@ -677,7 +677,7 @@ When the raw data is a graph, since the instances are not independent but connec
 
 SDNE[31] was proposed by Wang et al. SDNE is a deep graph based semi-supervised learning method that can learn the embedding vector of nodes in the graph when there is no feature representation for the nodes in the graph and only graph structure information. This method adopts an autoencoder structure, takes the corresponding row of the node in the adjacency matrix as the adjacency vector of the node and inputs the adjacency vector of the node as the feature of the node into the self-encoder. SDNE obtains the embedded representation of the node through the encoder and restores the adjacency vector through the decoder. The loss function of SDNE mainly includes three items. The first item penalizes the inconsistency between the input and output of the autoencoder. In addition, unlike the classical autoencoder, the input of SDNE is an adjacency vector. Due to the sparseness of the adjacency matrix, there are a large number of zero values ​​in the input features. SDNE points out that more attention should be paid to the restoration of non-zero values, so zero and non-zero values ​​are given different weights. The second item is the Laplacian regularization which punishes the inconsistency of the hidden layer representation between adjacent nodes based on the graph structure information. The adjacency matrix is ​​used as the weight to obtain the Laplace regularization term. The third term is the L2 regularization, which penalizes the parameter complexity of the self-encoder to avoid overfitting. In SDNE, the first term of the loss function pays more attention to the characteristics of the node itself, while the second term pays more attention to the information between adjacent nodes which effectively solves the problem that the classical semi-supervised learning algorithm cannot effectively utilize the structural information of graphs.
 <div align=center>
-<img width="1000px"  src="./Imgs/SDNE.png" >
+<img width="300px" height='300px' src="./Imgs/SDNE.png" >
 </div>
 
 #### GCN
@@ -696,7 +696,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
 #### LAMDA_SSL.Algorithm.Classifier.Assemble
 
 > CLASS LAMDA_SSL.Algorithm.Classifier.Assemble.Assemble(base_model=SVC(probability=True),T=100,alpha=1,beta=0.9)
->> Parameter:
+> - Parameter:
 >> - base_model: A base learner for ensemble learning.
 >> - T: the number of base learners. It is also the number of iterations.
 >> - alpha: the weight of each sample when the sampling distribution is updated.
@@ -705,7 +705,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
 #### LAMDA_SSL.Algorithm.Classifier.Co_training
 
 > CLASS LAMDA_SSL.Algorithm.Classifier.Co_training.Co_training(base_estimator, base_estimator_2=None, p=5, n=5, k=30, s=75)
->> Parameter:
+> - Parameter:
 >> - base_estimator: the first learner for co-training.
 >> - base_estimator_2: the second learner for co-training.
 >> - p: In each round, each base learner selects at most p positive samples to assign pseudo-labels.
@@ -755,7 +755,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
                  threshold=0.95,
                  lambda_u=1.0,
                  T=0.5)
->> Parameter:
+> - Parameter:
 >> - threshold: choose the confidence threshold for the sample.
 >> - lambda_u: The weight of unsupervised loss.
 >> - T: the sharpening temperature.
@@ -805,7 +805,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
                  use_hard_labels=False,
                  use_DA=False,
                  p_target=None)
->> Parameter:
+> - Parameter:
 >> - threshold: The confidence threshold for choosing samples.
 >> - lambda_u: The weight of unsupervised loss.
 >> - T: Sharpening temperature.
@@ -830,7 +830,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
                  num_features=1433,
                  num_classes=7,
                  normalize=True)
->> Parameter:
+> - Parameter:
 >> - num_features: Node feature dimension.
 >> - num_classes: Number of classes.
 >> - normalize: Whether to use symmetric normalization.
@@ -875,7 +875,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
                  warmup=None,
                  lambda_u=None,
                  alpha=None)
->> Parameter:
+> - Parameter:
 >> - warmup: Warm up ratio for unsupervised loss.
 >> - lambda_u: The weight of unsupervised loss.
 >> - alpha: the parameter of Beta distribution in Mixup.
@@ -926,7 +926,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
                  activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  lambda_u=1.0,
                  num_labeled=None)
->> Parameter:
+> - Parameter:
 >> - dim_in: The dimension of a single instance.
 >> - num_classes: The number of classes.
 >> - dim_z: The dimension of the latent variables used to generate the data.
@@ -946,7 +946,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
         tol=1e-3,
         n_jobs=None,
     )
->> Parameter:
+> - Parameter:
 >> - kernel: The kernel function which can be inputted as a string 'rbf' or 'knn' or as a callable function.
 >> - gamma: The gamma value when the kernel function is rbf kernel.
 >> - n_neighbors: The n value when the kernel function is n_neighbors kernel.
@@ -964,7 +964,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
         tol=1e-3,
         n_jobs=None,
     )
->> Parameter:
+> - Parameter:
 >> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
 >> - gamma: The gamma value when the kernel function is rbf kernel.
 >> - n_neighbors: The n value when the kernel function is n_neighbors kernel.
@@ -1016,7 +1016,7 @@ GCN[32] was proposed by Kipf et al. Unlike SDNE, which uses the adjacency vector
                  encoder_sizes=[1000, 500, 250, 250, 250],
                  encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()]
                  )
->> Parameter:
+> - Parameter:
 >> - dim_in: The dimension of a single instance.
 >> - num_classes: The number of classes.
 >> - noise_std: The noise level of each layer of the discriminator.
@@ -1034,7 +1034,7 @@ distance_function = rbf_kernel,
            gamma_k=0.01,
            gamma_A= 0.03125,
            gamma_I= 0)
->> Parameter:
+> - Parameter:
 >> - distance_function: The distance function for building the graph. This Pamater is valid when neighbor_mode is None.
 >> - gamma_d: Kernel parameters related to distance_function.
 >> - neighbor_mode: The edge weight after constructing the graph model by k-nearest neighbors. There are two options 'connectivity' and 'distance', 'connectivity' returns a 0-1 matrix, and 'distance' returns a distance matrix.
@@ -1084,7 +1084,7 @@ train_dataset=None,
                  ema_decay=None,
                  warmup=None,
                  lambda_u=None)
->> Parameter:
+> - Parameter:
 >> - ema_decay: Update weights for the exponential moving average.
 >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
 >> - lambda_u: The weight of unsupervised loss.
@@ -1132,7 +1132,7 @@ train_dataset=None,
                  num_classes=10,
                  alpha=None
                  )
->> Parameter:
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - T: Sharpening temperature for soft labels.
 >> - num_classes: The number of classes.
@@ -1178,7 +1178,7 @@ train_dataset=None,
                  warmup=0.4,
                  lambda_u=None,
                  )
->> Parameter:
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
 
@@ -1223,7 +1223,7 @@ train_dataset=None,
                  lambda_u=None,
                  threshold=0.95
                  )
->> Parameter:
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - threshold: Confidence threshold for selecting samples.
 
@@ -1274,7 +1274,7 @@ train_dataset=None,
                  lambda_rot=None,
                  rotate_v_list=None
                  )
->> Parameter:
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - T: Sharpening temperature for soft labels.
 >> - num_classes: The number of classes.
@@ -1329,7 +1329,7 @@ train_dataset=None,
                  rotate_v_list=None,
                  labeled_usp=True,
                  all_rot=True)
->> Parameter:
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - num_classes: The number of classes.
 >> - p_target: The target distribution of labeled data.
@@ -1356,7 +1356,7 @@ train_dataset=None,
                  gamma=0.9,
                  beta=5,
                  base_estimator=None)
->> Parameter:
+> - Parameter:
 >> - xeqs: Whether to use the adjacency matrix as the feature matrix of the node.
 >> - input_dim: The dimension of node features. It is valid when xeqs is False.
 >> - num_nodes: The number of nodes.
@@ -1373,7 +1373,7 @@ train_dataset=None,
                 k_best=10,
                 max_iter=10,
                 verbose=False)
->> Parameter:
+> - Parameter:
 >> - base_estimator: The base supervised learner used in the Self_training algorithm.
 >> - criterion: There are two forms: 'threshold' and 'k_best', the former selects samples according to the threshold, and the latter selects samples according to the ranking.
 >> - threshold: When criterion is 'threshold', the threshold used for selecting samples during training.
@@ -1391,7 +1391,7 @@ similarity_kernel = 'rbf',
                         sigma_percentile = 90,
                         n_jobs = 1
                         )
->> Parameter:
+> - Parameter:
 >> - base_estimator: The base supervised learner used in the algorithm.
 >> - similarity_kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
 >> - n_neighbors: It is valid when the kernel function is 'knn', indicating the value of k in the k nearest neighbors.
@@ -1403,7 +1403,7 @@ similarity_kernel = 'rbf',
 
 #### LAMDA_SSL.Algorithm.Classifier.SSGMM
 > CLASS LAMDA_SSL.Algorithm.Classifier.SSGMM(num_classes, tolerance=1e-8, max_iterations=300)
->> Parameter
+> - Parameter:
 >> - num_classes: The number of classes.
 >> - tolerance: Tolerance for iterative convergence.
 >> - max_iterations: The maximum number of iterations.
@@ -1454,7 +1454,7 @@ similarity_kernel = 'rbf',
                  test_batch_sampler=None,
                  parallel=None,
                  file=None)
->> Parameter
+> - Parameter:
 >> - alpha: The weight of classification loss.
 >> - dim_in: The dimension of the input sample.
 >> - num_classes: The number of classes.
@@ -1509,7 +1509,7 @@ similarity_kernel = 'rbf',
                  num_classes=None,
                  num_samples=None
                  )
->> Parameter
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
 >> - ema_weight: Update weight for exponential moving average pseudo labels。
@@ -1518,7 +1518,7 @@ similarity_kernel = 'rbf',
 
 #### LAMDA_SSL.Algorithm.Classifier.TriTraining
 > CLASS LAMDA_SSL.Algorithm.Classifier.TriTraining(base_estimator,base_estimator_2=None,base_estimator_3=None)
->> Parameter:
+> - Parameter:
 >> - base_estimator: The first base learner in TriTraining.
 >> - base_estimator_2: The second base learner in TriTraining.
 >> - base_estimator_3: The third base learner in TriTraining.
@@ -1539,7 +1539,7 @@ similarity_kernel = 'rbf',
             decision_function_shape="ovr",
             break_ties=False,
             random_state=None)
->> Parameter:
+> - Parameter:
 >> - Cl: The weight of labeled samples.
 >> - Cu: The weight of unlabeled samples.
 >> - kernel: 'rbf'、'knn' or callable. Specifies the kernel type to be used in the algorithm.
@@ -1599,7 +1599,7 @@ similarity_kernel = 'rbf',
                  num_classes=None,
                  tsa_schedule=None,
                  T=0.4)
->> Parameter
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - threshold: The confidence threshold for choosing samples.
 >> - num_classes: The number of classes.
@@ -1651,7 +1651,7 @@ similarity_kernel = 'rbf',
                  it_vat=1,
                  xi=1e-6,
                  lambda_entmin=0.06)
->> Parameter
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - num_classes: The number of classes.
 >> - tsa_schedule: Threshold adjustment strategy, optional 'linear', 'exp' or 'log'.
@@ -1664,7 +1664,7 @@ similarity_kernel = 'rbf',
 
 #### LAMDA_SSL.Algorithm.Regressor.CoReg
 > CLASS LAMDA_SSL.Algorithm.Regressor.CoReg(k1=3, k2=3, p1=2, p2=5, max_iters=100, pool_size=100)
->> Parameter
+> - Parameter:
 >> - k1: The k value for the k-nearest neighbors in the first base learner.
 >> - k2: The k value for the k-nearest neighbors in the second base learner.
 >> - p1: The order of the distance calculated in the first base learner.
@@ -1713,7 +1713,7 @@ similarity_kernel = 'rbf',
                  lambda_u=None,
                  alpha=None,
                  dim_in=None)
->> Parameter:
+> - Parameter:
 >> - warmup: Warm up ratio for unsupervised loss.
 >> - lambda_u: The weight of unsupervised loss.
 >> - alpha: the parameter of Beta distribution in Mixup.
@@ -1759,7 +1759,7 @@ similarity_kernel = 'rbf',
                  warmp=0.4,
                  lamda_u=0.001,
                  dim_in=None)
->> Parameter:
+> - Parameter:
 >> - ema_decay: Update weights for the exponential moving average.
 >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4, then warmup is performed in the first 40 iterations.
 >> - lambda_u: The weight of unsupervised loss.
@@ -1805,7 +1805,7 @@ similarity_kernel = 'rbf',
                  warmp=0.4,
                  lamda_u=0.001,
                  dim_in=None)
->> Parameter:
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
 >> - warmup: The end position of warmup. For example, num_it_total is 100 and warmup is 0.4,then warmup is performed in the first 40 iterations.
 >> - dim_in: the dim of the instances.
@@ -1813,14 +1813,14 @@ similarity_kernel = 'rbf',
 ### LAMDA_SSL.Algorithm
 #### LAMDA_SSL.Algorithm.Cluster.Constrained_k_means
 > CLASS LAMDA_SSL.Algorithm.Cluster.Constrained_k_means(k, tolerance=1e-7, max_iterations=300)
->> Parameter
+> - Parameter:
 >> - k: The k value for the k-means clustering algorithm.
 >> - tolerance: Tolerance of iterative convergence.
 >> - max_iterations: The maximum number of iterations.
 
 #### LAMDA_SSL.Algorithm.Cluster.Constrained_Seed_k_means
 > CLASS LAMDA_SSL.Algorithm.Cluster.Constrained_Seed_k_means(k, tolerance=0.00001, max_iterations=300)
->> Parameter
+> - Parameter:
 >> - k: The k value for the k-means clustering algorithm.
 >> - tolerance: Tolerance of iterative convergence.
 >> - max_iterations: The maximum number of iterations.
@@ -1864,7 +1864,7 @@ similarity_kernel = 'rbf',
                  test_batch_sampler=None,
                  parallel=None,
                  file=None)
->> Parameter
+> - Parameter:
 >> - train_dataset: Data manager for training data.
 >> - labeled_dataset: Data manager for labeled data.
 >> - unlabeled_dataset: Data manager for unlabeled data.
@@ -1899,19 +1899,19 @@ similarity_kernel = 'rbf',
 
 ### LAMDA_SSL.SemiEstimator.SemiEstimator
 > CLASS LAMDA_SSL.Base.SemiEstimator.SemiEstimator()
->> fit(X,y,unlabeled_X): Train a SSL model.
+> - fit(X,y,unlabeled_X): Train a SSL model.
 >> - X: Instances of labeled data.
 >> - y: Labels of labeled data.
 >> - unlabeled_X: Instances of unlabeled data.
 
 ### LAMDA_SSL.InductiveEstimator.InductiveEstimator
 > CLASS LAMDA_SSL.Base.InductiveEstimator.InductiveEstimator()
->> predict(X): Make predictions on the new data.
+> - predict(X): Make predictions on the new data.
 >> - X: Samples to be predicted.
 
 ### LAMDA_SSL.TransductiveEstimator.TransductiveEstimator
 > CLASS LAMDA_SSL.Base.TransductiveEstimator.TransductiveEstimator()
->> predict(X=None,Transductive=True): Output the result of transductive learning or make predictions on the new data.
+> - predict(X=None,Transductive=True): Output the result of transductive learning or make predictions on the new data.
 >> - X: The samples to be predicted. It is only valid when Transductive is False.
 >> - Transductive: Whether to use transductive learning mechanism to directly output the prediction result of unlabeled_X input during fit.
 
@@ -1925,7 +1925,7 @@ similarity_kernel = 'rbf',
                  timeout: float = 0, worker_init_fn = None,
                  multiprocessing_context=None, generator=None,
                  prefetch_factor: int = 2, persistent_workers: bool = False)
->> Parameter
+> - Parameter:
 >> - batch_size: How many samples per batch to load.
 >> - shuffle: Whether to shuffle the data.
 >> - sampler: The sampler used when loading data.
@@ -1953,8 +1953,7 @@ batch_size=1,
                  prefetch_factor = 2,
                  persistent_workers= False,
                  batch_size_adjust=False,labeled_dataloader=None,unlabeled_dataloader=None)
-
->> Parameter
+> - Parameter:
 >> - batch_size: How many samples per batch to load.
 >> - shuffle: Whether to shuffle the data.
 >> - sampler: The sampler used when loading data.
@@ -1983,7 +1982,7 @@ batch_size=1,
                  multiprocessing_context=None, generator=None,
                  prefetch_factor: int = 2,
                  persistent_workers: bool = False)
->> Parameter
+> - Parameter:
 >> - batch_size: How many samples per batch to load.
 >> - shuffle: Whether to shuffle the data.
 >> - sampler: The sampler used when loading data.
@@ -2004,7 +2003,7 @@ batch_size=1,
 ### LAMDA_SSL.Dataset.LabeledDataset.LabeledDataset
 
 > CLASS LAMDA_SSL.Dataset.LabeledDataset.LabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
->> Parameter
+> - Parameter:
 >> - pre_transform: The way to preprocess X before augmentation.
 >> - transforms: The way to transform X and y at the same time after data augmentation.
 >> - transform: The way to transform X after data augmentation.
@@ -2013,7 +2012,7 @@ batch_size=1,
 ### LAMDA_SSL.Dataset.UnlabeledDataset.UnlabeledDataset
 
 > CLASS LAMDA_SSL.Dataset.UnlabeledDataset.UnlabeledDataset(transforms=None, transform=None, target_transform=None, pre_transform=None)
->> Parameter
+> - Parameter:
 >> - pre_transform: The way to preprocess X before augmentation.
 >> - transform: The way to transform X after data augmentation.
 
@@ -2031,7 +2030,7 @@ batch_size=1,
                  labeled_dataset=None,
                  unlabeled_dataset=None
                  )
->> Parameter
+> - Parameter:
 >> - pre_transform: The way to preprocess X before augmentation.
 >> - transforms: The way to transform X and y at the same time after data augmentation.
 >> - transform: The way to transform X after data augmentation.
@@ -2059,7 +2058,7 @@ batch_size=1,
                  stratified=False,
                  shuffle=True,
                  random_state=None):
->> Parameter
+> - Parameter:
 >> - pre_transform: The way to preprocess X before augmentation.
 >> - transforms: The way to transform X and y at the same time after data augmentation.
 >> - transform: The way to transform X after data augmentation.
@@ -2076,19 +2075,19 @@ batch_size=1,
 
 ### LAMDA_SSL.Dataset.TableMixin.TableMixin
 > CLASS LAMDA_SSL.Dataset.TableMixin.TableMixin():
->> init_default_transform: Initialize the data transformation method.
+> - init_default_transform: Initialize the data transformation method.
 
 ### LAMDA_SSL.Dataset.VisionMixin.VisionMixin
 > CLASS LAMDA_SSL.Dataset.VisionMixin.VisionMixin(mean=None,std=None):
->> Parameter
+> - Parameter:
 >> - mean: Mean of the dataset.
 >> - std: Standard deviation of the dataset.
->> init_default_transform: Initialize the default data transformation method.
+> - init_default_transform: Initialize the default data transformation method.
 
 ### LAMDA_SSL.Dataset.TextMixin.TextMixin
 > CLASS LAMDA_SSL.Dataset.Text.Text(word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
                  min_freq=1,special_first=True,default_index=None):
->> parameter:
+> - Parameter:
 >> - word_vocab: A map that converts words to indexes.
 >> - vectors: Word vectors.
 >> - length: Length of each sentence.
@@ -2097,16 +2096,16 @@ batch_size=1,
 >> - min_freq: The minimum frequency required for a word to be used as a token in the word_vocab. It is valid when word_vocab is None and a mapping table needs to be constructed.
 >> - special_first: Whether to put special characters at the top of the mapping table.
 >> - default_index: The default value that should be used when converting a word to an index if it cannot be converted.
->> init_default_transform: Initialize the data transformation method.
+> - init_default_transform: Initialize the data transformation method.
 
 ### LAMDA_SSL.Dataset.GraphMixin.GraphMixin
 > CLASS LAMDA_SSL.Dataset.GraphMixin.GraphMixin()
->> init_default_transform: Initialize the data transformation method.
+> - init_default_transform: Initialize the data transformation method.
 
 ## Distributed
 ### LAMDA_SSL.Distributed.DataParallel.DataParallel
 > CLASS LAMDA_SSL.DataParallel.DataParallel(device_ids=None, output_device=None, dim=0)
->> Parameter
+> - Parameter:
 >> - device_ids: Available GPUs.
 >> - output_device: The GPU where the output result is stored.
 >> - dim: The dimension of data aggregation from each device.
@@ -2120,7 +2119,7 @@ batch_size=1,
         bucket_cap_mb=25,
         find_unused_parameters=False,
         gradient_as_bucket_view=False)
->> Parameter
+> - Parameter:
 >> - device_ids: Available GPUs.
 >> - output_device: The GPU where the output result is stored.
 >> - dim: The dimension of data aggregation from each device.
@@ -2135,14 +2134,14 @@ batch_size=1,
 ### LAMDA_SSL.Evaluation.Classification
 #### LAMDA_SSL.Evaluation.Classification.EvaluationClassification
 > CLASS LAMDA_SSL.Evaluation.Classification.EvaluationClassification()
->> scoring(y_true,y_pred=None,y_score=None): Initialize the data transformation method.
+> - scoring(y_true,y_pred=None,y_score=None): Initialize the data transformation method.
 >> - y_true: Ground-truth labels.
 >> - y_pred: Hard labels for model predictions.
 >> - y_score: Soft labels for model predictions.
 
 #### LAMDA_SSL.Evaluation.Classification.Accuracy
 > CLASS LAMDA_SSL.Evaluation.Classification.Accuracy(normalize=True, sample_weight=None)
->> Parameter
+> - Parameter:
 >> - normalize: If False, returns the number of correctly classified samples.
 >> - sample_weight: The weight of each sample.
 
@@ -2152,8 +2151,8 @@ batch_size=1,
                  average="binary",
                  sample_weight=None,
                  zero_division="warn")
->> Parameter
-> - labels: The set of contained labels.
+> - Parameter:
+>> - labels: The set of contained labels.
 >> - pos_label: Positive label for binary classification.
 >> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
 >> - sample_weight: The weight of each sample.
@@ -2165,7 +2164,7 @@ batch_size=1,
                 average="binary",
                 sample_weight=None,
                 zero_division="warn")
->> Parameter
+> - Parameter:
 >> - labels: The set of contained labels.
 >> - pos_label: Positive label for binary classification.
 >> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
@@ -2174,7 +2173,7 @@ batch_size=1,
 
 #### LAMDA_SSL.Evaluation.Classification.Top_k_accurary
 > CLASS LAMDA_SSL.Evaluation.Classification.Top_k_accurary(k=2, normalize=True, sample_weight=None, labels=None)
->> Parameter
+> - Parameter:
 >> - k: The k value of Top_k_accurary.
 >> - normalize: If False, returns the number of correctly classified samples.
 >> - sample_weight: The weight of each sample.
@@ -2186,7 +2185,7 @@ batch_size=1,
                  max_fpr=None,
                  multi_class="raise",
                  labels=None)
->> Parameter
+> - Parameter:
 >> - average: The way to calculate the AUC mean, optional 'micro', 'macro', 'samples', 'weighted' or None.
 >> - sample_weight: The weight of each sample.
 >> - max_fpr: Used to determine the range when only a partial AUC is calculated.
@@ -2200,7 +2199,7 @@ labels=None,
                  average="binary",
                  sample_weight=None,
                  zero_division="warn")
->> Parameter
+> - Parameter:
 >> - labels: The set of contained labels.
 >> - pos_label: Positive label for binary classification.
 >> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
@@ -2211,19 +2210,19 @@ labels=None,
 
 #### LAMDA_SSL.Evaluation.Regression.EvaluationRegressor
 > CLASS LAMDA_SSL.Evaluation.Regression.EvaluationRegressor()
-> scoring(y_true,y_pred=None): Score the performace of the model.
+> - scoring(y_true,y_pred=None): Score the performace of the model.
 >> - y_true: Ground-truth labels.
 >> - y_pred: The results of model's predictions.
 
 #### LAMDA_SSL.Evaluation.Regression.Mean_absolute_error
 > CLASS LAMDA_SSL.Evaluation.Regression.Mean_absolute_error(sample_weight=None, multioutput="uniform_average")
->> Parameter
+> - Parameter:
 >> - sample_weight: The weight of each sample.
 >> - multioutput: Aggregation method for multiple outputs.
 
 #### LAMDA_SSL.Evaluation.Regression.Mean_Squared_Error
 > CLASS LAMDA_SSL.Evaluation.Regression.Mean_Squared_Error(sample_weight=None, multioutput="uniform_average",squared=True)
->> Parameter
+> - Parameter:
 >> - sample_weight: The weight of each sample.
 >> - multioutput: Aggregation method for multiple outputs.
 >> - squared: If True, output the MSE loss, otherwise output the RMSE loss.
@@ -2231,7 +2230,7 @@ labels=None,
 
 #### LAMDA_SSL.Evaluation.Regression.Mean_squared_log_error
 > CLASS LAMDA_SSL.Evaluation.Regression.Mean_squared_log_error(sample_weight=None, multioutput="uniform_average")
->> Parameter
+> - Parameter:
 >> - sample_weight: The weight of each sample.
 >> - multioutput: Aggregation method for multiple outputs.
 >> - squared: If True, output the MSLE loss, otherwise output the RMSLE loss.
@@ -2240,7 +2239,7 @@ labels=None,
 
 #### LAMDA_SSL.Evaluation.Cluster.EvaluationCluster
 > CLASS LAMDA_SSL.Evaluation.Regression.EvaluationCluster()
-> scoring(y_true=None,clusters=None,X=None): Initialize the data transformation method.
+> - scoring(y_true=None,clusters=None,X=None): Initialize the data transformation method.
 >> - y_true: Ground-truth labels.
 >> - clusters: Clustering results.
 >> - X: Sample features used in clustering.
@@ -2250,13 +2249,13 @@ labels=None,
 
 #### LAMDA_SSL.Evaluation.Cluster.Fowlkes_Mallows_Score
 > CLASS LAMDA_SSL.Evaluation.Fowlkes_Mallows_Score.Fowlkes_Mallows_Score(sparse=False)
->> Parameter
+> - Parameter:
 >> - sparse: Whether to use sparse matrices for computation.
 
 #### LAMDA_SSL.Evaluation.Cluster.Jaccard_Score
 > CLASS LAMDA_SSL.Evaluation.Jaccard_Score.Jaccard_Score(labels=None, pos_label=1,average="binary",sample_weight=None,zero_division="warn")
 
->> Parameter
+> - Parameter:
 >> - labels: The set of contained labels.
 >> - pos_label: Positive label for binary classification.
 >> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
@@ -2265,7 +2264,7 @@ labels=None,
 
 #### LAMDA_SSL.Evaluation.Cluster.Silhouette_Score
 > CLASS LAMDA_SSL.Evaluation.Silhouette_Score.Silhouette_Score(metric="euclidean", sample_size=None, random_state=None)
->> Parameter
+> - Parameter:
 >> - metric : The metric to use when calculating distance between instances in a feature array. If metric is a string, it must be one of the options allowed by <sklearn.metrics.pairwise.pairwise_distances>. If ``X`` of the `scoring` method is the distance array itself, use ``metric="precomputed"``.
 >> - sample_size: The size of the sample to use when computing the Silhouette Coefficient on a random subset of the data.
 >> - random_state : Determines random number generation for selecting a subset of samples.
@@ -2273,15 +2272,15 @@ labels=None,
 ## Loss
 ### LAMDA_SSL.LOSS.Consistency
 > CLASS LAMDA_SSL.LOSS.Consistency(reduction='mean',activation_1=None,activation_2=None)
->> Parameter
+> - Parameter:
 >> - reduction: How to handle the output.
->> forward(logits_1,logits_2): Perform loss calculations.
+> - forward(logits_1,logits_2): Perform loss calculations.
 >> - logits_1: The first input to compute consistency.
 >> - logits_2: The second input to compute consistency.
 
 ### LAMDA_SSL.LOSS.Cross_Entropy
 > CLASS LAMDA_SSL.LOSS.Cross_Entropy(use_hard_labels=True, reduction='none')
->> Parameter
+> - Parameter:
 >> - use_hard_labels: Whether the target is hard labels.
 >> - reduction: How to handle the output.
 >> forward(logits, targets): Perform loss calculations.
@@ -2290,44 +2289,44 @@ labels=None,
 
 ### LAMDA_SSL.LOSS.KL_div
 > CLASS LAMDA_SSL.LOSS.KL_div(softmax_1=True, softmax_2=True)
->> Parameter
+> - Parameter:
 >> - softmax_1: Whether to softmax the first input.
 >> - softmax_2: Whether to softmax the second input.
->> forward(logits_1,logits_2): Perform loss calculations.
+> - forward(logits_1,logits_2): Perform loss calculations.
 >> - logits_1: The first input for KL Divergence calculation.
 >> - logits_2: The second input for KL Divergence calculation.
 
 ### LAMDA_SSL.LOSS.MSE
 > CLASS LAMDA_SSL.LOSS.MSE(reduction='mean',activation_1=None,activation_2=None)
->> Parameter
+> - Parameter:
 >> - reduction: How to handle the output.
 >> - softmax_1: Whether to softmax the first input.
 >> - softmax_2: Whether to softmax the second input.
->> forward(logits_1,logits_2): Perform loss calculations.
+> - forward(logits_1,logits_2): Perform loss calculations.
 >> - logits_1: The first input for KL Divergence calculation.
 >> - logits_2: The second input for KL Divergence calculation.
 
 ### LAMDA_SSL.LOSS.EntMin
 > CLASS LAMDA_SSL.LOSS.EntMin(reduction='mean', activation=None)
->> Parameter
+> - Parameter:
 >> - reduction: How to handle the output.
 >> - reduction: How to handle the output.
 >> - activation: The activation function to process on the logits.
->> forward(logits): Perform loss calculations.
+> - forward(logits): Perform loss calculations.
 >> -logits: The logits to calculate the loss.
 
 ### LAMDA_SSL.LOSS.Semi_supervised_loss
 > CLASS LAMDA_SSL.LOSS.Semi_supervised_loss(lambda_u)
->> Parameter
+> - Parameter:
 >> - lambda_u: The weight of unsupervised loss.
->> forward(sup_loss,unsup_loss): Perform loss calculations.
+> - forward(sup_loss,unsup_loss): Perform loss calculations.
 >> - sup_loss: The supervised loss.
 >> - unsup_loss: The unsupervised loss.
 
 ## Network
 ### LAMDA_SSL.Network.GCN
 > CLASS LAMDA_SSL.Network.GCN(num_features,num_classes,normalize=False)
->> Parameter
+> - Parameter:
 >> - num_features: The number of features.
 >> - num_classes: The number of classes.
 >> - normalize: Whether to add self-loops and compute symmetric normalization coefficients on the fly.
@@ -2342,7 +2341,7 @@ labels=None,
                  activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus(),nn.Softplus(), nn.Softplus(), nn.Softplus()],
                  activations_D=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  output_dim = 10,z_dim=100,device='cpu')
->> Parameter
+> - Parameter:
 >> - G: The neural network of generator.
 >> - D: The neural network of discriminator
 >> - dim_in: The dimension of the inputted samples.
@@ -2360,7 +2359,7 @@ labels=None,
 (encoder_sizes=[1000, 500, 250, 250, 250],
                  encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],
                  noise_std=0.2,dim_in=28*28,num_classes=10,device='cpu')
->> Parameter
+> - Parameter:
 >> - encoder_sizes: The neural network of generator.
 >> - encoder_activations: The activation functions of the encoder.
 >> - noise_std: The standard deviation of the noise.
@@ -2371,7 +2370,7 @@ labels=None,
 ### LAMDA_SSL.Network.MLP_Reg
 
 > CLASS LAMDA_SSL.Network.MLP_Reg(input_dim = 28 ** 2,hidden_dim=[10],activations=[nn.ReLU()])
->> Parameter
+> - Parameter:
 >> - input_dim: The dimension of input samples.
 >> - hidden_dim: The dimension of hidden layers.
 >> - activations: The activation functions used in the hidden layers.
@@ -2386,7 +2385,7 @@ labels=None,
             width_per_group = 64,
             replace_stride_with_dilation = None,
             norm_layer = None)
->> Parameter:
+> - Parameter:
 >> - block: The basic network module.
 >> - layers: The number of repetitions of modules with hidden layers of 64, 128, 256, and 512 dimensions.
 >> - num_classes: The number of classes.
@@ -2398,7 +2397,7 @@ labels=None,
 
 ### LAMDA_SSL.Network.SDNE
 > CLASS LAMDA_SSL.Network.SDNE(input_dim, hidden_layers, device="cpu")
->> Parameter:
+> - Parameter:
 >> - input_dim: The dimension of the input samples.
 >> - hidden_layers: The dimension of the hidden layers.
 >> - device: The device to train the model.
@@ -2410,7 +2409,7 @@ labels=None,
                  activations_en_y=[nn.Softplus(),nn.Softplus()],
                  activations_en_z=[nn.Softplus(),nn.Softplus()],
                  device='cpu')
->> Parameter:
+> - Parameter:
 >> - dim_in: The dimension of the input sample.
 >> - num_classes: The number of classes.
 >> - dim_z: The dimension of the hidden variable z.
@@ -2425,7 +2424,7 @@ labels=None,
 ### LAMDA_SSL.Network.TextRCNN
 > CLASS LAMDA_SSL.Network.TextRCNN(n_vocab,embedding_dim=300,len_seq=300, padding_idx=None, hidden_size=256, num_layers=1,
                  dropout=0.0, pretrained_embeddings=None,num_class=2)
->> Parameter:
+> - Parameter:
 >> - n_vocab: The size of the dictionary.
 >> - embedding_dim: The dimension of the word embedding.
 >> - len_seq: The length of the sentence.
@@ -2437,7 +2436,7 @@ labels=None,
 
 ### LAMDA_SSL.Network.WideResNet
 > CLASS LAMDA_SSL.Network.WideResNet(num_classes=10, depth=28, widen_factor=2, drop_rate=0.0)
->> Parameter:
+> - Parameter:
 >> - num_classes: The number of classes.
 >> - depth: The depth of network.
 >> - widen_factor: The width of the network.It is used to determine hidden layer dimensions.
@@ -2447,14 +2446,14 @@ labels=None,
 
 ### LAMDA_SSL.Optimizer.BaseOptimizer
 > CLASS LAMDA_SSL.Optimizer.BaseOptimizer(defaults)
->> Parameter:
+> - Parameter:
 >> - defaults: A dict containing default values of optimization options (used when a parameter group doesn't specify them).
->> init_optimizer(params): Put the parameters that need to be optimized into the optimizer.
+> - init_optimizer(params): Put the parameters that need to be optimized into the optimizer.
 >> - params: The parameters to be optimized.
 
 ### LAMDA_SSL.Optimizer.Adam
 > CLASS LAMDA_SSL.Optimizer.Adam(lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False)
->> Parameter:
+> - Parameter:
 >> - lr: learning rate.
 >> - betas: Coefficients used for computing running averages of gradient and its square.
 >> - eps: Term added to the denominator to improve numerical stability
@@ -2463,7 +2462,7 @@ labels=None,
 
 ### LAMDA_SSL.Optimizer.SGD
 > CLASS LAMDA_SSL.Optimizer.SGD(lr=0.01, momentum=0, dampening=0, weight_decay=0, nesterov=False)
->> Parameter:
+> - Parameter:
 >> - lr: Learning rate.
 >> - momentum: Momentum factor.
 >> - dampening: Dampening for momentum.
@@ -2474,50 +2473,50 @@ labels=None,
 
 ### LAMDA_SSL.Sampler.BaseSampler
 > CLASS LAMDA_SSL.Sampler.BaseSampler()
->> init_sampler(data_source):  Initialize the sampler with data.
+> - init_sampler(data_source):  Initialize the sampler with data.
 >> - data_source: The data to be sampled.
 
 ### LAMDA_SSL.Sampler.BatchSampler
 > CLASS LAMDA_SSL.Sampler.BatchSampler(batch_size, drop_last)
->> Parameter:
+> - Parameter:
 >> - batch_size: The number of samples in each batch.
 >> - drop_last: Whether to discard samples less than one batch.
->> init_sampler(sampler): Initialize batch sampler with sampler.
+> - init_sampler(sampler): Initialize batch sampler with sampler.
 >> sampler: The sampler used to initial batch sampler.
 
 ### LAMDA_SSL.Sampler.SequentialSampler
 > CLASS LAMDA_SSL.Sampler.SequentialSampler()
->> init_sampler(data_source):  Initialize the sampler with data.
+> - init_sampler(data_source): Initialize the sampler with data.
 >> - data_source: The data to be sampled.
 
 ### LAMDA_SSL.Sampler.RandomSampler
 > CLASS LAMDA_SSL.Sampler.RandomSampler(replacement: bool = False, num_samples = None, generator=None)
->> Parameter:
+> - Parameter:
 >> - replacement: samples are drawn on-demand with replacement if True.
 >> - num_samples: The number of samples
 >> - generator: Generator used in sampling.
->> init_sampler(data_source):  Initialize the sampler with data.
+> - init_sampler(data_source):  Initialize the sampler with data.
 >> - data_source: The data to be sampled.
 
 ## Scheduler
 ### LAMDA_SSL.Scheduler.BaseScheduler
 > CLASS LAMDA_SSL.Scheduler.BaseScheduler(last_epoch=-1, verbose=False)
->> Parameter:
+> - Parameter:
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
->> init_scheduler(optimizer): Initialize the scheduler with the optimizer.
+> - init_scheduler(optimizer): Initialize the scheduler with the optimizer.
 >> - optimizer: The optimizer used by the model.
 
 ### LAMDA_SSL.Scheduler.BaseScheduler.LambdaLR
 > CLASS LAMDA_SSL.Scheduler.BaseScheduler.LambdaLR(lr_lambda, last_epoch=-1,verbose=False)
->> Parameter:
+> - Parameter:
 >> - lr_lambda: A function which computes a multiplicative factor given an integer parameter epoch, or a list of such functions, one for each group in optimizer.param_groups.
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
 
 ### LAMDA_SSL.Scheduler.CosineAnnealingLR
 > CLASS LAMDA_SSL.Scheduler.CosineAnnealingLR(T_max, eta_min=0, last_epoch=-1, verbose=False)
->> Parameter:
+> - Parameter:
 >> - T_max: Maximum number of iterations.
 >> - eta_min: Minimum learning rate.
 >> - last_epoch: The index of last epoch.
@@ -2525,7 +2524,7 @@ labels=None,
 
 ### LAMDA_SSL.Scheduler.StepLR
 > CLASS LAMDA_SSL.Scheduler.StepLR(step_size, gamma=0.1, last_epoch=-1, verbose=False)
->> Parameter:
+> - Parameter:
 >> - step_size: Period of learning rate decay.
 >> - gamma: Multiplicative factor of learning rate decay.
 >> - last_epoch: The index of last epoch.
@@ -2537,7 +2536,7 @@ labels=None,
                  start_factor=0,
                  end_factor=1,
                  last_epoch=-1，verbose=True)
->> Parameter:
+> - Parameter:
 >> - num_training_steps: The total number of iterations for training.
 >> - num_warmup_steps: The number of iterations to warm up.
 >> - start_factor: The initialchange factor of the learning rate.
@@ -2546,8 +2545,8 @@ labels=None,
 >> - verbose: Whether to output redundant information.
 
 ### LAMDA_SSL.Scheduler.Cosine_Warmup
-> CLASS LAMDA_SSL.Scheduler.Cosine_Warmup(num_training_steps, num_training_steps, num_warmup_steps=0, num_cycles=7./16, last_epoch=-1,verbose=True) 
->> Parameter:
+> CLASS LAMDA_SSL.Scheduler.Cosine_Warmup(num_training_steps, num_training_steps, num_warmup_steps=0, num_cycles=7./16, last_epoch=-1,verbose=True)
+> - Parameter:
 >> - num_training_steps: The total number of iterations for training.
 >> - num_warmup_steps: The number of iterations to warm up.
 >> - num_cycles: The upperbound of the multiplicative factor is ``num_cycles``$\pi$.
@@ -2558,7 +2557,7 @@ labels=None,
 
 ### LAMDA_SSL.Scheduler.Split.Data_Split
 > Function LAMDA_SSL.Scheduler.Split.Data_Split(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
->> Parameter
+> - Parameter:
 >> - stratified: Whether to stratify by classes.
 >> - shuffle: Whether to shuffle the data. 
 >> - random_state: The random seed.
@@ -2568,7 +2567,7 @@ labels=None,
 
 ### LAMDA_SSL.Scheduler.Split.View_Split
 > Function LAMDA_SSL.Scheduler.Split.View_Split(X,num_splits=2,axis=1,mode='random')
->> Parameter
+> - Parameter:
 >> - X: Samples of the data to be split.
 >> - num_splits: The number of views 
 >> - axis: The axis of the dimension to be splited.
@@ -2590,18 +2589,19 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Normalization
 > CLASS LAMDA_SSL.Transform.Normalization(mean=None,std=None)
+> - Parameter:
 >> - mean: The mean of normalization.
 >> - std: The standard deviation of normalization.
 
 ### LAMDA_SSL.Transform.MinMaxScalar
 > CLASS LAMDA_SSL.Transform.MinMaxScalar(min_val=None,max_val=None)
->> Parameter:
+> - Parameter:
 >> - min_val: The minimum value.
 >> - max_val: The maximum value.
 
 ### LAMDA_SSL.Transform.Noise
 > CLASS LAMDA_SSL.Transform.Noise(noise_level)
->> Parameter:
+> - Parameter:
 >> - noise_level: the level of noise.
 
 ### LAMDA_SSL.Transform.AutoContrast
@@ -2609,7 +2609,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Brightness
 > CLASS LAMDA_SSL.Transform.Brightness(min_v,max_v,num_bins,magnitude,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2618,7 +2618,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Color
 > CLASS LAMDA_SSL.Transform.Color(min_v,max_v,num_bins,magnitude,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2627,7 +2627,7 @@ labels=None,
 
 ### CLASS LAMDA_SSL.Transform.Contrast
 > CLASS LAMDA_SSL.Transform.Contrast(min_v,max_v,num_bins,magnitude,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2645,7 +2645,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Posterize
 > CLASS LAMDA_SSL.Transform.Posterize(min_v,max_v,num_bins,magnitude,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2654,7 +2654,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Rotate
 > CLASS LAMDA_SSL.Transform.Rotate(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2663,7 +2663,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Sharpness
 > CLASS LAMDA_SSL.Transform.Sharpness(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2672,7 +2672,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.ShearX
 > CLASS LAMDA_SSL.Transform.ShearX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2681,7 +2681,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.ShearY
 > CLASS LAMDA_SSL.Transform.ShearY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2690,7 +2690,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Solarize
 > CLASS LAMDA_SSL.Transform.Solarize(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2699,7 +2699,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.TranslateX
 > CLASS LAMDA_SSL.Transform.TranslateX(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2708,7 +2708,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.TranslateY
 > CLASS LAMDA_SSL.Transform.TranslateY(min_v=None,max_v=None,num_bins=None,magnitude=None,v=None)
->> Parameter:
+> - Parameter:
 >> - min_v: The minimum value of the augmentation.
 >> - max_v: The maximum value of the augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2717,7 +2717,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.RandomCrop
 > CLASS LAMDA_SSL.Transform.RandomCrop(padding=None, pad_if_needed=False, fill=0, padding_mode="constant")
->> Parameter:
+> - Parameter:
 >> - padding: Optional padding on each border of the image. Default is None. If a single int is provided this is used to pad all borders. If sequence of length 2 is provided this is the padding on left/right and top/bottom respectively. If a sequence of length 4 is provided this is the padding for the left, top, right and bottom borders respectively.
 >> - pad_if_needed: It will pad the image if smaller than the desired size to avoid raising an exception. Since cropping is done after padding, the padding seems to be done at a random offset.
 >> - fill: Pixel fill value for constant fill. Default is 0. If a tuple of length 3, it is used to fill R, G, B channels respectively. This value is only used when the padding_mode is constant. Only number is supported for torch Tensor. Only int or str or tuple value is supported for PIL Image.
@@ -2728,21 +2728,21 @@ labels=None,
 
 ### LAMDA_SSL.Transform.CutoutAbs
 > CLASS LAMDA_SSL.Transform.CutoutAbs(v,fill,random_v)
->> Parameter:
+> - Parameter:
 >> - v: The absolute value of the crop size.
 >> - fill: The padding value.
 >> - random_v: Whether to randomly determine the crop size.
 
 ### LAMDA_SSL.Transform.Cutout
 > CLASS LAMDA_SSL.Transform.Cutout(v,fill,random_v=True)
->> Parameter:
+> - Parameter:
 >> - v: The relative value of crop size.
 >> - fill: The padding value.
 >> - random_v: Whether to randomly determine the crop size.
 
 ### LAMDA_SSL.Transform.RandAugment
 > CLASS LAMDA_SSL.Transform.RandAugment(n, m, num_bins,random=False,augment_list=None)
->> Parameter:
+> - Parameter:
 >> - n: The times of Random augmentation.
 >> - m: The magnitude of Random augmentation.
 >> - num_bins: The number of intervals  division for the value of the augmentation.
@@ -2751,13 +2751,13 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Tokenizer
 > CLASS LAMDA_SSL.Transform.Tokenizer(tokenizer, language='en')
->> Parameter:
+> - Parameter:
 >> - tokenizer: Function name for word segmentation, such as basic_english, spacy, moses, toktok, revtok, subword, etc.
 >> - language: The language of the text.
 
 ### LAMDA_SSL.Transform.Vocab
 > CLASS LAMDA_SSL.Transform.Vocab(word_vocab=None,vectors=None,text=None,min_freq=1,specials=["<unk>","<pad>"],special_first=True,default_index=None,tokenizer=None)
->> Parameter:
+> - Parameter:
 >> - word_vocab: A map that converts words to indexes.
 >> - vectors: Word vectors. 
 >> - text: When word_vocab is None, use text to create a mapping table.
@@ -2769,7 +2769,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Vectors
 > CLASS LAMDA_SSL.Transform.Vectors(name, cache=None, url=None, unk_init=None,pad_init=None, max_vectors=None,lower_case_backup=True, pad_token='<pad>',unk_token='<unk>')
->> Parameter:
+> - Parameter:
 >> - name: The name of the word vector.
 >> - cache: Directory for cached vectors。
 >> - url: The download address of the word vector.
@@ -2782,7 +2782,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.CharNGram
 > CLASS LAMDA_SSL.Transform.CharNGram(lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
->> Parameter:
+> - Parameter:
 >> - lower_case_backup: Whether to convert all to lowercase when looking up words.
 >> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
 >> - pad_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
@@ -2791,7 +2791,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.FastText
 > CLASS LAMDA_SSL.Transform.FastText(language="en",lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
->> Parameter:
+> - Parameter:
 >> - language: Language type.
 >> - lower_case_backup: Whether to convert all to lowercase when looking up words.
 >> - unk_init: By default, initialize out-of-vocabulary word vectors to zero vectors; can be any function that takes in a Tensor and returns a Tensor of the same size.
@@ -2801,7 +2801,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.GloVe
 > CLASS LAMDA_SSL.Transform.GloVe(name="840B", dim=300,lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>')
->> Parameter:
+> - Parameter:
 >> - name: The name of the word vector.
 >> - dim: The dimension of the word vector.
 >> - lower_case_backup: Whether to convert all to lowercase when looking up words.
@@ -2812,44 +2812,44 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Truncate
 > CLASS LAMDA_SSL.Transform.Truncate(length=100,pos=0)
->> Paraameter:
+> - Parameter:
 >> - length: The length of the truncated text .
 >> - pos: The position to start truncating.
 
 ### LAMDA_SSL.Transform.Pad_sequence
 > CLASS LAMDA_SSL.Transform.Pad_sequence(length,pad_val=None)
->> Parameter:
+> - Parameter:
 >> - length: The length of the text after padding.
 >> - pad_val: The padding value for insufficient length of text.
 
 ### LAMDA_SSL.Transform.Adjust_length
 > CLASS LAMDA_SSL.Transform.Adjust_length(length, pad_val=None, pos=0)
->> Parameter:
+> - Parameter:
 >> - length: Length of adjusted sentence.
 >> - pad_val: The padding value for insufficient length of text.
 >> - pos；If the sentence is too long and needs to be cut, this parameter specifies the position to start cutting.
 
 ### LAMDA_SSL.Transform.Random_deletion
 > CLASS LAMDA_SSL.Transform.Random_deletion(p,tokenizer=None)
->> Parameter:
+> - Parameter:
 >> - p: The proportion of random deletions.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
 
 ### LAMDA_SSL.Transform.Random_insertion
 > CLASS LAMDA_SSL.Transform.Random_insertion(n=1,tokenizer=None)
->> Parameter:
+> - Parameter:
 >> - n: The number of times to add words.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
 
 ### LAMDA_SSL.Transform.Random_swap
 > CLASS LAMDA_SSL.Transform.Random_swap(n=1,tokenizer=None)
->> Parameter:
+> - Parameter:
 >> - n: The number of times to swap words.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
 
 ### LAMDA_SSL.Transform.TFIDF_replacement
 > CLASS LAMDA_SSL.Transform.TFIDF_replacement(text,p=0.7,tokenizer=None,cache_len=100000)
->> Parameter:
+> - Parameter:
 >> - text: The text that needs to be augmented.
 >> - p: Basic replacement probability.
 >> - tokenizer: The tokenizer used when the text is not untokenized.
@@ -2857,7 +2857,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.NormalizeFeatures
 > CLASS LAMDA_SSL.Transform.NormalizeFeatures(attrs=["x"])
->> Parameter:
+> - Parameter:
 >> - attrs: Properties that require regularization.
 
 ### LAMDA_SSL.Transform.GDC
@@ -2866,7 +2866,7 @@ labels=None,
                  diffusion_kwargs=dict(method='ppr', alpha=0.15),
                  sparsification_kwargs=dict(method='threshold',avg_degree=64),
                  exact=True)
->> Parameter:
+> - Parameter:
 >> - self_loop_weight: Weight of the added self-loop. Set to None to add no self-loops. 
 >> - normalization_in: Normalization of the transition matrix on the original (input) graph. Possible values: "sym", "col", and "row"`.
 >> - normalization_out: Normalization of the transition matrix on the transformed GDC (output) graph. Possible values: "sym", "col", and "row"`.
@@ -2876,7 +2876,7 @@ labels=None,
 
 ### LAMDA_SSL.Transform.Mixup
 > CLASS LAMDA_SSL.Transform.Mixup(alpha)
->> Parameter:
+> - Parameter:
 >> - alpha: The parameter of the beta distribution.
 
 ### LAMDA_SSL.Transform.ToImage
