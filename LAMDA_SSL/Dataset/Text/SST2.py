@@ -1,7 +1,6 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
 from LAMDA_SSL.Dataset.TextMixin import TextMixin
 from torchtext.utils import download_from_url,extract_archive
-import io
 from LAMDA_SSL.Split.Data_Split import Data_Split
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset

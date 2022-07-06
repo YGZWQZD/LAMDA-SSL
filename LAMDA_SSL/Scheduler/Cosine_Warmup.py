@@ -10,7 +10,9 @@ class Cosine_Warmup(LambdaLR):
         # >> Parameter:
         # >> - num_training_steps: The total number of iterations for training.
         # >> - num_warmup_steps: The number of iterations to warm up.
-        # >> - num_cycles: The upperbound of the multiplicative factor is 7./16 Pi
+        # >> - num_cycles: The upperbound of the multiplicative factor is num_cycles PI.
+        # >> - last_epoch: The index of the last epoch.
+        # >> - verbose: Whether to output redundant information.
         self.num_warmup_steps=num_warmup_steps
         self.num_cycles=num_cycles
         self.num_training_steps=num_training_steps

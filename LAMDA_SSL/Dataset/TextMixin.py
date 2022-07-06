@@ -1,9 +1,6 @@
 import copy
-
 from LAMDA_SSL.Transform.Vocab import Vocab
-
 from sklearn.pipeline import Pipeline
-
 from LAMDA_SSL.Transform.Tokenizer import Tokenizer
 from LAMDA_SSL.Transform.Adjust_length import Adjust_length
 from LAMDA_SSL.Transform.ToTensor import ToTensor

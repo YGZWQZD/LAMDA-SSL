@@ -8,7 +8,7 @@ class Jaccard_Score(EvaluationCluster):
                 sample_weight=None,
                 zero_division="warn"):
         # >> Parameter
-        # >> - The set of labels to include when ``average != 'binary'``, and their order if ``average is None``. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class, while labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in ``y_true`` and ``y_pred`` are used in sorted order.
+        # >> - labels: The set of labels to include when ``average != 'binary'``, and their order if ``average is None``. Labels present in the data can be excluded, for example to calculate a multiclass average ignoring a majority negative class, while labels not present in the data will result in 0 components in a macro average. For multilabel targets, labels are column indices. By default, all labels in ``y_true`` and ``y_pred`` are used in sorted order.
         #
         # >> - pos_label : The class to report if ``average='binary'`` and the data is binary. If the data are multiclass or multilabel, this will be ignored;
         # setting ``labels=[pos_label]`` and ``average != 'binary'`` will report scores for that label only.
