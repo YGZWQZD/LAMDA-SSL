@@ -2578,15 +2578,14 @@ labels=None,
 ## Transform
 
 ### LAMDA_SSL.Transform.Transformer
+
 > CLASS LAMDA_SSL.Transform.Transformer()
->> fit(X,y=None): Obtain the processing function through existing data.
+> - fit(X,y=None): Obtain the processing function through existing data.
 >> - X: Samples for learning the function of transformation.
 >> - y: Labels for learning the function of transformation.
-
->> transform(X): Process the new data.
+> - transform(X): Process the new data.
 >> - X: Data to be converted.
-
->> fit_transform(X,y=None): Firstly perform fit() on the existing samples X and labels y, and then directly transform y.
+> - fit_transform(X,y=None): Firstly perform fit() on the existing samples X and labels y, and then directly transform y.
 >> - X: Samples for learning and transformation.
 >> - y: Labels fo learning
 
