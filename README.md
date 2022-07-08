@@ -1,6 +1,6 @@
 <!-- ![logo](./Imgs/Logo.png)(width="50%") -->
 <div align=center>
-<img width="500px" src="./Imgs/Logo.png"> 
+<img width="500px" src="./Imgs/Logo1.png"> 
 
 ![](https://badgen.net/github/stars/YGZWQZD/LAMDA-SSL)
 
