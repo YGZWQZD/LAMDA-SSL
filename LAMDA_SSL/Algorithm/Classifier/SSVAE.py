@@ -237,5 +237,5 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         z = Variable(torch.randn(num, self.dim_z).to(self.device)) if z is None else z
         y = one_hot(Variable(torch.LongTensor([random.randrange(self.num_classes) for _ in range(num)]).to(self.device)),nClass=self.num_classes,device=self.device)
         result=self._network.decode(z,y).probs
-        result = result.view(tuple([result.shape[0]]) + tuple(self.dim_in))
+        result = result.view(tuple([result.shape[0]]) + tuple(self.dim_in)).detach().numpy()
         return result

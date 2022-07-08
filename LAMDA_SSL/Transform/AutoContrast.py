@@ -16,7 +16,6 @@ class AutoContrast(Transformer):
             X=PIL.ImageOps.autocontrast(X)
             return X
         elif isinstance(X,torch.Tensor):
-            #X = F.autocontrast((X * self.scale).type(torch.uint8)) / self.scale
             X = F.autocontrast(X)
             return X
         else:

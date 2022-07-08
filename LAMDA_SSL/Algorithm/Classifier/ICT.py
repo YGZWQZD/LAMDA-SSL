@@ -1,9 +1,7 @@
 from LAMDA_SSL.Base.InductiveEstimator import InductiveEstimator
 from LAMDA_SSL.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
-
 import numpy as np
-
 from LAMDA_SSL.utils import Bn_Controller
 from LAMDA_SSL.Loss.Cross_Entropy import Cross_Entropy
 import torch.nn as nn
@@ -103,10 +101,6 @@ class ICT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self.alpha=alpha
         self.bn_controller=Bn_Controller()
         self._estimator_type = ClassifierMixin._estimator_type
-
-    def init_transform(self):
-        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
 
     def start_fit(self):
         self._network.zero_grad()

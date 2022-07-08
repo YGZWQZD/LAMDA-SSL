@@ -2,12 +2,12 @@ import copy
 
 import numpy as np
 
-def View_Split(X,num_splits=2,axis=1,mode='random'):
+def View_Split(X,num_splits=2,axis=1,shuffle=True):
     # >> Parameter
     # >> - X: Samples of the data to be split.
     # >> - num_splits: The number of views
     # >> - axis: The axis of the dimension to be splited.
-    # >> - mode: The mode to split, 'random' or 'sequential'.
+    # >> - mode: Whether to shuffle the features.
     shape=X.shape
     range_shape=tuple(i for i in range(len(shape)))
     pre=range_shape[:axis]
@@ -22,12 +22,10 @@ def View_Split(X,num_splits=2,axis=1,mode='random'):
             cur_size=num_features_view+1
         else:
             cur_size = num_features_view
-        if mode=='random':
+        if shuffle is True:
             cur_idx = np.random.choice(cur_array, size=cur_size, replace=False)
-        elif mode=='sequential':
-            cur_idx= cur_array[:cur_size]
         else:
-            cur_idx = np.random.choice(cur_array, size=cur_size, replace=False)
+            cur_idx= cur_array[:cur_size]
         cur_array = np.array([i for i in cur_array if i not in cur_idx])
         idx.append(cur_idx)
     _X=copy.copy(X)

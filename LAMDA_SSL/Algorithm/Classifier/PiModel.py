@@ -8,6 +8,7 @@ from LAMDA_SSL.utils import Bn_Controller
 import copy
 import numpy as np
 import LAMDA_SSL.Config.PiModel as config
+
 class PiModel(DeepModelMixin,InductiveEstimator,ClassifierMixin):
     def __init__(self,lambda_u=config.lambda_u,
                  warmup=config.warmup,

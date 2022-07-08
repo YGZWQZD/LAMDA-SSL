@@ -10,13 +10,13 @@ from LAMDA_SSL.Algorithm.Classifier.PseudoLabel import PseudoLabel
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
 from sklearn.pipeline import Pipeline
-from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
-from LAMDA_SSL.Evaluation.Classification.Precision import Precision
-from LAMDA_SSL.Evaluation.Classification.Recall import Recall
-from LAMDA_SSL.Evaluation.Classification.F1 import F1
-from LAMDA_SSL.Evaluation.Classification.AUC import AUC
-from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
+from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classifier.Top_k_Accuracy import Top_k_Accurary
+from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
+from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
+from LAMDA_SSL.Evaluation.Classifier.F1 import F1
+from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
+from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 
@@ -105,6 +105,9 @@ model=PseudoLabel(threshold=0.95,lambda_u=1,warmup=0.4,mu=1,weight_decay=5e-4,em
                file=file,verbose=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
+
+valid_performance=model.valid_result
+print(valid_performance,file=file)
 
 performance=model.evaluate(X=test_X,y=test_y)
 

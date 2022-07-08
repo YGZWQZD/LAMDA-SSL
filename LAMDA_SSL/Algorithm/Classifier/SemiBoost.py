@@ -1,6 +1,5 @@
 import numpy as np
 from sklearn import neighbors
-from sklearn.svm import SVC
 import copy
 from scipy import sparse
 from sklearn.metrics.pairwise import rbf_kernel
@@ -220,27 +219,27 @@ class SemiBoost(InductiveEstimator,ClassifierMixin):
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation,(list,tuple)):
-            result=[]
+            performance=[]
             for eval in self.evaluation:
                 score=eval.scoring(y,self.y_pred,self.y_score)
                 if self.verbose:
                     print(score, file=self.file)
-                result.append(score)
-            self.result = result
-            return result
+                performance.append(score)
+            self.performance = performance
+            return performance
         elif isinstance(self.evaluation,dict):
-            result={}
+            performance={}
             for key,val in self.evaluation.items():
 
-                result[key]=val.scoring(y,self.y_pred,self.y_score)
+                performance[key]=val.scoring(y,self.y_pred,self.y_score)
 
                 if self.verbose:
-                    print(key,' ',result[key],file=self.file)
-                self.result = result
-            return result
+                    print(key,' ',performance[key],file=self.file)
+                self.performance = performance
+            return performance
         else:
-            result=self.evaluation.scoring(y,self.y_pred,self.y_score)
+            performance=self.evaluation.scoring(y,self.y_pred,self.y_score)
             if self.verbose:
-                print(result, file=self.file)
-            self.result=result
-            return result
+                print(performance, file=self.file)
+            self.performance=performance
+            return performance

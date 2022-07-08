@@ -9,6 +9,7 @@ import copy
 import inspect
 from torch.utils.data.dataset import Dataset
 import LAMDA_SSL.Config.LapSVM as config
+
 class LapSVM(InductiveEstimator,ClassifierMixin):
     # Binary
     def __init__(self,
@@ -177,6 +178,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
             new_K = rbf_kernel(self.X, X, self.gamma_k)
         f = np.squeeze(np.array(self.alpha)).dot(new_K)
         return f+self.b
+
     def predict_proba(self,X):
         Y_ = self.decision_function(X)
         y_proba = np.full((X.shape[0], 2), 0, np.float)
@@ -204,27 +206,27 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation,(list,tuple)):
-            result=[]
+            performance=[]
             for eval in self.evaluation:
                 score=eval.scoring(y,self.y_pred,self.y_score)
                 if self.verbose:
                     print(score, file=self.file)
-                result.append(score)
-            self.result = result
-            return result
+                performance.append(score)
+            self.performance = performance
+            return performance
         elif isinstance(self.evaluation,dict):
-            result={}
+            performance={}
             for key,val in self.evaluation.items():
 
-                result[key]=val.scoring(y,self.y_pred,self.y_score)
+                performance[key]=val.scoring(y,self.y_pred,self.y_score)
 
                 if self.verbose:
-                    print(key,' ',result[key],file=self.file)
-                self.result = result
-            return result
+                    print(key,' ',performance[key],file=self.file)
+                self.performance = performance
+            return performance
         else:
-            result=self.evaluation.scoring(y,self.y_pred,self.y_score)
+            performance=self.evaluation.scoring(y,self.y_pred,self.y_score)
             if self.verbose:
-                print(result, file=self.file)
-            self.result=result
-            return result
+                print(performance, file=self.file)
+            self.performance=performance
+            return performance

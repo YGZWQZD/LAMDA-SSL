@@ -6,13 +6,13 @@ from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
-from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
-from LAMDA_SSL.Evaluation.Classification.Precision import Precision
-from LAMDA_SSL.Evaluation.Classification.Recall import Recall
-from LAMDA_SSL.Evaluation.Classification.F1 import F1
-from LAMDA_SSL.Evaluation.Classification.AUC import AUC
-from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
+from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classifier.Top_k_Accuracy import Top_k_Accurary
+from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
+from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
+from LAMDA_SSL.Evaluation.Classifier.F1 import F1
+from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
+from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from LAMDA_SSL.Dataset.Vision.Mnist import Mnist
@@ -68,7 +68,7 @@ evaluation={
 
 file = open("../Result/SSVAE_MNIST.txt", "w")
 
-model=SSVAE(alpha=1,num_labeled=6000,dim_in=(1,28,28),num_classes=10,
+model=SSVAE(alpha=1,num_labeled=6000,dim_in=(28,28),num_classes=10,
              dim_z=50,
              dim_hidden_de=[500, 500],
              dim_hidden_en_y=[500, 500], dim_hidden_en_z=[500, 500],
@@ -95,7 +95,7 @@ print(result,file=file)
 print(performance,file=file)
 
 X=model.generate(100)
-X=X.detach().numpy()
+
 for _ in range(100):
-    img=ToImage()(X[_].squeeze(0)*256)
+    img=ToImage()(X[_]*256)
     img.convert('RGB').save('../Result/Imgs/SSVAE/' + str(_) + '.jpg')

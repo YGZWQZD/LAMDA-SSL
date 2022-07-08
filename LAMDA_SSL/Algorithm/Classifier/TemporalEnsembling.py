@@ -124,7 +124,7 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
         self._network.zero_grad()
         self._network.train()
 
-    def end_epoch(self):
+    def end_fit_epoch(self):
         self.update_ema_predictions()
         if self._scheduler is not None:
                 self._scheduler.step()

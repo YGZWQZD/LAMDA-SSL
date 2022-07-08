@@ -128,6 +128,8 @@ class DeepModelMixin(SemiEstimator):
         self.test_sampler=test_sampler
         self.test_batch_sampler=test_batch_sampler
 
+        self.valid_performance=None
+
         self.parallel=parallel
         self.verbose=verbose
         self._optimizer=copy.deepcopy(self.optimizer)
@@ -163,14 +165,19 @@ class DeepModelMixin(SemiEstimator):
         self._parallel=copy.deepcopy(self.parallel)
 
         self._epoch=0
+        self.it_epoch=0
         self.it_total=0
         self.loss=None
         self.weakly_augmentation=None
         self.strongly_augmentation=None
         self.normalization=None
-        self.result=None
+        self.performance=None
+        self.valid_performance=None
         self.ema=None
+        if isinstance(file,str):
+            file=open(file,"w")
         self.file=file
+        self._estimate_dataloader=None
         self._estimator_type=None
         if self._network is not None:
             self.init_model()
@@ -183,33 +190,13 @@ class DeepModelMixin(SemiEstimator):
 
 
     def init_model(self):
-        if self.device is not None and self.device is not 'cpu':
+        if self.device is None:
+            self.device='cpu'
+        if self.device is not 'cpu':
             torch.cuda.set_device(self.device)
         self._network=self._network.to(self.device)
         if self._parallel is not None:
             self._network=self._parallel.init_parallel(self._network)
-
-    def init_augmentation(self):
-        if self._augmentation is not None:
-            if isinstance(self._augmentation, dict):
-                self.weakly_augmentation = self._augmentation['augmentation'] \
-                    if 'augmentation' in self._augmentation.keys() \
-                    else self._augmentation['weakly_augmentation']
-                if 'strongly_augmentation' in self._augmentation.keys():
-                    self.strongly_augmentation = self._augmentation['strongly_augmentation']
-            elif isinstance(self._augmentation, (list, tuple)):
-                self.weakly_augmentation = self._augmentation[0]
-                if len(self._augmentation) > 1:
-                    self.strongly_augmentation = self._augmentation[1]
-            else:
-                self.weakly_augmentation = copy.deepcopy(self._augmentation)
-            if self.strongly_augmentation is None:
-                self.strongly_augmentation = copy.deepcopy(self.weakly_augmentation)
-
-    def init_transform(self):
-        if self.weakly_augmentation is not None:
-            self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-            self._train_dataset.add_unlabeled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
 
     def init_ema(self):
         if self.ema_decay is not None:
@@ -241,6 +228,28 @@ class DeepModelMixin(SemiEstimator):
         elif self.num_it_total is not None and self.num_it_epoch is not None:
             self.epoch=ceil(self.num_it_total/self.num_it_epoch)
 
+    def init_augmentation(self):
+        if self._augmentation is not None:
+            if isinstance(self._augmentation, dict):
+                self.weakly_augmentation = self._augmentation['augmentation'] \
+                    if 'augmentation' in self._augmentation.keys() \
+                    else self._augmentation['weakly_augmentation']
+                if 'strongly_augmentation' in self._augmentation.keys():
+                    self.strongly_augmentation = self._augmentation['strongly_augmentation']
+            elif isinstance(self._augmentation, (list, tuple)):
+                self.weakly_augmentation = self._augmentation[0]
+                if len(self._augmentation) > 1:
+                    self.strongly_augmentation = self._augmentation[1]
+            else:
+                self.weakly_augmentation = copy.deepcopy(self._augmentation)
+            if self.strongly_augmentation is None:
+                self.strongly_augmentation = copy.deepcopy(self.weakly_augmentation)
+
+    def init_transform(self):
+        if self.weakly_augmentation is not None:
+            self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
+            self._train_dataset.add_unlabeled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
+
     def init_train_dataset(self,X=None,y=None,unlabeled_X=None, *args, **kwargs):
         if isinstance(X,TrainDataset):
             self._train_dataset=X
@@ -265,7 +274,89 @@ class DeepModelMixin(SemiEstimator):
                 batch_sampler=self._train_batch_sampler,
                 mu=self.mu)
 
-    def init_pred_dataset(self, X=None,valid=False):
+
+    def start_fit(self, *args, **kwargs):
+        self._network.zero_grad()
+        self._network.train()
+
+    def start_fit_epoch(self, *args, **kwargs):
+        pass
+
+    def start_fit_batch(self, *args, **kwargs):
+        pass
+
+    def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
+        raise NotImplementedError
+
+    def get_loss(self,train_result,*args,**kwargs):
+        raise NotImplementedError
+
+    def optimize(self,loss,*args,**kwargs):
+        self._network.zero_grad()
+        loss.backward()
+        self._optimizer.step()
+        if self._scheduler is not None:
+            self._scheduler.step()
+        if self.ema is not None:
+            self.ema.update()
+
+    def end_fit_batch(self, train_result,*args, **kwargs):
+        self.loss = self.get_loss(train_result)
+        self.optimize(self.loss)
+
+    def fit_batch_loop(self,valid_X=None,valid_y=None):
+        for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self._labeled_dataloader, self._unlabeled_dataloader):
+            if self.it_epoch >= self.num_it_epoch or self.it_total >= self.num_it_total:
+                break
+            self.start_fit_batch()
+            lb_idx = to_device(lb_idx,self.device)
+            lb_X = to_device(lb_X,self.device)
+            lb_y = to_device(lb_y,self.device)
+            ulb_idx = to_device(ulb_idx,self.device)
+            ulb_X  = to_device(ulb_X,self.device)
+            train_result = self.train(lb_X=lb_X, lb_y=lb_y, ulb_X=ulb_X, lb_idx=lb_idx, ulb_idx=ulb_idx)
+            self.end_fit_batch(train_result)
+            self.it_total += 1
+            self.it_epoch += 1
+            if self.verbose:
+                print(self.it_total,file=self.file)
+            if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
+                self.evaluate(X=valid_X, y=valid_y,valid=True)
+                self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
+
+    def end_fit_epoch(self, *args, **kwargs):
+        pass
+
+    def fit_epoch_loop(self,valid_X=None,valid_y=None):
+        self.valid_performance={}
+        self.it_total = 0
+        for self._epoch in range(1,self.epoch+1):
+            self.it_epoch=0
+            if self.it_total >= self.num_it_total:
+                break
+            self.start_fit_epoch()
+            self.fit_batch_loop(valid_X,valid_y)
+            self.end_fit_epoch()
+            if valid_X is not None and self.eval_epoch is not None and self._epoch % self.eval_epoch==0:
+                self.evaluate(X=valid_X,y=valid_y,valid=True)
+                self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
+
+        if valid_X is not None and self.epoch%self.eval_epoch!=0:
+            self.evaluate(X=valid_X, y=valid_y, valid=True)
+            self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
+
+    def end_fit(self, *args, **kwargs):
+        pass
+
+    def fit(self,X=None,y=None,unlabeled_X=None,valid_X=None,valid_y=None):
+        self.init_train_dataset(X,y,unlabeled_X)
+        self.init_train_dataloader()
+        self.start_fit()
+        self.fit_epoch_loop(valid_X,valid_y)
+        self.end_fit()
+        return self
+
+    def init_estimate_dataset(self, X=None,valid=False):
         if valid:
             if isinstance(X,Dataset):
                 self._valid_dataset=X
@@ -277,110 +368,80 @@ class DeepModelMixin(SemiEstimator):
             else:
                 self._test_dataset=self._test_dataset.init_dataset(X=X)
 
-    def init_pred_dataloader(self,valid=False):
+    def init_estimate_dataloader(self,valid=False):
         if valid:
-            self._pred_dataloader=self._valid_dataloader.init_dataloader(self._valid_dataset,
+            self._estimate_dataloader=self._valid_dataloader.init_dataloader(self._valid_dataset,
                                                             sampler=self._valid_sampler,
                                                             batch_sampler=self._valid_batch_sampler)
         else:
-            self._pred_dataloader=self._test_dataloader.init_dataloader(self._test_dataset,
+            self._estimate_dataloader=self._test_dataloader.init_dataloader(self._test_dataset,
                                                             sampler=self._test_sampler,
                                                             batch_sampler=self._test_batch_sampler)
 
+    def start_predict(self, *args, **kwargs):
+        self._network.eval()
+        if self.ema is not None:
+            self.ema.apply_shadow()
+        self.y_est = torch.Tensor().to(self.device)
 
-    def fit(self,X=None,y=None,unlabeled_X=None,valid_X=None,valid_y=None):
-        self.init_train_dataset(X,y,unlabeled_X)
-        self.init_train_dataloader()
-        self.start_fit()
-        self.epoch_loop(valid_X,valid_y)
-        self.end_fit()
-        return self
+    def start_predict_batch(self, *args, **kwargs):
+        pass
 
-    def epoch_loop(self,valid_X=None,valid_y=None):
-        self.it_total = 0
-        for self._epoch in range(1,self.epoch+1):
-            self.it_epoch=0
-            if self.it_total >= self.num_it_total:
-                break
-            self.start_epoch()
-            self.train_batch_loop(valid_X,valid_y)
-            self.end_epoch()
-            if valid_X is not None and self.eval_epoch is not None and self._epoch % self.eval_epoch==0:
-                self.evaluate(X=valid_X,y=valid_y,valid=True)
-        if valid_X is not None:
-            self.evaluate(X=valid_X, y=valid_y, valid=True)
+    @torch.no_grad()
+    def estimate(self, X, idx=None, *args, **kwargs):
+        outputs = self._network(X)
+        return outputs
 
-    def train_batch_loop(self,valid_X=None,valid_y=None):
-        for (lb_idx, lb_X, lb_y), (ulb_idx, ulb_X, _) in zip(self._labeled_dataloader, self._unlabeled_dataloader):
+    def end_predict_batch(self, *args, **kwargs):
+        pass
 
-
-            if self.it_epoch >= self.num_it_epoch or self.it_total >= self.num_it_total:
-                break
-
-            self.start_batch_train()
-
-            lb_idx = to_device(lb_idx,self.device)
-
-            lb_X = to_device(lb_X,self.device)
-            lb_y = to_device(lb_y,self.device)
-            ulb_idx = to_device(ulb_idx,self.device)
-            ulb_X  = to_device(ulb_X,self.device)
-
-            train_result = self.train(lb_X=lb_X, lb_y=lb_y, ulb_X=ulb_X, lb_idx=lb_idx, ulb_idx=ulb_idx)
-
-            self.end_batch_train(train_result)
-
-            self.it_total += 1
-            self.it_epoch += 1
-            if self.verbose:
-                print(self.it_total,file=self.file)
-
-            if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
-                self.evaluate(X=valid_X, y=valid_y,valid=True)
-
-    def pred_batch_loop(self):
+    def predict_batch_loop(self):
         with torch.no_grad():
-            for idx,X,_ in self._pred_dataloader:
-                self.start_batch_test()
-
+            for idx,X,_ in self._estimate_dataloader:
+                self.start_predict_batch()
                 idx=to_device(idx,self.device)
                 X=X[0] if isinstance(X,(list,tuple)) else X
                 X=to_device(X,self.device)
-
                 _est=self.estimate(X=X,idx=idx)
                 _est = _est[0] if  isinstance(_est,(list,tuple)) else _est
                 self.y_est=torch.cat((self.y_est,_est),0)
+                self.end_predict_batch()
 
-                self.end_batch_test()
+    @torch.no_grad()
+    def get_predict_result(self, y_est, *args, **kwargs):
+        if self._estimator_type == 'classifier' or 'classifier' in self._estimator_type:
+            y_score = Softmax(dim=-1)(y_est)
+            max_probs, y_pred = torch.max(y_score, dim=-1)
+            y_pred = y_pred.cpu().detach().numpy()
+            self.y_score = y_score.cpu().detach().numpy()
+            return y_pred
+        else:
+            self.y_score = y_est.cpu().detach().numpy()
+            y_pred = self.y_score
+            return y_pred
+
+    def end_predict(self, *args, **kwargs):
+        self.y_pred = self.get_predict_result(self.y_est)
+        if self.ema is not None:
+            self.ema.restore()
+        self._network.train()
 
     @torch.no_grad()
     def predict(self,X=None,valid=False):
-
-        self.init_pred_dataset(X,valid)
-
-        self.init_pred_dataloader(valid)
-
+        self.init_estimate_dataset(X,valid)
+        self.init_estimate_dataloader(valid)
         self.start_predict()
-
-        self.pred_batch_loop()
-
+        self.predict_batch_loop()
         self.end_predict()
-
         return self.y_pred
 
     @torch.no_grad()
     def predict_proba(self,X=None,valid=False):
-
-        self.init_pred_dataset(X,valid)
-
-        self.init_pred_dataloader(valid)
-
+        self.init_estimate_dataset(X,valid)
+        self.init_estimate_dataloader(valid)
         self.start_predict()
-
-        self.pred_batch_loop()
-
+        self.predict_batch_loop()
         self.end_predict()
-
         return self.y_score
 
     @torch.no_grad()
@@ -395,108 +456,34 @@ class DeepModelMixin(SemiEstimator):
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation,(list,tuple)):
-            result=[]
+            performance=[]
             for eval in self.evaluation:
                 if self._estimator_type == 'classifier' or 'classifier' in self._estimator_type:
                     score=eval.scoring(y,self.y_pred,self.y_score)
                 else:
                     score = eval.scoring(y,self.y_pred)
-                result.append(score)
+                performance.append(score)
                 if self.verbose:
                     print(score, file=self.file)
-            self.result = result
-            return result
+            self.performance = performance
+            return performance
         elif isinstance(self.evaluation,dict):
-            result={}
+            performance={}
             for key,val in self.evaluation.items():
                 if self._estimator_type == 'classifier' or 'classifier' in self._estimator_type:
-                    result[key]=val.scoring(y,self.y_pred,self.y_score)
+                    performance[key]=val.scoring(y,self.y_pred,self.y_score)
                 else:
-                    result[key] = val.scoring(y, self.y_pred)
+                    performance[key] = val.scoring(y, self.y_pred)
                 if self.verbose:
-                    print(key,' ',result[key],file=self.file)
-                self.result = result
-            return result
+                    print(key,' ',performance[key],file=self.file)
+                self.performance = performance
+            return performance
         else:
             if self._estimator_type == 'classifier' or 'classifier' in self._estimator_type:
-                result=self.evaluation.scoring(y,self.y_pred,self.y_score)
+                performance=self.evaluation.scoring(y,self.y_pred,self.y_score)
             else:
-                result = self.evaluation.scoring(y, self.y_pred)
+                performance = self.evaluation.scoring(y, self.y_pred)
             if self.verbose:
-                print(result, file=self.file)
-            self.result=result
-            return result
-
-    def start_fit(self, *args, **kwargs):
-        self._network.zero_grad()
-        self._network.train()
-
-    def start_epoch(self, *args, **kwargs):
-        pass
-
-    def end_epoch(self, *args, **kwargs):
-        pass
-
-    def start_batch_train(self, *args, **kwargs):
-        pass
-
-    def end_batch_train(self, train_result,*args, **kwargs):
-        self.loss = self.get_loss(train_result)
-        self.optimize(self.loss)
-
-    def start_batch_test(self, *args, **kwargs):
-        pass
-
-    def end_batch_test(self, *args, **kwargs):
-        pass
-
-    def end_fit(self, *args, **kwargs):
-        pass
-
-    def start_predict(self, *args, **kwargs):
-        self._network.eval()
-        if self.ema is not None:
-            self.ema.apply_shadow()
-        self.y_est = torch.Tensor().to(self.device)
-
-    def end_predict(self, *args, **kwargs):
-        self.y_pred = self.get_predict_result(self.y_est)
-        if self.ema is not None:
-            self.ema.restore()
-        self._network.train()
-
-    def optimize(self,loss,*args,**kwargs):
-        self._network.zero_grad()
-        loss.backward()
-        self._optimizer.step()
-        if self._scheduler is not None:
-            self._scheduler.step()
-        if self.ema is not None:
-            self.ema.update()
-
-
-    @torch.no_grad()
-    def estimate(self,X,idx=None,*args,**kwargs):
-        outputs = self._network(X)
-        return outputs
-
-    @torch.no_grad()
-    def get_predict_result(self,y_est,*args,**kwargs):
-        if self._estimator_type=='classifier' or 'classifier' in self._estimator_type:
-            y_score = Softmax(dim=-1)(y_est)
-            max_probs, y_pred = torch.max(y_score, dim=-1)
-            y_pred=y_pred.cpu().detach().numpy()
-            self.y_score=y_score.cpu().detach().numpy()
-            return y_pred
-        else:
-            self.y_score=y_est.cpu().detach().numpy()
-            y_pred=self.y_score
-            return y_pred
-
-    # @abstractmethod
-    def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        raise NotImplementedError
-
-    # @abstractmethod
-    def get_loss(self,train_result,*args,**kwargs):
-        raise NotImplementedError
+                print(performance, file=self.file)
+            self.performance=performance
+            return performance

@@ -1,6 +1,7 @@
 from LAMDA_SSL.Transform.Transformer import Transformer
 import random
 from LAMDA_SSL.Transform.Tokenizer import Tokenizer
+
 class Random_deletion(Transformer):
     def __init__(self,p=0.5,tokenizer=None):
         # >> Parameter:

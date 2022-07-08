@@ -147,7 +147,7 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
             if self.it_epoch >= self.num_it_epoch or self.it_total >= self.num_it_total:
                 break
 
-            self.start_batch_train()
+            self.start_fit_batch()
 
             lb_idx = to_device(lb_idx,self.device)
 
@@ -161,18 +161,16 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
             ulb_X = ulb_X[0] if isinstance(ulb_X, (list, tuple)) else ulb_X
 
             num_unlabeled = ulb_X.shape[0]
-            # lb_X=lb_X*1/255.
-            # ulb_X = ulb_X * 1 / 255.
+
             ulb_X_1, ulb_X_2 = ulb_X[:num_unlabeled // 2], ulb_X[num_unlabeled // 2:]
 
             train_D_result = self.train_D(lb_X, lb_y, ulb_X_1)
 
-            self.end_batch_train_D(train_D_result)
+            self.end_fit_batch_D(train_D_result)
 
             train_G_result = self.train_G(ulb_X_2)
 
-            self.end_batch_train_G(train_G_result)
-            # self.end_batch_train(train_result)
+            self.end_fit_batch_G(train_G_result)
 
             self.it_total += 1
             self.it_epoch += 1
@@ -181,6 +179,7 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
             if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
                 self.evaluate(X=valid_X, y=valid_y,valid=True)
+                self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
 
     def init_optimizer(self):
         if isinstance(self._optimizer,(list,tuple)):
@@ -273,11 +272,11 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         loss =loss_fm
         return loss
 
-    def end_batch_train_D(self,train_result_D):
+    def end_fit_batch_D(self,train_result_D):
         loss = self.get_loss_D(train_result_D)
         self.optimize_D(loss)
 
-    def end_batch_train_G(self,train_result_G):
+    def end_fit_batch_G(self,train_result_G):
         loss = self.get_loss_G(train_result_G)
         self.optimize_G(loss)
 
@@ -351,5 +350,5 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         z = Variable(torch.randn(num, self.dim_z).to(self.device)) if z is None else z
         z=self._network.G(num,z)
         # print(z,file=self.file)
-        z=z.view(tuple([z.shape[0]])+tuple(self.dim_in))
+        z=z.view(tuple([z.shape[0]])+tuple(self.dim_in)).detach().numpy()
         return z

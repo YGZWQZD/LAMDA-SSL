@@ -1,5 +1,4 @@
 import copy
-
 from LAMDA_SSL.Base.InductiveEstimator import InductiveEstimator
 from LAMDA_SSL.Base.DeepModelMixin import DeepModelMixin
 from LAMDA_SSL.Network.Ladder import Ladder
@@ -184,7 +183,7 @@ class Ladder_Network(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
 
 
-    def end_epoch(self):
+    def end_fit_epoch(self):
         self._scheduler.step()
 
     @torch.no_grad()

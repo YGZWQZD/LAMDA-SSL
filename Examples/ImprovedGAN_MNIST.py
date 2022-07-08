@@ -4,19 +4,18 @@ from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
-from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
-from LAMDA_SSL.Evaluation.Classification.Precision import Precision
-from LAMDA_SSL.Evaluation.Classification.Recall import Recall
-from LAMDA_SSL.Evaluation.Classification.F1 import F1
-from LAMDA_SSL.Evaluation.Classification.AUC import AUC
-from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
+from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classifier.Top_k_Accuracy import Top_k_Accurary
+from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
+from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
+from LAMDA_SSL.Evaluation.Classifier.F1 import F1
+from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
+from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from LAMDA_SSL.Algorithm.Classifier.ImprovedGAN import ImprovedGAN
 import torch.nn as nn
 from LAMDA_SSL.Dataset.Vision.Mnist import Mnist
-
 dataset=Mnist(root='..\Download\mnist',labeled_size=6000,shuffle=True,download=False,random_state=0,default_transforms=True)
 
 labeled_X=dataset.labeled_X
@@ -24,11 +23,11 @@ labeled_y=dataset.labeled_y
 
 unlabeled_X=dataset.unlabeled_X
 
-test_X=dataset.test_X
-test_y=dataset.test_y
-
 valid_X=dataset.valid_X
 valid_y=dataset.valid_y
+
+test_X=dataset.test_X
+test_y=dataset.test_y
 
 labeled_dataset=LabeledDataset(pre_transform=dataset.pre_transform,transforms=dataset.transforms,
                                transform=dataset.transform,target_transform=dataset.target_transform)
@@ -65,7 +64,7 @@ evaluation={
 file = open("../Result/ImprovedGAN_MNIST.txt", "w")
 
 model=ImprovedGAN(lambda_u=1,
-                     dim_z=100,hidden_G=[500,500],
+                     dim_z=100,dim_in=(28,28),hidden_G=[500,500],
                      hidden_D=[1000,500,250,250,250],
                      noise_level=[0.3, 0.5, 0.5, 0.5, 0.5, 0.5],
                      activations_G=[nn.Softplus(), nn.Softplus(), nn.Softplus()],
@@ -90,10 +89,9 @@ print(result,file=file)
 
 print(performance,file=file)
 
-X=model.generate(100)
-X=X.detach().numpy()
+fake_X=model.generate(num=100)
 for _ in range(100):
-    img=ToImage()(X[_]*256)
+    img=ToImage()(fake_X[_]*256)
     img.convert('RGB').save('../Result/Imgs/ImprovedGAN/' + str(_) + '.jpg')
 
 

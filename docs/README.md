@@ -207,8 +207,8 @@ result=model.predict(X=test_X)
 Evaluate model performance.
 
 ```python
-from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classification.Recall import Recall
+from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
 print(Accuracy().scoring(test_y,result))
 print(Recall().scoring(test_y,result))
 ```
@@ -310,13 +310,13 @@ scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 In the deep semi-supervised learning algorithms, a dictionary can be used to store multiple evaluation indicators, which are directly used as parameters during model initialization to verify the model performence during the training process.
 
 ```python
-from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_accurary
-from LAMDA_SSL.Evaluation.Classification.Precision import Precision
-from LAMDA_SSL.Evaluation.Classification.Recall import Recall
-from LAMDA_SSL.Evaluation.Classification.F1 import F1
-from LAMDA_SSL.Evaluation.Classification.AUC import AUC
-from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_matrix
+from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classifier.Top_k_Accuracy import Top_k_accurary
+from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
+from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
+from LAMDA_SSL.Evaluation.Classifier.F1 import F1
+from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
+from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_matrix
 
 evaluation = {
     'accuracy': Accuracy(),
@@ -2498,6 +2498,17 @@ labels=None,
 > - init_sampler(data_source):  Initialize the sampler with data.
 >> - data_source: The data to be sampled.
 
+### LAMDA_SSL.Sampler.DistributedSampler
+> CLASS LAMDA_SSL.Sampler.DistributedSampler(num_replicas=None, rank=None, shuffle=True, seed=0, drop_last=False)
+> - Parameter:
+>> - num_replicas: Number of processes participating in distributed training.
+>> - rank: Rank of the current process within `num_replicas`.
+>> - shuffle: If ``True`` (default), sampler will shuffle the indices.
+>> - seed: random seed used to shuffle the sampler if shuffle=True.
+>> - drop_last: Whether to discard redundant data that is not enough for a batch.
+> - init_sampler(data_source):  Initialize the sampler with data.
+>> - data_source: The data to be sampled.
+
 ## Scheduler
 ### LAMDA_SSL.Scheduler.BaseScheduler
 > CLASS LAMDA_SSL.Scheduler.BaseScheduler(last_epoch=-1, verbose=False)
@@ -2559,19 +2570,19 @@ labels=None,
 > Function LAMDA_SSL.Scheduler.Split.Data_Split(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
 > - Parameter:
 >> - stratified: Whether to stratify by classes.
->> - shuffle: Whether to shuffle the data. 
+>> - shuffle: Whether to shuffle the samples. 
 >> - random_state: The random seed.
 >> - X: Samples of the data to be split.
 >> - y: Labels of the data to be split.
 >> - labeled_size: The scale or size of the labeled data.
 
 ### LAMDA_SSL.Scheduler.Split.View_Split
-> Function LAMDA_SSL.Scheduler.Split.View_Split(X,num_splits=2,axis=1,mode='random')
+> Function LAMDA_SSL.Scheduler.Split.View_Split(X,num_splits=2,axis=1,shuffle=True)
 > - Parameter:
 >> - X: Samples of the data to be split.
 >> - num_splits: The number of views 
 >> - axis: The axis of the dimension to be splited.
->> - mode: The mode to split, 'random' or 'sequential'.
+>> - shuffle: Whether to shuffle the features.
 
 ## Transform
 
@@ -2873,6 +2884,30 @@ labels=None,
 >> - diffusion_kwargs: Dictionary containing the parameters for diffusion.
 >> - sparsification_kwargs: Dictionary containing the parameters for sparsification.
 >> - exact: Whether to accurately calculate the diffusion matrix.
+
+### LAMDA_SSL.Transform.GCNNorm
+> CLASS LAMDA_SSL.Transform.GCNNorm(add_self_loops=True)
+> - Parameter:
+>> - add_self_loops: Whether to add self loops.
+
+### LAMDA_SSL.Transform.SVDFeatureReduction
+> CLASS LAMDA_SSL.Transform.SVDFeatureReduction(out_channels)
+> - Parameter:
+>> - out_channels: The dimensionlity of node features after reduction.
+
+### LAMDA_SSL.Transform.DropNodes
+> CLASS LAMDA_SSL.Transform.DropNodes(num_drop, shuffle=True, random_state=None)
+> - Parameter:
+>> - num_drop: The number of nodes to be dropped.
+>> - shuffle: Whether to shuffle the data.
+>> - random_state: The random seed.
+
+### LAMDA_SSL.Transform.DropEdges
+> CLASS LAMDA_SSL.Transform.DropEdges(num_drop, shuffle=True, random_state=None)
+> - Parameter:
+>> - num_drop: The number of edges to be dropped.
+>> - shuffle: Whether to shuffle the data.
+>> - random_state: The random seed.
 
 ### LAMDA_SSL.Transform.Mixup
 > CLASS LAMDA_SSL.Transform.Mixup(alpha)

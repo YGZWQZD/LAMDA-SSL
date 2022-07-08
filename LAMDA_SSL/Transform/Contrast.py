@@ -1,6 +1,5 @@
 from LAMDA_SSL.Transform.Transformer import Transformer
 import torchvision.transforms.functional as F
-import random
 import torch
 import PIL
 import numpy as np
@@ -26,18 +25,21 @@ class Contrast(Transformer):
         if isinstance(X,np.ndarray):
             X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
-            _v = self.v if random.random() < 0.5 else self.v * -1
-            X=PIL.ImageEnhance.Contrast(X).enhance(1.0+_v)
+            # _v = self.v if random.random() < 0.5 else self.v * -1
+            _v = self.v
+            X=PIL.ImageEnhance.Contrast(X).enhance(_v)
             return X
         elif isinstance(X,torch.Tensor):
 
             if len(X.shape)==4:
                 for _ in range(X.shape[0]):
-                    _v = self.v if random.random() < 0.5 else self.v * -1
-                    X[_]=F.adjust_contrast(X[_],1.0+_v)
+                    # _v = self.v if random.random() < 0.5 else self.v * -1
+                    _v = self.v
+                    X[_]=F.adjust_contrast(X[_],_v)
             else:
-                _v = self.v if random.random() < 0.5 else self.v * -1
-                X = F.adjust_contrast(X,1.0+_v)
+                # _v = self.v if random.random() < 0.5 else self.v * -1
+                _v = self.v
+                X = F.adjust_contrast(X,_v)
             return X
         else:
             raise ValueError('No data to augment')

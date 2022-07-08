@@ -1,4 +1,5 @@
 from abc import ABC,abstractmethod
+
 class EvaluationRegressor(ABC):
     def __init__(self):
         pass

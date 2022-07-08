@@ -12,16 +12,16 @@ from LAMDA_SSL.Algorithm.Classifier.FlexMatch import FlexMatch
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
 from sklearn.pipeline import Pipeline
-from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
-from LAMDA_SSL.Evaluation.Classification.Precision import Precision
-from LAMDA_SSL.Evaluation.Classification.Recall import Recall
-from LAMDA_SSL.Evaluation.Classification.F1 import F1
-from LAMDA_SSL.Evaluation.Classification.AUC import AUC
-from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
+from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classifier.Top_k_Accuracy import Top_k_Accurary
+from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
+from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
+from LAMDA_SSL.Evaluation.Classifier.F1 import F1
+from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
+from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-
+from LAMDA_SSL.Scheduler.Cosine_Warmup import Cosine_Warmup
 # dataset
 dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False,default_transforms=True)
 
@@ -76,7 +76,7 @@ augmentation={
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 
 # scheduler
-scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
+scheduler=Cosine_Warmup(num_cycles=7./16,num_training_steps=2**20)
 
 # network
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)

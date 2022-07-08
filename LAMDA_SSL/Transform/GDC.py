@@ -19,8 +19,5 @@ class GDC(Transformer):
                         sparsification_kwargs=sparsification_kwargs,exact=exact)
 
     def transform(self,X):
-        if X is not None:
-            X=self.gdc(X)
-            return X
-        else:
-            raise ValueError('No data to augment')
+        X=self.gdc(X)
+        return X

@@ -68,7 +68,7 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self.init_train_dataset(X,y,unlabeled_X,edge_index,train_mask,labeled_mask,unlabeled_mask,valid_mask,test_mask)
         self.init_train_dataloader()
         self.start_fit()
-        self.epoch_loop(valid_X,valid_y)
+        self.fit_epoch_loop(valid_X,valid_y)
         self.end_fit()
         return self
 
@@ -87,9 +87,6 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def init_train_dataloader(self):
-        pass
-
-    def init_pred_dataloader(self, valid=False):
         pass
 
     def init_train_dataset(self, X=None, y=None, unlabeled_X=None,
@@ -169,17 +166,23 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         laplace_matrix = degree_matrix - adjacency_matrix_
         return adjacency_matrix, laplace_matrix
 
-    def epoch_loop(self, valid_X=None, valid_y=None):
+    def end_fit_epoch(self, train_result,*args, **kwargs):
+        self.loss = self.get_loss(train_result)
+        self.optimize(self.loss)
+
+    def fit_epoch_loop(self, valid_X=None, valid_y=None):
+        self.valid_performance = {}
         self.data=self.data.to(self.device)
         if valid_X is None:
             valid_X=self.data.val_mask
         for self._epoch in range(1,self.epoch+1):
             print(self._epoch,file=self.file)
-            train_result = self.train(lb_X=self.data.labeled_mask)
-            self.end_batch_train(train_result)
+            train_performance = self.train(lb_X=self.data.labeled_mask)
+            self.end_fit_epoch(train_performance)
             if valid_X is not None and self.eval_epoch is not None and self._epoch % self.eval_epoch==0:
                 self.estimator_fit()
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
+                self.valid_performance.update({"epoch_" + str(self._epoch): self.performance})
 
     def end_fit(self):
         self.estimator_fit()
@@ -254,25 +257,25 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation, (list, tuple)):
-            result = []
+            performance = []
             for eval in self.evaluation:
                 score=eval.scoring(y, self.y_pred, self.y_score)
                 if self.verbose:
                     print(score, file=self.file)
-                result.append(score)
-            self.result = result
-            return result
+                performance.append(score)
+            self.performance = performance
+            return performance
         elif isinstance(self.evaluation, dict):
-            result = {}
+            performance = {}
             for key, val in self.evaluation.items():
-                result[key] = val.scoring(y, self.y_pred, self.y_score)
+                performance[key] = val.scoring(y, self.y_pred, self.y_score)
                 if self.verbose:
-                    print(key, ' ', result[key],file=self.file)
-            self.result = result
-            return result
+                    print(key, ' ', performance[key],file=self.file)
+            self.performance = performance
+            return performance
         else:
-            result = self.evaluation.scoring(y, self.y_pred, self.y_score)
+            performance = self.evaluation.scoring(y, self.y_pred, self.y_score)
             if self.verbose:
-                print(result, file=self.file)
-            self.result=result
-            return result
+                print(performance, file=self.file)
+            self.performance=performance
+            return performance

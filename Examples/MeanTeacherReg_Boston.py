@@ -11,9 +11,9 @@ from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Algorithm.Regressor.MeanTeacherReg import MeanTeacherReg
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
-from LAMDA_SSL.Evaluation.Regression.Mean_Absolute_Error import Mean_Absolute_Error
-from LAMDA_SSL.Evaluation.Regression.Mean_Squared_Error import Mean_Squared_Error
-from LAMDA_SSL.Evaluation.Regression.Mean_Squared_Log_Error import Mean_Squared_Log_Error
+from LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error import Mean_Absolute_Error
+from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Error import Mean_Squared_Error
+from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Log_Error import Mean_Squared_Log_Error
 import numpy as np
 
 # dataset

@@ -81,8 +81,7 @@ class TrainDataset(Dataset):
                                                                 size_split=self.labeled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
-                                                                random_state=self.random_state,
-                                                                )
+                                                                random_state=self.random_state)
                 self.unlabeled_dataset.init_dataset(unlabeled_X, unlabeled_y)
                 self.labeled_dataset.init_dataset(labeled_X, labeled_y)
         else:

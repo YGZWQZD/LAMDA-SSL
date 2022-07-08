@@ -1,7 +1,8 @@
-from LAMDA_SSL.Evaluation.Classification.EvaluationClassification import EvaluationClassification
+from LAMDA_SSL.Evaluation.Classifier.EvaluationClassifier import EvaluationClassifier
 from sklearn.metrics import accuracy_score
 from LAMDA_SSL.utils import partial
-class Accuracy(EvaluationClassification):
+
+class Accuracy(EvaluationClassifier):
     def __init__(self,normalize=True, sample_weight=None):
         # >> Parameter
         # >> - normalize: If False, returns the number of correctly classified samples.

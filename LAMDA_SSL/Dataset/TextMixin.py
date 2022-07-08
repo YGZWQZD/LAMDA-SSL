@@ -46,22 +46,11 @@ class TextMixin:
                              specials=self.specials,
                              default_index=self.default_index)
 
-            # self.transform=Pipeline([('Tokenizer',Tokenizer('basic_english')),
-            #                   ('Adjust_length',Adjust_length(length=300)),
-            #                   ('Word_vocab', Vocab(text=text,word_vocab=self.word_vocab,
-            #                                        min_freq=self.min_freq,
-            #                                        special_first=self.special_first,
-            #                                        specials=self.specials,
-            #                                        default_index=self.default_index,
-            #                                        )),
-            #                   ('ToTensor',ToTensor())
-            #                   ])
-        self.transform = Pipeline([
-                                   ('Adjust_length', Adjust_length(length=self.length)),
+        self.pre_transform = Tokenizer('basic_english')
+        self.transform = Pipeline([('Adjust_length', Adjust_length(length=self.length)),
                                    ('Vocab', self.vocab),
                                    ('ToTensor', ToTensor())
                                    ])
-        self.pre_transform=Tokenizer('basic_english')
         self.valid_transform=copy.deepcopy(self.transform)
         self.test_transform=copy.deepcopy(self.transform)
         self.unlabeled_transform=copy.deepcopy(self.transform)

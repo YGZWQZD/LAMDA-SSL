@@ -1,7 +1,5 @@
-import copy
 from LAMDA_SSL.Base.InductiveEstimator import InductiveEstimator
 from LAMDA_SSL.Base.DeepModelMixin import DeepModelMixin
-
 from sklearn.base import ClassifierMixin
 import numpy as np
 import torch

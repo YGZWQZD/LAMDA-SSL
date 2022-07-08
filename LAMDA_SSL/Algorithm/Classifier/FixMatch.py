@@ -120,19 +120,19 @@ class FixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         batch_size = w_lb_X.shape[0]
         inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
         logits = self._network(inputs)
-        logits_x = logits[:batch_size]
-        logits_u_w, logits_u_s = logits[batch_size:].chunk(2)
-        result=(logits_x,lb_y,logits_u_w,logits_u_s)
-        return result
+        lb_logits = logits[:batch_size]
+        w_ulb_logits, s_ulb_logits = logits[batch_size:].chunk(2)
+        train_result=(lb_logits,lb_y,w_ulb_logits, s_ulb_logits)
+        return train_result
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x, lb_y, logits_u_w, logits_u_s = train_result
-        Lx=Cross_Entropy(reduction='mean')(logits=logits_x,targets=lb_y)
-        pseudo_label = torch.softmax(logits_u_w.detach() / self.T, dim=-1)
+        lb_logits, lb_y, w_ulb_logits, s_ulb_logits = train_result
+        sup_loss=Cross_Entropy(reduction='mean')(logits=lb_logits,targets=lb_y)
+        pseudo_label = torch.softmax(w_ulb_logits.detach() / self.T, dim=-1)
         max_probs, targets_u = torch.max(pseudo_label, dim=-1)
         mask = max_probs.ge(self.threshold).float()
-        Lu = (Cross_Entropy(reduction='none')(logits_u_s, targets_u) * mask).mean()
-        loss=Semi_supervised_loss(lambda_u =self.lambda_u)(Lx,Lu)
+        unsup_loss = (Cross_Entropy(reduction='none')(s_ulb_logits, targets_u) * mask).mean()
+        loss=Semi_supervised_loss(lambda_u =self.lambda_u)(sup_loss,unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

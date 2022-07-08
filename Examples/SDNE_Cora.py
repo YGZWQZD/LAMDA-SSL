@@ -1,11 +1,11 @@
 from LAMDA_SSL.Dataset.Graph.Cora import Cora
-from LAMDA_SSL.Evaluation.Classification.Precision import Precision
-from LAMDA_SSL.Evaluation.Classification.Recall import Recall
-from LAMDA_SSL.Evaluation.Classification.F1 import F1
-from LAMDA_SSL.Evaluation.Classification.AUC import AUC
-from LAMDA_SSL.Evaluation.Classification.Top_k_Accuracy import Top_k_Accurary
-from LAMDA_SSL.Evaluation.Classification.Confusion_Matrix import Confusion_Matrix
-from LAMDA_SSL.Evaluation.Classification.Accuracy import Accuracy
+from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
+from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
+from LAMDA_SSL.Evaluation.Classifier.F1 import F1
+from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
+from LAMDA_SSL.Evaluation.Classifier.Top_k_Accuracy import Top_k_Accurary
+from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
+from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Scheduler.StepLR import StepLR
 from LAMDA_SSL.Opitimizer.Adam import Adam
 from LAMDA_SSL.Algorithm.Classifier.SDNE import SDNE
@@ -13,7 +13,8 @@ from LAMDA_SSL.Algorithm.Classifier.SDNE import SDNE
 file = open("../Result/SDNE_Cora.txt", "w")
 
 dataset=Cora(labeled_size=0.2,root='..\Download\Cora',random_state=0,default_transforms=True)
-data=dataset.transform.fit_transform(dataset.data)
+data=dataset.data
+data=dataset.transform.fit_transform(data)
 
 optimizer=Adam(lr=0.001)
 

@@ -11,6 +11,7 @@ class Adjust_length(Transformer):
         self.length=length
         self.pad=Pad_sequence(self.length,pad_val)
         self.truncate=Truncate(length,pos)
+
     def transform(self,X):
         if len(X)<self.length:
             X=self.pad(X)

@@ -11,9 +11,9 @@ from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Algorithm.Regressor.PiModelReg import PiModelReg
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
-from LAMDA_SSL.Evaluation.Regression.Mean_Absolute_Error import Mean_Absolute_Error
-from LAMDA_SSL.Evaluation.Regression.Mean_Squared_Error import Mean_Squared_Error
-from LAMDA_SSL.Evaluation.Regression.Mean_Squared_Log_Error import Mean_Squared_Log_Error
+from LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error import Mean_Absolute_Error
+from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Error import Mean_Squared_Error
+from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Log_Error import Mean_Squared_Log_Error
 import numpy as np
 
 # dataset
@@ -48,7 +48,7 @@ valid_dataset=UnlabeledDataset(transform=dataset.valid_transform)
 test_dataset=UnlabeledDataset(transform=dataset.test_transform)
 
 # sampler
-labeled_sampler=RandomSampler(replacement=True,num_samples=64*(2**20))
+labeled_sampler=RandomSampler(replacement=True,num_samples=64*(4000))
 unlabeled_sampler=RandomSampler(replacement=True)
 valid_sampler=SequentialSampler()
 test_sampler=SequentialSampler()

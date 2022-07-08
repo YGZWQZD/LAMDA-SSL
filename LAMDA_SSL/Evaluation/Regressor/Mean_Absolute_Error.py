@@ -1,6 +1,7 @@
-from LAMDA_SSL.Evaluation.Regression.EvaluationRegressor import EvaluationRegressor
+from LAMDA_SSL.Evaluation.Regressor.EvaluationRegressor import EvaluationRegressor
 from sklearn.metrics import mean_absolute_error
 from LAMDA_SSL.utils import partial
+
 class Mean_Absolute_Error(EvaluationRegressor):
     def __init__(self,sample_weight=None, multioutput="uniform_average"):
         # >> Parameter

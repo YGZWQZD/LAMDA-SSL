@@ -56,7 +56,7 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self.init_train_dataset(X,y,unlabeled_X,edge_index,train_mask,labeled_mask,unlabeled_mask,valid_mask,test_mask)
         self.init_train_dataloader()
         self.start_fit()
-        self.epoch_loop(valid_X,valid_y)
+        self.fit_epoch_loop(valid_X,valid_y)
         self.end_fit()
         return self
 
@@ -126,8 +126,12 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self.test_mask = self.data.test_mask if hasattr(self.data, 'test_mask') else None
 
 
+    def end_fit_epoch(self, train_result,*args, **kwargs):
+        self.loss = self.get_loss(train_result)
+        self.optimize(self.loss)
 
-    def epoch_loop(self, valid_X=None, valid_y=None):
+    def fit_epoch_loop(self, valid_X=None, valid_y=None):
+        self.valid_performance = {}
         self.data=self.data.to(self.device)
         if valid_X is None:
             valid_X=self.data.val_mask
@@ -135,13 +139,13 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         for self._epoch in range(1,self.epoch+1):
             if self.verbose:
                 print(self._epoch,file=self.file)
-            train_result = self.train(lb_X=self.data.labeled_mask)
+            train_performance  = self.train(lb_X=self.data.labeled_mask)
 
-            self.end_batch_train(train_result)
+            self.end_fit_epoch(train_performance)
 
             if valid_X is not None and self.eval_epoch is not None and self._epoch % self.eval_epoch==0:
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
-
+                self.valid_performance .update({"epoch_" + str(self._epoch): self.performance })
 
 
     def train(self, lb_X=None, lb_y=None, ulb_X=None, lb_idx=None, ulb_idx=None, *args, **kwargs):
@@ -156,10 +160,10 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         return loss
 
 
-    def init_pred_dataloader(self,valid=False):
+    def init_estimate_dataloader(self,valid=False):
         pass
 
-    def init_pred_dataset(self, X=None, valid=False):
+    def init_estimate_dataset(self, X=None, valid=False):
         if X is not None and not isinstance(X, torch.Tensor):
             X = torch.BoolTensor(X).to(self.device)
         if valid:
@@ -167,7 +171,7 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         else:
             self.pred_mask = X if X is not None else self.data.test_mask
 
-    def pred_batch_loop(self):
+    def predict_batch_loop(self):
         with torch.no_grad():
             self.y_est=self.logits[self.pred_mask]
 
@@ -184,25 +188,25 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         if self.evaluation is None:
             return None
         elif isinstance(self.evaluation,(list,tuple)):
-            result=[]
+            performance =[]
             for eval in self.evaluation:
                 score=eval.scoring(y,y_pred,y_score)
                 if self.verbose:
                     print(score,file=self.file)
-                result.append(score)
-            self.result=result
-            return result
+                performance .append(score)
+            self.performance =performance
+            return performance
         elif isinstance(self.evaluation,dict):
-            result={}
+            performance ={}
             for key,val in self.evaluation.items():
-                result[key]=val.scoring(y,y_pred,y_score)
+                performance [key]=val.scoring(y,y_pred,y_score)
                 if self.verbose:
-                    print(key,' ',result[key],file=self.file)
-            self.result = result
-            return result
+                    print(key,' ',performance [key],file=self.file)
+            self.performance  = performance
+            return performance
         else:
-            result=self.evaluation.scoring(y,y_pred,y_score)
+            performance =self.evaluation.scoring(y,y_pred,y_score)
             if self.verbose:
-                print(result,file=self.file)
-            self.result = result
-            return result
+                print(performance ,file=self.file)
+            self.performance  = performance
+            return performance

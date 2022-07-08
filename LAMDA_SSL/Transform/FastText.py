@@ -1,6 +1,7 @@
 from torchtext import vocab
 from LAMDA_SSL.Transform.Transformer import Transformer
 import torch
+
 class FastText(Transformer):
     def __init__(self, language="en",lower_case_backup=True,unk_init=None,pad_init=None,pad_token='<pad>',unk_token='<unk>',cache=None):
         # >> Parameter:

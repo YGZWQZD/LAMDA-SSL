@@ -1,15 +1,15 @@
-from LAMDA_SSL.Evaluation.Classification.EvaluationClassification import EvaluationClassification
-from sklearn.metrics import recall_score
+from LAMDA_SSL.Evaluation.Classifier.EvaluationClassifier import EvaluationClassifier
+from sklearn.metrics import precision_score
 from LAMDA_SSL.utils import partial
-class Recall(EvaluationClassification):
-    def __init__(self,
-                 labels=None,
-                 pos_label=1,
-                 average="binary",
-                 sample_weight=None,
-                 zero_division="warn"):
+
+class Precision(EvaluationClassifier):
+    def __init__(self,labels=None,
+                pos_label=1,
+                average="binary",
+                sample_weight=None,
+                zero_division="warn"):
         # >> Parameter
-        # > - labels: The set of contained labels.
+        # >> - labels: The set of contained labels.
         # >> - pos_label: Positive label for binary classification.
         # >> - average: The calculation method for multi-classification, optional 'micro', 'macro', 'samples', 'weighted', 'binary'.
         # >> - sample_weight: The weight of each sample.
@@ -20,7 +20,7 @@ class Recall(EvaluationClassification):
         self.average=average
         self.sample_weight=sample_weight
         self.zero_division=zero_division
-        self.score=partial(recall_score,labels=self.labels,pos_label=self.pos_label,
+        self.score=partial(precision_score,labels=self.labels,pos_label=self.pos_label,
                            average=self.average,sample_weight=self.sample_weight,
                            zero_division=self.zero_division)
     def scoring(self,y_true,y_pred=None,y_score=None):
