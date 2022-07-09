@@ -15,7 +15,7 @@
 
 In order to promote the research and application of semi-supervised learning algorithms, we has developed LAMDA which is a convenient and practical semi-supervised learning toolkit. LAMDA-SSL has complete functions, convenient interfaces and detailed documentations. It integrates statistical machine learning algorithms and deep learning algorithms into the same framework. It is compatible with the popular machine learning toolkit sklearn and the popular deep learning toolkit pytorch.  It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 13 algorithms based on statistical machine learning models and 17 algorithms based on deep learning models. LAMDA-SSL also contains 45 data processing methods used for 4 types of data: table, image, text, graph and 15 model evaluation criterias used for 3 types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, algorithm application, model evaluation and so on, which facilitates the completion of the end-to-end semi-supervised learning process.
 <div align=center>
-<img width="500px" src="./Imgs/Overview.png"> 
+<img width="1000px" src="./Imgs/Overview.png"> 
 </div>
 
 # Advantages
