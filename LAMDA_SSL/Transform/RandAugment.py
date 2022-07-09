@@ -13,6 +13,7 @@ from LAMDA_SSL.Transform.Solarize import Solarize
 from LAMDA_SSL.Transform.TranslateX import TranslateX
 from LAMDA_SSL.Transform.TranslateY import TranslateY
 from LAMDA_SSL.Transform.Transformer import Transformer
+import numpy as np
 import random
 
 class RandAugment(Transformer):
@@ -50,7 +51,7 @@ class RandAugment(Transformer):
                 aug=op()
             else:
                 if self.random:
-                    m=random.choice(range(1,self.m+1))
+                    m = np.random.randint(1, self.m)
                 else:
                     m=self.m
                 aug=op(min_v=min_v,max_v=max_v,num_bins=self.num_bins,magnitude=m)

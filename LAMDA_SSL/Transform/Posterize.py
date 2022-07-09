@@ -18,7 +18,7 @@ class Posterize(Transformer):
         self.num_bins=num_bins
         self.magnitude=magnitude
         self.magnitudes=self.max_v - (torch.arange(self.num_bins) / ((self.num_bins - 1) / self.min_v)).round().int()
-        self.v=self.magnitudes[self.magnitude-1].item()if v is None else v
+        self.v=self.magnitudes[self.magnitude].item()if v is None else v
         self.scale=scale
         self.v = int(max(1, self.v))
 

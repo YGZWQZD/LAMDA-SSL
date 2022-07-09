@@ -5,7 +5,7 @@ from LAMDA_SSL.Transform.Transformer import Transformer
 import torchvision.transforms.functional as F
 
 class Solarize(Transformer):
-    def __init__(self, min_v=0,max_v=255,num_bins=10,magnitude=5,v=None,scale=255):
+    def __init__(self, min_v=0,max_v=255,num_bins=10,magnitude=5,v=None,scale=256):
         # >> Parameter:
         # >> - min_v: The minimum value of the augmentation.
         # >> - max_v: The maximum value of the augmentation.
@@ -25,11 +25,10 @@ class Solarize(Transformer):
         if isinstance(X,np.ndarray):
             X=PIL.Image.fromarray(X)
         if isinstance(X,PIL.Image.Image):
-            X=PIL.ImageOps.solarize(X, self.v)
+            X=PIL.ImageOps.solarize(X, self.scale-self.v)
             return X
         elif isinstance(X,torch.Tensor):
-            # X=F.solarize(X, self.v)
-            X = F.solarize((X * self.scale).type(torch.uint8),self.v) / self.scale
+            X = F.solarize((X * (self.scale-1)).ceil().type(torch.uint8),self.scale-self.v) / self.scale
             return X
         else:
             raise ValueError('No data to augment')

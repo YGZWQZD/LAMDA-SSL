@@ -20,7 +20,7 @@ class Rotate(Transformer):
         self.magnitude=magnitude
         if v is None:
             self.magnitudes=torch.linspace(min_v, max_v, num_bins)
-            self.v = float(self.magnitudes[self.magnitude-1].item())
+            self.v = float(self.magnitudes[self.magnitude].item())
         else:
             self.v=v
 

@@ -19,7 +19,7 @@ class TranslateX(Transformer):
         self.num_bins=num_bins
         self.magnitude=magnitude
         self.magnitudes=torch.linspace(min_v, max_v, num_bins)
-        self.v=float(self.magnitudes[self.magnitude-1].item())if v is None else v
+        self.v=float(self.magnitudes[self.magnitude].item())if v is None else v
 
     def transform(self,X):
         if isinstance(X,np.ndarray):
