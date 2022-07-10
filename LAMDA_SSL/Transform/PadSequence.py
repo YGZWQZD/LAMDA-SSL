@@ -1,10 +1,10 @@
 from LAMDA_SSL.Transform.Transformer import Transformer
-class Pad_sequence(Transformer):
+class PadSequence(Transformer):
     def __init__(self,length=300,pad_val=None):
         # > Parameter:
         # >> - length: The length of the text after padding.
         # >> - pad_val: The padding value for insufficient length of text.
-        super(Pad_sequence, self).__init__()
+        super(PadSequence, self).__init__()
         self.pad_val=pad_val
         self.length=length
     def transform(self,X):

@@ -1,8 +1,8 @@
 from sklearn.metrics import jaccard_score
-from LAMDA_SSL.Evaluation.Cluster.EvaluationCluster import EvaluationCluster
+from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
 from LAMDA_SSL.utils import partial
 
-class Jaccard_Score(EvaluationCluster):
+class Jaccard_Score(ClusterEvaluation):
     def __init__(self, labels=None, pos_label=1,
                 average="binary",
                 sample_weight=None,

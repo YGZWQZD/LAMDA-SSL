@@ -1,7 +1,7 @@
 from sklearn.metrics import rand_score
-from LAMDA_SSL.Evaluation.Cluster.EvaluationCluster import EvaluationCluster
+from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
 
-class Rand_Score(EvaluationCluster):
+class Rand_Score(ClusterEvaluation):
     def __init__(self):
         super().__init__()
         self.score=rand_score

@@ -1,8 +1,8 @@
-from LAMDA_SSL.Evaluation.Cluster.EvaluationCluster import EvaluationCluster
+from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
 from sklearn.metrics import fowlkes_mallows_score
 from LAMDA_SSL.utils import partial
 
-class Fowlkes_Mallows_Score(EvaluationCluster):
+class Fowlkes_Mallows_Score(ClusterEvaluation):
     def __init__(self,sparse=False):
         # >> Parameter
         # >> - sparse: Whether to use sparse matrices for computation.

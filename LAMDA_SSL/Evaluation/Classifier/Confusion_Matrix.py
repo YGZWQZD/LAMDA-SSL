@@ -1,8 +1,8 @@
 from LAMDA_SSL.utils import partial
-from LAMDA_SSL.Evaluation.Classifier.EvaluationClassifier import EvaluationClassifier
+from LAMDA_SSL.Evaluation.Classifier.ClassifierEvaluation import ClassifierEvaluation
 from sklearn.metrics import confusion_matrix
 
-class Confusion_Matrix(EvaluationClassifier):
+class Confusion_Matrix(ClassifierEvaluation):
     def __init__(self,labels=None, sample_weight=None, normalize=None):
         # >> Parameter
         # >> - average: The way to calculate the AUC mean, optional 'micro', 'macro', 'samples', 'weighted' or None.

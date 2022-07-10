@@ -1,8 +1,8 @@
 from sklearn.metrics import silhouette_score
-from LAMDA_SSL.Evaluation.Cluster.EvaluationCluster import EvaluationCluster
+from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
 from LAMDA_SSL.utils import partial
 
-class Silhouette_Score(EvaluationCluster):
+class Silhouette_Score(ClusterEvaluation):
     def __init__(self, metric="euclidean", sample_size=None, random_state=None):
         # >> Parameter
         # >> - metric : The metric to use when calculating distance between instances in a feature array. If metric is a string, it must be one of the options allowed by <sklearn.metrics.pairwise.pairwise_distances>. If ``X`` of the `scoring` method is the distance array itself, use ``metric="precomputed"``.

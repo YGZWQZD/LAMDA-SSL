@@ -1,7 +1,7 @@
 from LAMDA_SSL.Transform.Transformer import Transformer
-from LAMDA_SSL.Transform.Pad_sequence import Pad_sequence
+from LAMDA_SSL.Transform.PadSequence import PadSequence
 from LAMDA_SSL.Transform.Truncate import Truncate
-class Adjust_length(Transformer):
+class AdjustLength(Transformer):
     def __init__(self,length=300,pad_val=None,pos=0):
         # >> Parameter:
         # >> - length: Length of adjusted sentence.
@@ -9,7 +9,7 @@ class Adjust_length(Transformer):
         # >> - pos；If the sentence is too long and needs to be cut, this parameter specifies the position to start cutting.
         super().__init__()
         self.length=length
-        self.pad=Pad_sequence(self.length,pad_val)
+        self.pad=PadSequence(self.length,pad_val)
         self.truncate=Truncate(length,pos)
 
     def transform(self,X):

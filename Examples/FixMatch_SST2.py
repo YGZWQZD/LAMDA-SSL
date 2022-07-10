@@ -14,9 +14,9 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Transform.TFIDF_replacement import TFIDF_replacement
+from LAMDA_SSL.Transform.TFIDFReplacement import TFIDFReplacement
 from LAMDA_SSL.Network.TextRCNN import TextRCNN
-from LAMDA_SSL.Transform.Random_swap import Random_swap
+from LAMDA_SSL.Transform.RandomSwap import RandomSwap
 from LAMDA_SSL.Transform.GloVe import Glove
 
 # dataset
@@ -56,9 +56,9 @@ test_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # augmentation
 
-weakly_augmentation=Random_swap(n=1)
+weakly_augmentation=RandomSwap(n=1)
 
-strongly_augmentation=TFIDF_replacement(text=labeled_X,p=0.7)
+strongly_augmentation=TFIDFReplacement(text=labeled_X,p=0.7)
 
 augmentation={
     'weakly_augmentation':weakly_augmentation,

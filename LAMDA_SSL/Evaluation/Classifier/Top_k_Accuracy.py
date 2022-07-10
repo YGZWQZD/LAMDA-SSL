@@ -1,9 +1,9 @@
 from LAMDA_SSL.utils import partial
-from LAMDA_SSL.Evaluation.Classifier.EvaluationClassifier import EvaluationClassifier
+from LAMDA_SSL.Evaluation.Classifier.ClassifierEvaluation import ClassifierEvaluation
 from sklearn.metrics import top_k_accuracy_score
 from LAMDA_SSL.utils import class_status
 
-class Top_k_Accurary(EvaluationClassifier):
+class Top_k_Accurary(ClassifierEvaluation):
     def __init__(self,k=2, normalize=True, sample_weight=None, labels=None):
         # >> Parameter
         # >> - k: The k value of Top_k_accurary.

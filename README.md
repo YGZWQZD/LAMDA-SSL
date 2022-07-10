@@ -7,6 +7,7 @@
 ![visitors](https://visitor-badge.glitch.me/badge?page_id=ygzwqzd.LAMDA-SSL)
 ![](https://badgen.net/github/last-commit/YGZWQZD/LAMDA-SSL)
 ![](https://badgen.net/github/license/YGZWQZD/LAMDA-SSL)
+
 **[Documentation](https://ygzwqzd.github.io/LAMDA-SSL)** | **[Paper]()** |  **[Examples](https://github.com/ygzwqzd/LAMDA-SSL/tree/master/Examples)**
 
 </div>
@@ -47,7 +48,7 @@ LAMDA-SSL requires:
 > - numpy(>= 1.21.5)
 > - scipy(>= 1.7.3)
 > - pandas(>= 1.3.4)
-> - matplotlib(>= 3.5.0) 
+> - matplotlib(>= 3.5.0)
 
 # Installation
 ## Install from pip

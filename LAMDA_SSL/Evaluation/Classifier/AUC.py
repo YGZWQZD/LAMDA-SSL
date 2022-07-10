@@ -1,9 +1,9 @@
-from LAMDA_SSL.Evaluation.Classifier.EvaluationClassifier import EvaluationClassifier
+from LAMDA_SSL.Evaluation.Classifier.ClassifierEvaluation import ClassifierEvaluation
 from sklearn.metrics import roc_auc_score
 from LAMDA_SSL.utils import partial
 from LAMDA_SSL.utils import class_status
 
-class AUC(EvaluationClassifier):
+class AUC(ClassifierEvaluation):
     def __init__(self,
                  average="macro",
                  sample_weight=None,

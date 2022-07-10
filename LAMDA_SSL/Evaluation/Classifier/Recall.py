@@ -1,8 +1,8 @@
-from LAMDA_SSL.Evaluation.Classifier.EvaluationClassifier import EvaluationClassifier
+from LAMDA_SSL.Evaluation.Classifier.ClassifierEvaluation import ClassifierEvaluation
 from sklearn.metrics import recall_score
 from LAMDA_SSL.utils import partial
 
-class Recall(EvaluationClassifier):
+class Recall(ClassifierEvaluation):
     def __init__(self,
                  labels=None,
                  pos_label=1,

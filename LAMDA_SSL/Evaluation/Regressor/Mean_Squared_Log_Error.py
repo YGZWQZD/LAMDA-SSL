@@ -1,8 +1,8 @@
-from LAMDA_SSL.Evaluation.Regressor.EvaluationRegressor import EvaluationRegressor
+from LAMDA_SSL.Evaluation.Regressor.RegressorEvaluation import RegressorEvaluation
 from sklearn.metrics import mean_squared_log_error
 from LAMDA_SSL.utils import partial
 
-class Mean_Squared_Log_Error(EvaluationRegressor):
+class Mean_Squared_Log_Error(RegressorEvaluation):
     def __init__(self,sample_weight=None, multioutput="uniform_average",squared=True):
         # >> Parameter
         # >> - sample_weight: The weight of each sample.

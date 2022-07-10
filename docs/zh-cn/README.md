@@ -285,7 +285,7 @@ unlabeled_X=pre_transform.transform(unlabeled_X)
 ```python
 from LAMDA_SSL.Split.View_Split import View_Split
 split_labeled_X=View_Split(labeled_X,shuffle=False)
-split_unlabeled_X=View_Split(unlabeled_X,mode='sequential')
+split_unlabeled_X=View_Split(unlabeled_X,shuffle=False)
 split_test_X=View_Split(test_X,shuffle=False)
 ```
 
@@ -1088,33 +1088,6 @@ valid_result=model.valid_performance
 ```python
 file = open("../Result/ImprovedGAN_MNIST.txt", "w")
 model=FixMatch(threshold=0.95,lambda_u=1.0,T=0.5,mu=7,  ema_decay=0.999,weight_decay=5e-4,epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cuda:0',evaluation=evaluation,verbose=True,file=file)
-```
-
-## 分布式训练
-
-可以采用分布式训练用多个GPU同时训练模型。以Fixmatch为例。
-导入并初始化DataParallel模块。需要设置分布式训练所需的GPU。
-
-```python
-from LAMDA_SSL.Distributed.DataParallel import DataParallel
-parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
-```
-
-初始化分布式训练的Fixmatch算法。
-
-```python
-model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
-               train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_batch_sampler=train_batch_sampler,
-               train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-               augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,evaluation=evaluation,
-               epoch=1,num_it_epoch=1,num_it_total=1,eval_it=2000,device='cpu',mu=7,parallel=parallel,
-               T=1,weight_decay=0,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
-```
-
-进行分布式训练。
-
-```python
-model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 ```
 
 ## 参数搜索

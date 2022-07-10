@@ -1,6 +1,6 @@
 from abc import ABC,abstractmethod
 
-class EvaluationRegressor(ABC):
+class RegressorEvaluation(ABC):
     def __init__(self):
         pass
     @abstractmethod

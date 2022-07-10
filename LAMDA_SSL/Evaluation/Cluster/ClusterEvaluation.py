@@ -1,5 +1,5 @@
 from abc import ABC,abstractmethod
-class EvaluationCluster(ABC):
+class ClusterEvaluation(ABC):
     def __init__(self):
         pass
     @abstractmethod

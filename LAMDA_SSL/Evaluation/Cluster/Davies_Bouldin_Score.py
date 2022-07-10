@@ -1,7 +1,7 @@
-from LAMDA_SSL.Evaluation.Cluster.EvaluationCluster import EvaluationCluster
+from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
 from sklearn.metrics import davies_bouldin_score
 
-class Davies_Bouldin_Score(EvaluationCluster):
+class Davies_Bouldin_Score(ClusterEvaluation):
     def __init__(self):
         super().__init__()
         self.score=davies_bouldin_score

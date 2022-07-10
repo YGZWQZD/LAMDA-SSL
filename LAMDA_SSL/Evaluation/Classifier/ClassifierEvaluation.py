@@ -1,6 +1,6 @@
 from abc import ABC,abstractmethod
 
-class EvaluationClassifier(ABC):
+class ClassifierEvaluation(ABC):
     def __init__(self):
         pass
     @abstractmethod

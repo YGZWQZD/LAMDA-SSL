@@ -1,8 +1,8 @@
-from LAMDA_SSL.Evaluation.Regressor.EvaluationRegressor import EvaluationRegressor
+from LAMDA_SSL.Evaluation.Regressor.RegressorEvaluation import RegressorEvaluation
 from sklearn.metrics import mean_absolute_error
 from LAMDA_SSL.utils import partial
 
-class Mean_Absolute_Error(EvaluationRegressor):
+class Mean_Absolute_Error(RegressorEvaluation):
     def __init__(self,sample_weight=None, multioutput="uniform_average"):
         # >> Parameter
         # >> - sample_weight: The weight of each sample.

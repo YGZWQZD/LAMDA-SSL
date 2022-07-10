@@ -2,7 +2,7 @@ import copy
 from LAMDA_SSL.Transform.Vocab import Vocab
 from sklearn.pipeline import Pipeline
 from LAMDA_SSL.Transform.Tokenizer import Tokenizer
-from LAMDA_SSL.Transform.Adjust_length import Adjust_length
+from LAMDA_SSL.Transform.AdjustLength import AdjustLength
 from LAMDA_SSL.Transform.ToTensor import ToTensor
 class TextMixin:
     def __init__(self,word_vocab=None,vectors=None,length=300,unk_token='<unk>',pad_token='<pad>',
@@ -47,7 +47,7 @@ class TextMixin:
                              default_index=self.default_index)
 
         self.pre_transform = Tokenizer('basic_english')
-        self.transform = Pipeline([('Adjust_length', Adjust_length(length=self.length)),
+        self.transform = Pipeline([('Adjust_length', AdjustLength(length=self.length)),
                                    ('Vocab', self.vocab),
                                    ('ToTensor', ToTensor())
                                    ])
