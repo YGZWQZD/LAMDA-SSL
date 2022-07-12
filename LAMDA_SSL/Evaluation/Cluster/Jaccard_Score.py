@@ -1,5 +1,5 @@
 from sklearn.metrics import jaccard_score
-from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
+from LAMDA_SSL.Base.ClusterEvaluation import ClusterEvaluation
 from LAMDA_SSL.utils import partial
 
 class Jaccard_Score(ClusterEvaluation):
@@ -40,5 +40,6 @@ class Jaccard_Score(ClusterEvaluation):
     average=average,
     sample_weight=sample_weight,
     zero_division=zero_division)
+
     def scoring(self,y_true=None,clusters=None,X=None):
         return self.score(y_true=y_true,y_pred=clusters)

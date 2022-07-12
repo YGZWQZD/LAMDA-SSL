@@ -69,7 +69,7 @@ LAMDA-SSL provides different evaluation indicators for different tasks, such as 
 Take CIFAR10 dataset as an example, firstly import the CIFAR10 class.
 
 ```python
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
 ```
 
 Instantiate a CIFAR10 dataset, which is equivalent to a data manager. The parameter 'root' indicates the storage path of the dataset. The parameter 'labeled_size' indicates the number or proportion of labeled samples. The parameter 'stratified' indicates whether to divide the dataset according to the category ratio. The parameter 'shuffle' indicates whether the dataset needs to be shuffled and The parameter 'download' indicates whether the dataset needs to be downloaded.
@@ -109,7 +109,7 @@ test_y=getattr(dataset.test_dataset,'y')
 Taking RandAugment[40] data augmentation as an example. firstly import the RandAugment class.
 
 ```python
-from LAMDA_SSL.Transform.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
 ```
 
 Instantiate RandAugment class. The parameter 'n' is the number of random augmentation. The parameter 'm' is the magnitude of augmentation. The parameter 'num_bins' is the number of levels of magnitude division. This setting divides the augmentation magnitude into 10 levels, and uses the 10-th level augmentation augmentation twice.
@@ -137,19 +137,20 @@ Such as strong data augmentation and weak data augmentation in the FixMatch algo
 
 ```python
 from sklearn.pipeline import Pipeline
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
-from LAMDA_SSL.Transform.RandAugment import RandAugment
-from LAMDA_SSL.Transform.Cutout import Cutout
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
 
-strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,random=True)),
-                              ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
-                              ('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
+weakly_augmentation = Pipeline([('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect')),
+                                ])
+
+strongly_augmentation = Pipeline([('RandAugment', RandAugment(n=2, m=5, num_bins=10, random=True)),
+                                  ('Cutout', Cutout(v=0.5, fill=(127, 127, 127))),
+                                  ('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                  ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect')),
+                                  ])
 ```
 
 You can directly call the method 'fit_transform' to complete data processing.
@@ -185,7 +186,7 @@ test_y=dataset.test_y
 Call and initialize the Self-training model using  SVM model as the base learner.
 
 ```python
-from LAMDA_SSL.Algorithm.Classifier.Self_Training import Self_training
+from LAMDA_SSL.Algorithm.Classification.Self_Training import Self_training
 from sklearn.svm import SVC
 
 SVM = SVC(C=1.0, kernel='linear', probability=True, gamma='auto')
@@ -268,22 +269,23 @@ Set the data augmentation method in the form of Pipeline. If there are multiple 
 
 ```python
 from sklearn.pipeline import Pipeline
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
-from LAMDA_SSL.Transform.RandAugment import RandAugment
-from LAMDA_SSL.Transform.Cutout import Cutout
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
 
-strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,random=True)),
-                              ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
-                              ('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
-augmentation={
-    'weakly_augmentation':weakly_augmentation,
-    'strongly_augmentation':strongly_augmentation
+weakly_augmentation = Pipeline([('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect')),
+                                ])
+
+strongly_augmentation = Pipeline([('RandAugment', RandAugment(n=2, m=5, num_bins=10, random=True)),
+                                  ('Cutout', Cutout(v=0.5, fill=(127, 127, 127))),
+                                  ('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                  ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect')),
+                                  ])
+augmentation = {
+    'weakly_augmentation': weakly_augmentation,
+    'strongly_augmentation': strongly_augmentation
 }
 ```
 
@@ -304,7 +306,8 @@ Set the scheduler in deep learning to adjust the learning rate during training.
 
 ```python
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
-scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
+
+scheduler = CosineAnnealingLR(eta_min=0, T_max=2 ** 20)
 ```
 
 In the deep semi-supervised learning algorithms, a dictionary can be used to store multiple evaluation indicators, which are directly used as parameters during model initialization to verify the model performence during the training process.
@@ -332,7 +335,7 @@ evaluation = {
 Initialize Fixmatch algorithm and set components and parameters.
 
 ```python
-from LAMDA_SSL.Algorithm.Classifier.FixMatch import Fixmatch
+from LAMDA_SSL.Algorithm.Classification.FixMatch import Fixmatch
 
 model = Fixmatch(train_dataset=train_dataset, valid_dataset=valid_dataset, test_dataset=test_dataset,
                  train_sampler=train_sampler, valid_sampler=valid_sampler, test_sampler=test_sampler,

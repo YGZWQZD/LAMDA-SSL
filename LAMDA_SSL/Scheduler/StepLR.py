@@ -1,5 +1,5 @@
 from torch.optim import lr_scheduler
-from LAMDA_SSL.Scheduler.BaseScheduler import BaseScheduler
+from LAMDA_SSL.Base.BaseScheduler import BaseScheduler
 class StepLR(BaseScheduler):
     def __init__(self,  step_size, gamma=0.1, last_epoch=-1, verbose=False):
         # >> Parameter:

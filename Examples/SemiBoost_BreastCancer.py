@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.SemiBoost import SemiBoost
+from LAMDA_SSL.Algorithm.Classification.SemiBoost import SemiBoost
 from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall

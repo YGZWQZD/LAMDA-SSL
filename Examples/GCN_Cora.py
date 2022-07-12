@@ -7,7 +7,7 @@ from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Opitimizer.Adam import Adam
-from LAMDA_SSL.Algorithm.Classifier.GCN import GCN
+from LAMDA_SSL.Algorithm.Classification.GCN import GCN
 file = open("../Result/GCN_Cora.txt", "w")
 
 dataset=Cora(labeled_size=0.2,root='..\Download\Cora',random_state=0,default_transforms=True)
@@ -27,10 +27,10 @@ evaluation={
 optimizer=Adam(lr=0.01)
 
 model=GCN(
-    num_features=1433,
+    dim_in=1433,
     normalize=True,
-    epoch=2000,
-    eval_epoch=100,
+    epoch=500,
+    eval_epoch=200,
     weight_decay=5e-4,
     device='cpu',
     optimizer=optimizer,

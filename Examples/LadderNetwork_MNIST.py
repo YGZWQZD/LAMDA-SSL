@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.LadderNetwork import Ladder_Network
+from LAMDA_SSL.Algorithm.Classification.LadderNetwork import Ladder_Network
 from LAMDA_SSL.Opitimizer.Adam import Adam
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
@@ -13,7 +13,7 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Scheduler.Linear_Warmup import Linear_Warmup
+from LAMDA_SSL.Scheduler.LinearWarmup import LinearWarmup
 from LAMDA_SSL.Dataset.Vision.Mnist import Mnist
 import torch.nn as nn
 
@@ -52,7 +52,7 @@ valid_sampler=SequentialSampler()
 optimizer=Adam(lr=0.02)
 
 # scheduler
-scheduler=Linear_Warmup(num_warmup_steps=15,num_training_steps=10,verbose=False)
+scheduler=LinearWarmup(num_warmup_steps=15,num_training_steps=10,verbose=False)
 
 # evalutation
 evaluation={
@@ -80,7 +80,7 @@ model=Ladder_Network(noise_std=0.2,
                      test_sampler=test_sampler,
                      labeled_dataloader=labeled_dataloader, unlabeled_dataloader=unlabeled_dataloader,
                      valid_dataloader=valid_dataloader, test_dataloader=test_dataloader,
-                     file=file,verbose=True)
+                     file=None,verbose=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 

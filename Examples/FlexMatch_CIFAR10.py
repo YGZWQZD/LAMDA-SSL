@@ -1,14 +1,13 @@
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
-from LAMDA_SSL.Transform.RandAugment import RandAugment
-from LAMDA_SSL.Transform.Cutout import Cutout
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
 from LAMDA_SSL.Opitimizer.SGD import SGD
-from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from LAMDA_SSL.Network.WideResNet import WideResNet
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
-from LAMDA_SSL.Algorithm.Classifier.FlexMatch import FlexMatch
+from LAMDA_SSL.Algorithm.Classification.FlexMatch import FlexMatch
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
 from sklearn.pipeline import Pipeline
@@ -21,7 +20,7 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Scheduler.Cosine_Warmup import Cosine_Warmup
+from LAMDA_SSL.Scheduler.CosineWarmup import CosineWarmup
 # dataset
 dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False,default_transforms=True)
 
@@ -58,25 +57,25 @@ valid_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False
 test_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # augmentation
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+weak_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 
-strongly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+strong_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ('RandAugment',RandAugment(n=2,m=10,num_bins=10)),
                               ('Cutout',Cutout(v=0.5,fill=(127, 127, 127))),
                               ])
 augmentation={
-    'weakly_augmentation':weakly_augmentation,
-    'strongly_augmentation':strongly_augmentation
+    'weakly_augmentation':weak_augmentation,
+    'strongly_augmentation':strong_augmentation
 }
 
 # optimizer
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 
 # scheduler
-scheduler=Cosine_Warmup(num_cycles=7./16,num_training_steps=2**20)
+scheduler=CosineWarmup(num_cycles=7./16,num_training_steps=2**20)
 
 # network
 network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)

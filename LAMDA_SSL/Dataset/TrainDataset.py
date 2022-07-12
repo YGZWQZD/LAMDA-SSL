@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 from .LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from ..Split.Data_Split import Data_Split
+from ..Split.DataSplit import DataSplit
 
 class TrainDataset(Dataset):
     def __init__(self,
@@ -61,7 +61,7 @@ class TrainDataset(Dataset):
                     unlabeled_y=None,labeled_dataset=None,unlabeled_dataset=None):
         if labeled_X is not None:
             if unlabeled_X is None and self.labeled_size is not None:
-                labeled_X,labeled_y,unlabeled_X,unlabeled_y=Data_Split(X=labeled_X,y=labeled_y,
+                labeled_X,labeled_y,unlabeled_X,unlabeled_y=DataSplit(X=labeled_X,y=labeled_y,
                                                                 size_split=self.labeled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,
@@ -77,7 +77,7 @@ class TrainDataset(Dataset):
             elif self.labeled_size is not None:
                 labeled_X=getattr(labeled_dataset,'X')
                 labeled_y=getattr(labeled_dataset,'y')
-                labeled_X,labeled_y,unlabeled_X,unlabeled_y=Data_Split(X=labeled_X,y=labeled_y,
+                labeled_X,labeled_y,unlabeled_X,unlabeled_y=DataSplit(X=labeled_X,y=labeled_y,
                                                                 size_split=self.labeled_size,
                                                                 stratified=self.stratified,
                                                                 shuffle=self.shuffle,

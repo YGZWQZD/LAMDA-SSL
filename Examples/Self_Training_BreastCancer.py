@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.Self_Training import Self_Training
+from LAMDA_SSL.Algorithm.Classification.Self_Training import Self_Training
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall

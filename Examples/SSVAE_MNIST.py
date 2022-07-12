@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.SSVAE import SSVAE
+from LAMDA_SSL.Algorithm.Classification.SSVAE import SSVAE
 from LAMDA_SSL.Opitimizer.Adam import Adam
 from LAMDA_SSL.Transform.ToImage import ToImage
 import torch.nn as nn
@@ -57,18 +57,18 @@ optimizer=Adam(lr=3e-4)
 
 # evalutation
 evaluation={
-    'accuracy':Accuracy(),
-    'top_5_accuracy':Top_k_Accurary(k=5),
-    'precision':Precision(average='macro'),
+    'Accuracy':Accuracy(),
+    'Top_5_Accuracy':Top_k_Accurary(k=5),
+    'Precision':Precision(average='macro'),
     'Recall':Recall(average='macro'),
     'F1':F1(average='macro'),
     'AUC':AUC(multi_class='ovo'),
-    'Confusion_matrix':Confusion_Matrix(normalize='true')
+    'Confusion_Matrix':Confusion_Matrix(normalize='true')
 }
 
 file = open("../Result/SSVAE_MNIST.txt", "w")
 
-model=SSVAE(alpha=1,num_labeled=6000,dim_in=(28,28),num_classes=10,
+model=SSVAE(alpha=0.1,num_labeled=6000,dim_in=(28,28),num_classes=10,
              dim_z=50,
              dim_hidden_de=[500, 500],
              dim_hidden_en_y=[500, 500], dim_hidden_en_z=[500, 500],
@@ -79,7 +79,6 @@ model=SSVAE(alpha=1,num_labeled=6000,dim_in=(28,28),num_classes=10,
              labeled_dataset=labeled_dataset,unlabeled_dataset=unlabeled_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,
              labeled_sampler=labeled_sampler,unlabeled_sampler=unlabeled_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,
              labeled_dataloader=labeled_dataloader,unlabeled_dataloader=unlabeled_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,
-
              optimizer=optimizer,
              evaluation=evaluation,
              file=file,verbose=True)

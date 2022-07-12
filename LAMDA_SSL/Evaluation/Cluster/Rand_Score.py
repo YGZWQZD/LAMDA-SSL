@@ -1,5 +1,5 @@
 from sklearn.metrics import rand_score
-from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
+from LAMDA_SSL.Base.ClusterEvaluation import ClusterEvaluation
 
 class Rand_Score(ClusterEvaluation):
     def __init__(self):

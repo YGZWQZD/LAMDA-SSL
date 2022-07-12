@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.SSGMM import SSGMM
+from LAMDA_SSL.Algorithm.Classification.SSGMM import SSGMM
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall

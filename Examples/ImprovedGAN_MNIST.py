@@ -13,7 +13,7 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Algorithm.Classifier.ImprovedGAN import ImprovedGAN
+from LAMDA_SSL.Algorithm.Classification.ImprovedGAN import ImprovedGAN
 import torch.nn as nn
 from LAMDA_SSL.Dataset.Vision.Mnist import Mnist
 dataset=Mnist(root='..\Download\mnist',labeled_size=6000,shuffle=True,download=False,random_state=0,default_transforms=True)
@@ -52,13 +52,13 @@ optimizer=Adam(lr=3e-4)
 
 # evalutation
 evaluation={
-    'accuracy':Accuracy(),
-    'top_5_accuracy':Top_k_Accurary(k=5),
-    'precision':Precision(average='macro'),
+    'Accuracy':Accuracy(),
+    'Top_5_Accuracy':Top_k_Accurary(k=5),
+    'Precision':Precision(average='macro'),
     'Recall':Recall(average='macro'),
     'F1':F1(average='macro'),
     'AUC':AUC(multi_class='ovo'),
-    'Confusion_matrix':Confusion_Matrix(normalize='true')
+    'Confusion_Matrix':Confusion_Matrix(normalize='true')
 }
 
 file = open("../Result/ImprovedGAN_MNIST.txt", "w")

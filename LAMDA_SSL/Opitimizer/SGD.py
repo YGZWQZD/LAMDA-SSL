@@ -1,4 +1,4 @@
-from LAMDA_SSL.Opitimizer.BaseOptimizer import BaseOptimizer
+from LAMDA_SSL.Base.BaseOptimizer import BaseOptimizer
 from torch.optim import  sgd
 
 class SGD(BaseOptimizer):

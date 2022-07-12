@@ -1,12 +1,12 @@
 import numpy as np
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
-from LAMDA_SSL.Split.Data_Split import Data_Split
+from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 import torch
 import copy
-from LAMDA_SSL.Dataset.GraphMixin import GraphMixin
+from LAMDA_SSL.Base.GraphMixin import GraphMixin
 from torch_geometric.datasets.planetoid import Planetoid
 class Cora(SemiDataset,GraphMixin):
     # name='Cora'
@@ -84,7 +84,7 @@ class Cora(SemiDataset,GraphMixin):
         train_y=self.data.y
 
         if self.test_size is not None:
-            test_X, test_y, train_ind, train_y = Data_Split(X=train_X, y=train_y,
+            test_X, test_y, train_ind, train_y = DataSplit(X=train_X, y=train_y,
                                                             size_split=self.test_size,
                                                             stratified=self.stratified,
                                                             shuffle=self.shuffle,
@@ -95,7 +95,7 @@ class Cora(SemiDataset,GraphMixin):
             test_y=None
 
         if self.valid_size is not None:
-            valid_X, valid_y, train_X, train_y = Data_Split(X=train_X, y=train_y,
+            valid_X, valid_y, train_X, train_y = DataSplit(X=train_X, y=train_y,
                                                             size_split=self.valid_size,
                                                             stratified=self.stratified,
                                                             shuffle=self.shuffle,
@@ -106,7 +106,7 @@ class Cora(SemiDataset,GraphMixin):
             valid_y=None
 
         if self.labeled_size is not None:
-            labeled_X, labeled_y, unlabeled_X, unlabeled_y = Data_Split(X=train_X, y=train_y,
+            labeled_X, labeled_y, unlabeled_X, unlabeled_y = DataSplit(X=train_X, y=train_y,
                                                             size_split=self.labeled_size,
                                                             stratified=self.stratified,
                                                             shuffle=self.shuffle,

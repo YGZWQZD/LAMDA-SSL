@@ -1,4 +1,4 @@
-from LAMDA_SSL.Sampler.BaseSampler import BaseSampler
+from LAMDA_SSL.Base.BaseSampler import BaseSampler
 import torch.utils.data.sampler as torchsampler
 class BatchSampler(BaseSampler):
     def __init__(self, batch_size: int, drop_last: bool):

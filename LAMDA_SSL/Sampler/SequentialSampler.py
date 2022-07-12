@@ -1,4 +1,4 @@
-from LAMDA_SSL.Sampler.BaseSampler import BaseSampler
+from LAMDA_SSL.Base.BaseSampler import BaseSampler
 from torch.utils.data import sampler
 class SequentialSampler(BaseSampler):
     def __init__(self):

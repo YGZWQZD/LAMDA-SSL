@@ -12,7 +12,7 @@ from LAMDA_SSL.Opitimizer.Adam import Adam
 epoch = 1000
 eval_epoch = None
 optimizer = Adam(lr=0.001)
-scheduler = StepLR(step_size=10,gamma=0.9,verbose=False)
+scheduler = StepLR(step_size=10, gamma=0.9, verbose=False)
 device = 'cpu'
 evaluation={
     'accuracy':Accuracy(),
@@ -29,7 +29,7 @@ parallel = None
 file = None
 verbose = False
 xeqs = True
-num_features = None
+dim_in = None
 num_nodes = None
 hidden_layers = [1000,1000]
 alpha = 1e-3

@@ -1,10 +1,10 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
-from LAMDA_SSL.Dataset.VisionMixin import VisionMixin
-from LAMDA_SSL.Transform.ImageToTensor import ImageToTensor
+from LAMDA_SSL.Base.VisionMixin import VisionMixin
+from LAMDA_SSL.Transform.ToTensor import ToTensor
 from sklearn.pipeline import Pipeline
-
-from LAMDA_SSL.Transform.MinMaxScaler import MinMaxScaler
-from LAMDA_SSL.Split.Data_Split import Data_Split
+from LAMDA_SSL.Transform.ToImage import ToImage
+from LAMDA_SSL.Transform.Table.MinMaxScaler import MinMaxScaler
+from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
@@ -77,18 +77,18 @@ class Mnist(SemiDataset,VisionMixin):
     def init_default_transforms(self):
         self.transforms=None
         self.target_transform=None
-        self.pre_transform=None
-        self.transform=Pipeline([('ToTensor',ImageToTensor()),
-                              ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
+        self.pre_transform=ToImage()
+        self.transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
+                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
                               ])
-        self.unlabeled_transform=Pipeline([('ToTensor',ImageToTensor()),
-                              ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
+        self.unlabeled_transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
+                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
                               ])
-        self.test_transform=Pipeline([('ToTensor',ImageToTensor()),
-                              ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
+        self.test_transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
+                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
                               ])
-        self.valid_transform=Pipeline([('ToTensor',ImageToTensor()),
-                              ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
+        self.valid_transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
+                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
                               ])
         return self
 
@@ -97,7 +97,7 @@ class Mnist(SemiDataset,VisionMixin):
         test_X, test_y = self.test_data.data, self.test_data.targets
         train_X, train_y = self.train_data.data, self.train_data.targets
         if self.valid_size is not None:
-            valid_X, valid_y, train_X, train_y = Data_Split(X=train_X, y=train_y,
+            valid_X, valid_y, train_X, train_y = DataSplit(X=train_X, y=train_y,
                                                                    size_split=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
@@ -108,7 +108,7 @@ class Mnist(SemiDataset,VisionMixin):
             valid_y=None
 
         if self.labeled_size is not None:
-            labeled_X, labeled_y, unlabeled_X, unlabeled_y = Data_Split(X=train_X,y=train_y,
+            labeled_X, labeled_y, unlabeled_X, unlabeled_y = DataSplit(X=train_X,y=train_y,
                                                                    size_split=self.labeled_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,

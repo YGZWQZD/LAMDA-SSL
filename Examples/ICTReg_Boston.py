@@ -1,14 +1,14 @@
-from LAMDA_SSL.Transform.Noise import Noise
+from LAMDA_SSL.Augmentation.Table.Noise import Noise
 import torch.nn as nn
 from LAMDA_SSL.Dataset.Table.Boston import Boston
 from LAMDA_SSL.Opitimizer.SGD import SGD
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
-from LAMDA_SSL.Network.MLP_Reg import MLP_Reg
+from LAMDA_SSL.Network.MLPReg import MLPReg
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
-from LAMDA_SSL.Algorithm.Regressor.ICTReg import ICTReg
+from LAMDA_SSL.Algorithm.Regression.ICTReg import ICTReg
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
 from LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error import Mean_Absolute_Error
@@ -68,7 +68,7 @@ optimizer=SGD(lr=0.001,momentum=0.9,nesterov=True)
 scheduler=CosineAnnealingLR(eta_min=0,T_max=4000)
 
 # network
-network=MLP_Reg(hidden_dim=[100,100],activations=[nn.ReLU(),nn.ReLU()],dim_in=labeled_X.shape[-1])
+network=MLPReg(hidden_dim=[100,50,10],activations=[nn.ReLU(),nn.ReLU()],dim_in=labeled_X.shape[-1])
 
 evaluation={
     'Mean_Absolute_Error':Mean_Absolute_Error(),

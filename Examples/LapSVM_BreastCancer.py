@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.LapSVM import LapSVM
+from LAMDA_SSL.Algorithm.Classification.LapSVM import LapSVM
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1

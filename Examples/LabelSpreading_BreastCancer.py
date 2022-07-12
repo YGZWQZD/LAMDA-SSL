@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.LabelSpreading import LabelSpreading
+from LAMDA_SSL.Algorithm.Classification.LabelSpreading import LabelSpreading
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall

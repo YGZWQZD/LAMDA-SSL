@@ -1,7 +1,7 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
-from LAMDA_SSL.Dataset.TextMixin import TextMixin
+from LAMDA_SSL.Base.TextMixin import TextMixin
 from torchtext.utils import download_from_url,extract_archive
-from LAMDA_SSL.Split.Data_Split import Data_Split
+from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
@@ -99,7 +99,7 @@ class  SST2(SemiDataset,TextMixin):
 
 
         if self.valid_size is not None:
-            valid_X, valid_y, labeled_X, labeled_y = Data_Split(X=labeled_X, y=labeled_y,
+            valid_X, valid_y, labeled_X, labeled_y = DataSplit(X=labeled_X, y=labeled_y,
                                                                    size_split=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
@@ -110,7 +110,7 @@ class  SST2(SemiDataset,TextMixin):
             valid_y = None
 
         if self.labeled_size is not None:
-            labeled_X, labeled_y, unlabeled_X,unlabeled_y = Data_Split(X=labeled_X, y=labeled_y,
+            labeled_X, labeled_y, unlabeled_X,unlabeled_y = DataSplit(X=labeled_X, y=labeled_y,
                                                                size_split=self.labeled_size,
                                                                stratified=self.stratified,
                                                                shuffle=self.shuffle,

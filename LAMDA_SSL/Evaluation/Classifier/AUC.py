@@ -1,4 +1,4 @@
-from LAMDA_SSL.Evaluation.Classifier.ClassifierEvaluation import ClassifierEvaluation
+from LAMDA_SSL.Base.ClassifierEvaluation import ClassifierEvaluation
 from sklearn.metrics import roc_auc_score
 from LAMDA_SSL.utils import partial
 from LAMDA_SSL.utils import class_status

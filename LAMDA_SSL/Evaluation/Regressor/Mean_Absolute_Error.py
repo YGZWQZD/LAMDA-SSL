@@ -1,4 +1,4 @@
-from LAMDA_SSL.Evaluation.Regressor.RegressorEvaluation import RegressorEvaluation
+from LAMDA_SSL.Base.RegressorEvaluation import RegressorEvaluation
 from sklearn.metrics import mean_absolute_error
 from LAMDA_SSL.utils import partial
 

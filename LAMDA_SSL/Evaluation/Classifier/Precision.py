@@ -1,4 +1,4 @@
-from LAMDA_SSL.Evaluation.Classifier.ClassifierEvaluation import ClassifierEvaluation
+from LAMDA_SSL.Base.ClassifierEvaluation import ClassifierEvaluation
 from sklearn.metrics import precision_score
 from LAMDA_SSL.utils import partial
 

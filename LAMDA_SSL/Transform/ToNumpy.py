@@ -1,7 +1,7 @@
 from LAMDA_SSL.utils import to_numpy,is_pandas_ndframe,is_torch_data_type
 import numpy as np
 
-from LAMDA_SSL.Transform.Transformer import Transformer
+from LAMDA_SSL.Base.Transformer import Transformer
 class ToNumpy(Transformer):
     def __init__(self):
         super().__init__()

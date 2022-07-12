@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.Assemble import Assemble
+from LAMDA_SSL.Algorithm.Classification.Assemble import Assemble
 from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Evaluation.Classifier.Precision import Precision

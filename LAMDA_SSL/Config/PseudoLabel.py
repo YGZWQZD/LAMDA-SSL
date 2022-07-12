@@ -1,5 +1,5 @@
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
 from LAMDA_SSL.Opitimizer.SGD import SGD
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from LAMDA_SSL.Network.WideResNet import WideResNet
@@ -17,8 +17,8 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Transform.Normalization import Normalization
-from LAMDA_SSL.Transform.ImageToTensor import ImageToTensor
+from LAMDA_SSL.Transform.Vision.Normalization import Normalization
+from Unused.ImageToTensor import ImageToTensor
 from LAMDA_SSL.Transform.ToImage import ToImage
 
 mean = [0.4914, 0.4822, 0.4465]

@@ -3,7 +3,7 @@ from LAMDA_SSL.Opitimizer.SGD import SGD
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
-from LAMDA_SSL.Algorithm.Classifier.FixMatch import FixMatch
+from LAMDA_SSL.Algorithm.Classification.FixMatch import FixMatch
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
@@ -14,10 +14,10 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Transform.TFIDFReplacement import TFIDFReplacement
+from LAMDA_SSL.Augmentation.Text.TFIDFReplacement import TFIDFReplacement
 from LAMDA_SSL.Network.TextRCNN import TextRCNN
-from LAMDA_SSL.Transform.RandomSwap import RandomSwap
-from LAMDA_SSL.Transform.GloVe import Glove
+from LAMDA_SSL.Augmentation.Text.RandomSwap import RandomSwap
+from LAMDA_SSL.Transform.Text.GloVe import Glove
 
 # dataset
 dataset=SST2(root='..\Download\SST2',stratified=True,shuffle=True,download=False,vectors=Glove(cache='..\Download\Glove\.vector_cache'),length=50,default_transforms=True)
@@ -56,13 +56,13 @@ test_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # augmentation
 
-weakly_augmentation=RandomSwap(n=1)
+weak_augmentation=RandomSwap(n=1)
 
-strongly_augmentation=TFIDFReplacement(text=labeled_X,p=0.7)
+strong_augmentation=TFIDFReplacement(text=labeled_X,p=0.7)
 
 augmentation={
-    'weakly_augmentation':weakly_augmentation,
-    'strongly_augmentation':strongly_augmentation
+    'weakly_augmentation':weak_augmentation,
+    'strongly_augmentation':strong_augmentation
 }
 
 # optimizer

@@ -1,5 +1,5 @@
 from torch.optim import lr_scheduler
-from LAMDA_SSL.Scheduler.BaseScheduler import BaseScheduler
+from LAMDA_SSL.Base.BaseScheduler import BaseScheduler
 class CosineAnnealingLR(BaseScheduler):
     def __init__(self,  T_max, eta_min=0, last_epoch=-1, verbose=False):
         # >> Parameter:

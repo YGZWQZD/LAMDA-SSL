@@ -5,8 +5,8 @@ from LAMDA_SSL.Base.SemiEstimator import SemiEstimator
 from torch.utils.data.dataset import Dataset
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 
-from LAMDA_SSL.Opitimizer.BaseOptimizer import BaseOptimizer
-from LAMDA_SSL.Scheduler.BaseScheduler import BaseScheduler
+from LAMDA_SSL.Base.BaseOptimizer import BaseOptimizer
+from LAMDA_SSL.Base.BaseScheduler import BaseScheduler
 
 from LAMDA_SSL.utils import EMA
 from LAMDA_SSL.utils import to_device
@@ -168,8 +168,8 @@ class DeepModelMixin(SemiEstimator):
         self.it_epoch=0
         self.it_total=0
         self.loss=None
-        self.weakly_augmentation=None
-        self.strongly_augmentation=None
+        self.weak_augmentation=None
+        self.strong_augmentation=None
         self.normalization=None
         self.performance=None
         self.valid_performance=None
@@ -231,24 +231,24 @@ class DeepModelMixin(SemiEstimator):
     def init_augmentation(self):
         if self._augmentation is not None:
             if isinstance(self._augmentation, dict):
-                self.weakly_augmentation = self._augmentation['augmentation'] \
+                self.weak_augmentation = self._augmentation['augmentation'] \
                     if 'augmentation' in self._augmentation.keys() \
-                    else self._augmentation['weakly_augmentation']
-                if 'strongly_augmentation' in self._augmentation.keys():
-                    self.strongly_augmentation = self._augmentation['strongly_augmentation']
+                    else self._augmentation['weak_augmentation']
+                if 'strong_augmentation' in self._augmentation.keys():
+                    self.strong_augmentation = self._augmentation['strong_augmentation']
             elif isinstance(self._augmentation, (list, tuple)):
-                self.weakly_augmentation = self._augmentation[0]
+                self.weak_augmentation = self._augmentation[0]
                 if len(self._augmentation) > 1:
-                    self.strongly_augmentation = self._augmentation[1]
+                    self.strong_augmentation = self._augmentation[1]
             else:
-                self.weakly_augmentation = copy.deepcopy(self._augmentation)
-            if self.strongly_augmentation is None:
-                self.strongly_augmentation = copy.deepcopy(self.weakly_augmentation)
+                self.weak_augmentation = copy.deepcopy(self._augmentation)
+            if self.strong_augmentation is None:
+                self.strong_augmentation = copy.deepcopy(self.weak_augmentation)
 
     def init_transform(self):
-        if self.weakly_augmentation is not None:
-            self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-            self._train_dataset.add_unlabeled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
+        if self.weak_augmentation is not None:
+            self._train_dataset.add_transform(self.weak_augmentation,dim=1,x=0,y=0)
+            self._train_dataset.add_unlabeled_transform(self.weak_augmentation, dim=1, x=0, y=0)
 
     def init_train_dataset(self,X=None,y=None,unlabeled_X=None, *args, **kwargs):
         if isinstance(X,TrainDataset):

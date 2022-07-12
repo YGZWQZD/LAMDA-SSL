@@ -1,64 +1,213 @@
 #  介绍
 
-LAMDA-SSL是一个有效易用的半监督学习工具包。目前该工具包包含30种半监督学习算法，其中基于传统机器学习模型的算法13种，基于深度神经网络模型的算法17种，可用于处理结构化数据、图像数据、文本数据、图结构数据4种数据类型，可用于分类、回归、聚类3种任务，包含数据管理、数据变换、算法应用、模型评估等多个模块，便于实现端到端的半监督学习过程，兼容目前主流的机器学习工具包scikit-learn和深度学习工具包pytorch，具备完善的功能，标准的接口和详尽的文档。
 
-##  设计思想
 
-LAMDA-SSL的整体设计思想如图所示。LAMDA-SSL参考了sklearn工具包的底层实现，所有算法都使用了与sklearn相似的接口。 在sklearn中的学习器都继承了Estimator这一父类，Estimator表示一个估计器，利用现有数据建立模型对未来的数据做出预测，对估计器存在fit()和transform()两个方法，其中fit()方法是一个适配过程，即利用现有数据建立模型，对应了机器学习中的训练过程，transform()方法是一个转换过程，即利用fit()过后的模型对新数据进行预测。
+##  背景
 
-<div align=center>
-<img width=500px height=500px src="./Imgs/Base.png" >
-</div>
-
-LAMDA-SSL中的预测器通过继承半监督预测器类SemiEstimator间接继承了sklearn中的Estimator。由于sklearn中fit()方法使用的数据往往包含样本和标注两项，在半监督学习中，模型的训练过程中同时使用有标注数据、标注和无标注数据，因此Estimator的fit()方法不方便直接用于半监督学习算法。虽然sklearn中也实现了自训练方法和基于图的方法两类半监督学习算法，它们也继承了Estimator类，但是为了使用fit()方法的接口，sklearn将有标注样本与无标注数据样本结合在一起作为fit()的样本输入，将标注输入中无标注数据对应的标注记为-1，这种处理方式虽然可以适应Estimator的接口，但是也存在局限性，尤其使在一些二分类场景下往往用-1表示有标注数据的负例标注，与无标注数据会发生冲突，因此针对半监督学习在Estimator的基础上重新建立新类SemiEstimator具有必要性，SemiEstimator的fit()方法包含有标注数据、标注和无标注数据三部分输入，更好地契合了半监督学习的应用场景，避免了要求用户自己对数据进行组合处理，也避免了无标注数据与二分类负类的冲突，相较Estimator使用起来更加方便。
-
-半监督学习一般分为归纳式学习和直推式学习，区别在于是否直接使用待预测数据作为训练过程中的无标注数据。LAMDA-SSL中使用两个类InductiveEstimator和Transductive分别对应了归纳式学习和直推式学习两类半监督学习方法，均继承了SemiEstimator类。
+近年来，关于机器学习算法的研究取得了丰硕的成果，但是在实际落地中仍然面临着诸多困难，这是由于现实场景下往往难以获取足质足量的数据资源，其中数据标注资源的稀缺问题尤为严重，尤其是在军工、金融、医疗等领域，标注的获取具有高机密、高代价、高风险的特点，这使得依赖于大量有标注数据的机器学习算法性能受到严重影响。自然条件下的大部分数据都是没有标注的（如图1所示），如果不能对无标注数据有效利用则会造成大规模的信息资源浪费，因此，如何在机器学习过程中同时利用少量有标注数据和大量无标注数据是亟需解决的问题。
 
 <div align=center>
-<img width="500px"  src="./Imgs/LearningPattern.png" > 
+<img width=1000px src="./Imgs/Scarcity_of_labels.png" >
+<br>
+图1: 机器学习实际应用中往往存在少量有标注数据和大量无标注数据
 </div>
 
-在sklearn中，为了使估计器针对不同的任务可以具备相应的功能，sklearn针对估计器的不同使用场景开发了与场景对应的组件（Mixin），sklearn中的估计器往往会同时继承Estimator和相应组件，从而使估计器同时拥有基本的适配和预测功能，还能拥有不同组件对应的处理不同任务场景的功能。其中关键组件包括用于分类任务的ClassifierMixin、用于回归任务的RegressorMixin、用于聚类任务的ClusterMixin和用于数据转换的TransformerMixin，在LAMDA-SSL中同样使用了这些组件。
+监督学习和无监督学习是两种经典且常见的机器学习范式。监督学习的成功依赖于大量高质量的有标注数据，而当标注数据受限时，监督学习模型的性能通常无法达到预期。这使其天然与标注获取困难的应用场景不适配，在这些场景中，对大量数据进行人工标注不仅会花费高昂的成本，而且需要较长的数据标注周期。无监督学习完全抛弃来自数据标注的信息，无法建立特征空间与目标空间之间的联系，难以应用于分类和回归等任务，功能非常有限。为了解决真实应用场景中标注稀缺的问题，半监督学习应运而生，打破了现有的学习范式，通过先验知识与假设建立特征空间与目标空间之间的联系，从而利用少量有标注数据与大量无标注数据进行学习。
+<div align=center>
+<img width=1000px src="./Imgs/MLParadigm.png" >
+<br>
+图2: 机器学习实际应用中往往存在少量有标注数据和大量无标注数据
+</div>
 
-另外，不同于经典机器学习中常用的sklearn框架，深度学习在经常使用pytorch框架，pytorch各组件间存在较大的依赖关系（如图3-2所示），耦合度高，例如数据集（Dataset）与数据加载器（Dataloader）的耦合、优化器（Optimizer）和调度器（Scheduler）的耦合、采样器（Sampler）与批采样器（BatchSampler）的耦合等，没有像sklearn一样的简单的逻辑和接口，对用户自身要求较高，较不方便，为在同一工具包在同时包含经典机器学习方法和深度学习方法造成了较大困难，为了解决经典机器学习方法和深度学习方法难以融合于相同框架的问题，LAMDA-SSL用DeepModelMixin这一组件使基于pytorch开发的深度半监督模型拥有了与经典机器学习方法相同接口和使用方式，LAMDA-SSL中的深度半监督学习算法都继承了这一组件。DeepModelMixin对pytorch各模块进行了解耦，便于用户独立更换深度学习中数据加载器、网络结构、优化器等模块，而不需要考虑更换对其他模块造成的影响，DeepModelMixin会自动处理这些影响，使用户可以像调用经典的半监督学习算法一样便捷地调用深度半监督学习算法。
+半监督学习高度契合实际应用场景与人类自身的学习模式，具备广泛的应用前景。但是相较于经典的机器学习范式，半监督学习领域的发展目前存在学习流程更加复杂，算法设计与实现较为困难，可参考文档相对匮乏等诸多难题，严重限制了该领域在现实应用中的普及。因此，设计并实现便捷易用的半监督学习开源工具包，推动半监督学习算法在实际场景中的进一步落地，是半监督学习领域走出实验室，并在工业界扎根落地的首要问题。
+
+## 编写目的
+
+半监督学习问题的复杂程度为工具包开发者造成了严重的知识与技能壁垒，导致目前依然缺乏便捷易用的半监督学习工具包。而为了满足在实际应用中用户对于半监督学习技术的需求，一个成熟易用的半监督学习工具包应该具备以下特点：
+1）拥有先进的设计模式，同时从数据和算法角度考虑用户需求，使接口尽可能简单的同时功能尽可能强大；
+2）应用范围应足够广泛，如同时支持表格、图像、文本、图等多种常见数据类型，同时支持分类、回归、聚类等多种常见任务类型；
+3）拥有大量类型丰富且性能良好的算法供用户根据应用场景进行选择，可以同时支持统计机器学习算法和深度学习算法；
+4）具备易用性和可拓展性，同时考虑不同用户群体的需求，针对低熟练度的用户提供便捷的使用方法、默认参数与接口，针对高熟练度的用户应支持灵活的模块更换与自定义；
+5）通过大量实验验证工具包的有效性并比较算法在不同场景下的表现；
+6）拥有丰富便捷的文档供用户使用与参考。
+
+为了解决上述问题，我们开发了LAMDA-SSL这一设计模式先进、应用场景广泛、算法实现丰富、功能接口便捷、模型效果优秀、文档详尽完善的半监督学习工具包。目前该工具包涵盖30种半监督学习算法，其中基于统计机器学习模型的算法12种，基于深度神经网络模型的算法18种；包含多样的数据变换技术，可用于处理表格数据、图像数据、文本数据、图结构数据4种数据类型；包含多种模型评估方法，可用于分类、回归、聚类3种任务；包含数据管理、数据变换、模型应用、模型部署多个模块，便于实现端到端的半监督学习过程；兼容目前主流的机器学习工具包sklearn和深度学习工具包pytorch，支持sklearn的Pipeline机制和参数搜索功能，支持pytorch的GPU加速和分布式训练功能；为用户提供了便捷的工具包使用文档、详尽的API接口文档和丰富的半监督学习算法介绍文档；针对非专业用户提供了效果良好的默认参数，针对专业用户提供了便捷低耦合的模块修改与自定义接口。
+
+LAMDA-SSL是目前包含算法数量最多、支持数据类型最多、支持任务最多、功能最丰富、接口最便捷、文档最详尽的半监督学习工具包，也是首个将统计机器学习算法与深度学习算法融入同一框架并同时兼容sklearn和pytorch的半监督学习工具包。
+
+## 设计模式
+
+LAMDA-SSL相较其他的半监督学习工具，在设计模式方面更加先进，具备耦合度低、灵活性高、可拓展性强、接口简单等优势。基于这些优势，LAMDA-SSL可以帮助业界使用者快速上手半监督学习技术，以近乎零成本在业务中享受半监督学习带来的性能提升。
+
+LAMDA-SSL在设计上分为数据和模型两大模块（如图3所示），其中数据模块包含数据管理和数据变换，可用于表格、图像、文本和图四种数据类型，模型模块包含模型应用和模型部署，可用于分类、回归和聚类三种任务类型。
 
 <div align=center>
-<img width="600px"  src="./Imgs/PytorchCoupling.png" > 
+
+<img width=1000px src="./Imgs/Overview.png" >
+
+<br>
+
+图3: 机器学习实际应用中往往存在少量有标注数据和大量无标注数据
 </div>
 
-## 数据管理
+### 数据模块
 
-LAMDA-SSL拥有强大的数据管理和数据处理功能。在LAMDA-SSL中，一个半监督数据集整体可以用一个SemiDataset类进行管理，SemiDataset类可以同时管理TrainDataset、ValidDataset、TestDataset三个子数据集，分别对应了机器学习任务中的训练数据集、验证数据集和测试数据集，在最底层数据集分为LabeledDataset和UnlabeledDataset两类，分别对应了半监督学习中的有标注数据与无标注数据，训练集往往同时包含有标注数据和无标注数据，因此TrainDataset同时管理LabeledDataset和UnlabeledDataset两个数据集。
-
-LAMDA-SSL针对LabeledDataset和UnlabeledDataset分别设计了LabeledDataloader和UnlabeledDataloader两种数据加载器，而用一个TrainDataloader类同时管理两种加载器用于半监督学习的训练过程，除同时包含两个加载器外，还起到调节两个加载器之间关系的作用，如调节每一批数据中有标注数据与无标注数据的比例。
-
-LAMDA-SSL可以处理结构化数据、图像数据、文本数据、图数据四种现实应用中常见的数据类型，分别使用了四个与数据类型对应的组件StructuredDataMixin、VisionMixin、TextMixin、GraphMixin进行处理，对于一个数据集，可以继承与其数据类型对应的组件获得组件中的数据处理功能。
+LAMDA-SSL的数据模块设计思想如图4所示。
 
 <div align=center>
-<img width="600px"  src="./Imgs/Dataset.png" > 
+
+<img width=500px src="./Imgs/DataModule.png" >
+
+<br>
+
+图4: LAMDA-SSL的数据模块
 </div>
 
-## 数据变换
+Dataset：在LAMDA-SSL中，所有数据集都继承自pytorch的Dataset类，同时支持直接使用或分批次加载使用。一个半监督数据集整体可以用一个SemiDataset类进行管理，SemiDataset类可以同时管理TrainDataset 、ValidDataset、TestDataset三个子数据集，分别对应了机器学习任务中的训练数据集、验证数据集和测试数据集，在底层数据集分为LabeledDataset和UnlabeledDataset两类，分别对应了半监督学习中的有标注数据与无标注数据。训练集往往同时包含有标注数据和无标注数据，因此TrainDataset同时管理LabeledDataset和UnlabeledDataset两个数据集。
 
-使用机器学习算法利用数据学习模型和用模型对数据进行预测之前通常需要对数据进行预处理或数据增广，尤其是在半监督学习领域，部分算法本身就包含对数据进行不同程度的增广和加噪声的需求，LAMDA-SSL的数据变换模块针对不同类型的数据提供了多样的数据预处理和数据增广方法，如对于结构化数据的归一化、标准化、最小最大化等，对于视觉数据的旋转、裁剪、翻转等，对于文本数据的分词、词嵌入、调整长度等，对于图数据的结点特征标准化、k近邻图构建、图扩散等。LAMDA-SSL中所有数据变换方法都继承了sklearn中的TransformerMixin类，并且sklearn或pytorch都可以使用。对于依次进行的多次数据变换，sklearn的Pipeline机制和pytorch的Compose机制都可以使用。
+Data Transformation：在sklearn中，数据转换器同时继承了sklearn中的BaseEstimator和TransformerMixin，前者为sklearn的估计器基类，后者为sklearn的数据转换器组件，这使得数据转换器普遍拥有fit()和transform()两个方法，其中fit()方法根据现有数据学习数据处理方法，transform()方法用于对新的数据进行转换，有很大一部分转换器可以省略fit()的过程直接进行数据转换，数据转换器还可以通过fit_transform()接口连续完成fit()和transform()过程。在sklearn中数据转换器拥有Pipeline机制，可以对多个处理步骤进行流式封装和管理，LAMDA-SSL中的数据处理和数据增广方法都通过继承Transformer类拥有了与sklearn的数据转换器相同的功能。在深度半监督学习中，由于数据量庞大且可能需要根据算法需求进行数据增广，通常不会在模型训练前处理完所有数据，而是需要在数据加载过程中完成对数据的处理，因此需要为数据集设置数据处理方式，对数据加载器加载到的数据自动进行处理。在工具包TorchVision中，对数据有transform、target_transform、transforms三种处理，分别为对X、对y、同时对X和y进行变换。在半监督学习中，这三种方式并不能通用于所有情况，因此LAMDA-SSL针对无标注样本、验证样本、测试样本增加了unlabeled_transform、valid_ transform和test_transform三种数据处理流程，并且针对需要在数据处理流程中进行数据增广的情况增加了pre_transform流程，pre_transform和transform分别表示在数据增广前后对数据的处理，例如对于CIFAR10数据集，原始数据类型为numpy.ndarray，在需要数据增广的情况下，需要先转换为图片类型，对图片类型数据进行增广后再转化为torch.Tensor类型，则numpy.ndarray到图片和图片到torch.Tensor的转换过程分别对应了pre_transform和transform两种变换，二者之间可以根据算法需求灵活添加用户指定的数据增广方法。
 
-## 算法使用
+Dataloader：在深度半监督学习中，通常数据量较大，需要通过采样器分批次加载数据，即每一次迭代通过采样获得数据的下标，通过__getitem__()方法进行索引，并将索引后的数据组合成torch.Tensor作为该轮迭代的批数据。LAMDA-SSL针对LabeledDataset和UnlabeledDataset分别设计了LabeledDataloader和UnlabeledDataloader两种数据加载器，并用一个TrainDataloader类同时管理两种加载器用于半监督学习的训练过程。除同时包含两个加载器外，TrainDataloader还起到调节两个加载器之间关系的作用，如调节无标注数据与有标注数据的采样总量比例和每一批次数据中无标注数据与有标注数据的比例。
 
-目前LAMDA-SSL包含30种半监督学习算法，其中基于传统机器学习模型的算法13种（如图3-3所示）：半监督支持向量机类方法TSVM、LapSVM，基于图的方法Label Propagation、Label Spreading，生成式方法SSGMM，封装方法Self-Training、Co-Training、Tri-Training，集成方法SemiBoost、Assemble，半监督回归方法CoReg，半监督聚类方法Constrained K Means、Constrained Seed K Means；基于深度神经网络模型的算法17种（如图3-4所示）：一致性正则方法Ladder Network、Pi Model、Temporal Ensembling、Mean Teacher、VAT、UDA，基于伪标注的方法Pseudo Label、S4L，混合方法ICT、MixMatch、ReMixMatch、FixMatch、FlexMatch，生成式方法ImprovedGAN、SSVAE，图神经网络方法SDNE、GCN。
+Data-specific Mixin：LAMDA-SSL可以处理表格数据、图像数据、文本数据、图数据四种现实应用中常见的数据类型，分别使用了四个与数据类型对应的组件TableMixin、VisionMixin、TextMixin、GraphMixin进行处理，对于一个数据集，可以继承与其数据类型对应的组件获得组件中的数据处理功能。例如CIFAR10同时继承了SemiDataset和VisionMixin两个模块，从而拥有了默认的图像数据处理功能。而对于自定义数据集，用户可以通过覆盖SemiDataset中的init_dataset()方法设置数据集的数据来源，通过覆盖Mixin模块的init_default_transform()方法设置默认的数据处理流程。
+
+### 模型模块
+
+LAMDA-SSL的模型模块设计思想如图5所示。
 
 <div align=center>
-<img width="1000px"  src="./Imgs/ClassicalSSL.png" >
+
+<img width=1000px src="./Imgs/ModelModule.png" >
+<br>
+
+图5: LAMDA-SSL的模型模块
 </div>
 
+Estimator：LAMDA-SSL参考了sklearn工具包的底层实现，所有算法都使用了与sklearn相似的接口。 在sklearn中学习器都继承了BaseEstimator这一父类，普遍存在fit()和predict()两个方法。fit()方法利用现有数据建立模型，对应了机器学习中的训练过程；predict()方法利用fit()过后的模型对新数据进行预测，对应了机器学习中的预测过程。LAMDA-SSL中的学习器通过继承SemiEstimator间接继承了sklearn中的BaseEstimator。由于sklearn中fit()方法的输入仅包含样本和标注两项，而在半监督学习中，模型在训练过程中需要同时使用有标注样本、标注和无标注样本三项数据，因此BaseEstimator的fit()方法接口不便于直接用于半监督学习算法。虽然sklearn中也实现了自训练方法和基于图的方法两类半监督学习算法，但是为了使用fit()方法的接口，sklearn将有标注样本与无标注样本结合在一起作为fit()方法的样本输入，并将无标注样本对应的标注记为-1，这种处理方式虽然可以适应BaseEstimator的接口，但是也存在局限性，尤其是在一些二分类场景下往往用-1表示有标注样本的负例，与无标注样本会发生冲突，因此针对半监督学习在BaseEstimatorr的基础上重新建立新类SemiEstimator具有必要性。SemiEstimator的fit()方法包含有标注样本、标注和无标注样本三部分输入，更好地契合了半监督学习的应用场景，避免了要求用户对数据进行组合处理，也避免了无标注样本与二分类负类样本的冲突，相较BaseEstimator使用起来更加便捷。半监督学习一般分为归纳式学习和直推式学习，区别在于是否直接使用待预测数据作为训练过程中的无标注数据。其中归纳式算法使用有标注数据和已知无标注数据训练一个学习器，用于对未知无标注数据的标注进行预测；而直推式学习使用有标注数据和已知无标注数据直接预测已知无标注数据的标注。直推式方法也可以通过在原有算法的基础上加入一些新的机制拓展为归纳式方法，从而可以对新的待预测样本进行预测。LAMDA-SSL中使用两个类InductiveEstimator和TransductiveEstimator分别对应了归纳式学习和直推式学习两类半监督学习范式，均继承了SemiEstimator类。其中InductiveEstimator的predict()方法需要输入新的待预测样本，而TransductiveEstimator的predict()方法通过一个BOOL类型参数‘Transductive’确定是否采用直推式预测，如果为True，则不再需要输入新的样本，直接输出直推式预测结果，否则触发拓展机制，对新输入的样本进行预测。
 
-<div align=center> 
-<img width="1000px"  src="./Imgs/DeepSSL.png" > 
+```python
+from sklearn.base import BaseEstimator
+from abc import ABC,abstractmethod
+class SemiEstimator(ABC,BaseEstimator):
+    @abstractmethod
+    def fit(self,X,y,unlabeled_X):
+        raise NotImplementedError(
+            "The fit() method of SemiEstimator must be implemented."
+        )
+```
+
+Task-specific Mixin：在sklearn中，为了使学习器针对不同的任务可以具备对应的功能，sklearn为学习器开发了与任务对应的组件，sklearn中的学习器往往会同时继承BaseEstimator和相应组件，从而使学习器除拥有基本的训练和预测功能外，还能拥有完成与组件对应的任务的功能。其中常用组件包括用于分类任务的ClassifierMixin、用于回归任务的RegressorMixin和用于聚类任务的ClusterMixin，在LAMDA-SSL中同样使用了这些组件。以TSVM算法为例，同时继承了TransductiveEstimator和ClassifierMixin两个模块，可用于直推式半监督分类任务。
+
+Deep SSL Model Mixin：不同于统计机器学习中常用的sklearn框架，深度学习中经常使用pytorch框架，其接口与sklearn的接口相差较大，导致很难将深度学习算法和统计机器学习算法融入同一框架。另外pytorch各组件间存在较大的依赖关系，耦合度高。在数据方面，批采样器（BatchSampler）依赖于采样器（Sampler），采样器依赖于数据集（Dataset），数据加载器（Dataloader）同时依赖于批采样器、采样器和数据集；在模型方面，调度器（Scheduler）依赖于优化器（Optimizer），优化器和分布式训练模块（Parallel）又依赖于神经网络模型(Network)。Pytorch的逻辑和接口相较sklearn较为复杂，对用户自身要求较高。为了解决统计机器学习方法和深度学习方法难以融合于相同框架的问题，LAMDA-SSL用DeepModelMixin这一组件使基于pytorch开发的深度半监督学习模型拥有了与统计半监督学习方法相同的接口和使用方式，LAMDA-SSL中的深度半监督学习算法都继承了这一组件。DeepModelMixin对pytorch各模块进行了解耦，便于用户独立更换或自定义深度学习中的数据加载器、网络结构、优化器等模块，而不需要考虑更换对其他模块造成的影响，DeepModelMixin会自动处理这些影响，使用户可以像调用统计半监督学习算法一样便捷地调用深度半监督学习算法。另外DeepModelMixin不仅支持用户更换深度学习中的组件，还对深度半监督学习模型的训练过程进行了解构，根据数据处理、前向传播、计算损失、模型优化等过程细分为了多个模块，便于用户对已有深度半监督学习算法进行调整或自定义新的深度半监督学习算法，避免了大量重复性工作。DeepModelMixin的结构如图6所示。
+
+<div align=center>
+
+<img width="1000px"  src="./Imgs/DeepModelMixin.png" > 
+
+<br>
+
+图6: LAMDA-SSL的DeepModolMixin
 </div>
 
+Task-specific Evaluation：LAMDA-SSL针对分类、回归、聚类三个任务提供了多样化的评估指标，用于对模型的评估和监控。LAMDA-SSL的模型评估有两种形式，第一种是在得到预测结果后调用评估模块，第二种是在学习器初始化时直接将评估指标作为学习器的属性，可以使模型在预测结束后直接完成评估过程，且对于深度半监督学习算法可以在模型训练过程中进行实时评估和反馈。针对三个不同任务的评估指标分别继承了ClassifierEvaluation、RegressorEvaluation、ClusterEvaluation三个基类。
 
-## 模型评估
+## 应用场景
 
-LAMDA-SSL提供了针对不同任务的不同评估指标，如针对分类任务的准确率、精度、召回率等，针对回归任务的均方误差、均方对数误差、平均绝对误差等，针对聚类任务的Davies Bouldin Index[37]、Fowlkes and Mallows Index[38]、Rand Index[39]等。在LAMDA-SSL中，评估方法可以在得到预测结果后调用，也可以用python字典的形式作为参数直接传入模型。
+LAMDA-SSL应用场景广泛，可支持表格、图像、文本和图四种数据类型（如图7所示）以及分类、回归、聚类三种任务类型（如图8所示），能够在各种真实业务中发挥半监督算法的价值。
+
+### 数据场景
+
+
+<div align=center>
+
+<img width="1000px"  src="./Imgs/DataType.png" >
+
+<br>
+
+图7: LAMDA-SSL的数据场景
+
+</div>
+
+表格数据是最基本的数据形式，其特征间和样本间均不存在空间与时间上的联系，统计机器学习算法中很大一部分都是针对表格数据而设计的，这一数据类型在用户画像、股票分析、网络异常检测等应用中广泛存在。对于表格数据，sklearn中的preprocessing模块已经提供了足够丰富的处理方法，如‘StandardScaler’、‘MinMaxScaler’、‘MaxAbsScaler’等，LAMDA-SSL在其基础上进行了补充。TableMixin模块提供了对表格数据的默认处理方式，将‘StandardScaler’作为默认预变换方法，在预变换后根据需求进行数据增广，如果应用于深度学习，再将数据转换为torch.Tensor形式。为了对表格数据进行数据增广，LAMDA-SSL实现了增广方法‘Noise’，即对标准化后的数据施加服从正态分布的噪声扰动，扰动幅度由正态分布的标准差控制。
+
+图像数据是深度学习领域最常用的数据类型之一，以张量形式被用于学习过程，其特征间存在空间位置上的联系，这一数据类型在医疗影像、自动驾驶、安防识别等领域都有广泛的应用。对于图像数据，TorchVision工具包提供了部分图像数据处理方法，如裁剪、旋转、锐化等，LAMDA-SSL在其基础上进行了补充。VisionMixin模块提供了对图像数据的默认处理方式，在预变换过程中将以其他形式存储的数据转化为图片格式，在预变换后根据需求进行数据增广，最后再由图像转化为模型可处理的数据类型。为了对图像数据进行数据增广，LAMDA-SSL提供了多种图像增广方法，包括‘RandomCrop’、‘RandomHorizontalFlip’等用于弱增广的方法以及‘RandAugment’、‘Cutout’等用于强增广的方法。
+
+文本数据是深度学习领域的另一种具有广泛应用场景的数据类型，带动了自然语言处理领域的迅速发展，文本往往通过各种嵌入方式被转化为向量，且数据特征间存在时序上的联系，这一数据类型在机器翻译、情感分析、信息检索等方面存在较为广泛的应用。对于文本数据，TorchText工具包提供了部分文本数据处理方法，如分词、词嵌入等，LAMDA-SSL在其基础上进行了补充。TextMixin模块提供了对文本数据的默认处理方式，首先在预处理阶段对文本进行分词，之后根据需求对文本进行数据增广，最后调整文本长度、通过字典将token转化为索引，在深度学习中由索引组成Tensor作为模型的输入，并在模型中根据索引得到词嵌入。LAMDA-SSL提供了多种文本增广方法，包括随机删除、交换等用于弱增广的方法和以及‘TF-IDF_Replacement’这一强增广方法，该方法的基本思想为通过TF-IDF值判断单词对于文本的重要程度，而替换不重要的单词不会对文本语义产生过大影响。
+
+图数据是近年来深度学习广泛关注的方向，不同于其他数据类型只在特征间存在空间与时间上的联系，图数据要考虑样本间的空间关系，即图的结构信息，这一数据类型在社交网络、药物发现、推荐系统等领域有着重要的应用前景。对于图数据，LAMDA-SSL以
+torch_geometric中的图数据形式为标准，将图的结构信息、结点特征信息、结点标注信息等封装在数据集中，并通过mask的形式将结点划分为训练集、验证集和测试集，LAMDA-SSL在此基础上对训练集进行了进一步划分，增加了‘labeled_mask’和‘unlabeled_mask’。GraphMixin模块将对图中结点特征的标准化作为了默认的数据变换方式，并提供了‘Graph Diffusion Convolution’、‘SVD Feature Reduction’、‘GCNNorm’等变换方法，通过在图中删除结点或边进行数据增广。
+
+### 任务场景
+
+<div align=center>
+
+<img width="1000px"  src="./Imgs/TaskType.png" > 
+
+<br>
+
+图8: LAMDA-SSL的任务场景
+
+</div>
+
+分类任务是机器学习领域最基本的任务之一，模型的预测结果为离散值，常用于行为预测、目标识别、内容过滤等场景。对于分类任务，LAMDA-SSL提供了大量算法，以及‘Accuracy’、‘Recall’、‘Precision’、‘F1 Score’等多种评估指标，这些指标可以利用真实标注、模型预测的硬标注以及软标注完成对模型表现的评估。
+
+回归任务是机器学习领域另一基本任务，模型的预测结果为连续值，常用于价格预测、销量预测和信用评分等场景。目前半监督回归领域的相关研究还未成熟，可用算法较少，尤其是缺乏深度学习算法。LAMDA-SSL中除了包含半监督回归算法CoReg外，还对部分用于分类的深度半监督学习算法进行了拓展，使他们能够适用于回归任务，并提供了绝对误差、均方误差、均方对数误差多种评估指标。
+
+聚类任务是无监督学习最经典的应用，其无法利用真实标注建立特征空间与目标空间的联系，在异常检测、客户管理、价值组合等不存在真实标注的场景下有着广泛应用。对于聚类任务，LAMDA-SSL中的算法都在原有无监督聚类的基础上引入了部分监督信息来引导聚类过程，使聚类结果与真实标注更加吻合。LAMDA-SSL提供了两类聚类评估指标，第一类是外部指标，即存在正确的参考结果，通过比较聚类结果与参考结果的差异评估模型表现，更适用于数据本身存在标注的情况，如‘Fowlkes Mallows Score’、‘Rand Score’等，以聚类结果和参考结果为输入；第二类是内部指标，不依赖于参考结果，仅根据样本自身特征和聚类结果评估模型表现，如‘Davies Bouldin Score’、‘Silhouette Score’等，以聚类结果和样本特征为输入。
+
+
+## 算法实现
+
+### 基于统计机器学习模型的半监督学习算法
+
+LAMDA-SSL包含12种基于统计机器学习模型的半监督学习算法（如图9所示），其中用于分类任务的算法包括生成式方法SSGMM，半监督支持向量机类方法TSVM、LapSVM，基于图的方法Label Propagation、Label Spreading，基于分歧的方法Co-Training、Tri-Training，集成方法SemiBoost、Assemble；用于回归任务的算法包括CoReg；用于聚类任务的算法包括Constrained K Means、Constrained Seed K Means。
+
+<div align=center>
+
+<img width="1000px"  src="./Imgs/Statistical.png" > 
+
+<br>
+
+图9: LAMDA-SSL中的统计机器学习算法
+</div>
+
+生成式半监督学习方法基于生成式模型，其假设数据由一潜在的分布生成而来，而半监督生成式方法将无标注数据的标注视为隐变量，采用期望-最大化（EM）算法进行极大似然估计求解。SSGMM即半监督高斯混合模型，假设数据由一个高斯混合模型生成，即样本特征的边缘分布可以表示为若干个高斯分布混合在一起的结果，且通过混合参数为每个高斯分布赋予一个权重，对于无标注样本，可以将高斯混合成分与类别一一对应，并分类为权重最高的高斯混合成分对应的类别。
+
+半监督支持向量机是支持向量机算法在半监督学习领域的推广。半监督支持向量机引入了低密度假设，即学习得到的超平面除了需要基于有标注样本使分类间隔尽可能大，也要尽可能穿过所有样本分布的低密度区域，从而合理利用无标注样本。TSVM是最基础的半监督支持向量机方法，通过在迭代过程中不断交换可能分错的异类无标注样本对的伪标注完成学习。LapSVM引入了流形正则化，构建图模型并通过Laplace正则项引导模型对于图中临近样本的预测结果尽可能一致，从而利用样本在流形上的分布使无标注样本参与学习过程。
+
+基于图的半监督学习方法将数据集表示为一个图结构模型，图中同时存在有标注结点与无标注结点，因此基于图的半监督学习可以被视为标注在图中传播的过程。Label Propagation算法是其中最基础的方法，以Laplace正则项为优化目标，求解无标注数据的标注使优化目标取最小值。Label Spreading算法在Label Propagation算法的基础上，取消了在传递过程中模型对有标注样本的预测结果必须等于其真实标注这一限制，而是对错误结果进行了惩罚。
+
+基于分歧的半监督学习方法需要生成具有显著分歧、性能尚可的多个学习器，利用学习器之间的分歧对无标注数据加以利用，这类方法较少受到模型假设、损失函数非凸性和数据规模问题的影响，学习方法简单有效、理论基础相对坚实、适用范围较为广泛。Co-Training算法使用两个基学习器，通过不同数据视图产生分歧，利用多视图的相容互补性互相促进训练。Tri-training使用三个基本学习器，通过“少数服从多数”产生伪标注，并将学习器进行集成产生最终预测结果。
+
+集成学习方法将多个弱学习器结合起来，提高了模型的可靠性。在半监督学习领域，由于无标注数据的加入，单一学习器的不稳定性进一步加剧，对有效的集成学习方法有更强的依赖。Assemble即适应性监督集成方法，是基于适应性提升（AdaBoost）方法的拓展，每一轮迭代通过当前集成学习器为无标注样本赋予伪标注，并根据模型预测结果与样本当前标注的差异自适应地调整样本采样权重。SemiBoost进一步考虑了样本间的关系，基于图半监督学习方法，指出应该对样本间相似度较高但目前集成学习器的预测结果不一致性较大的样本设置更大的采样权重。
+
+半监督回归算法相较于分类算法更难提出合理的假设，研究半监督回归相较半监督分类有着更多的困难，目前这一领域还有待更多的研究成果。CoReg将Co-Training算法引入了回归任务，由于在回归任务中难以像分类任务一样通过类别分布得到自信度，CoReg将加入一个无标注样本前后均方误差的差异作为自信度的评估标准，从而完成了Co-Training的训练过程。
+
+半监督聚类算法在原本无监督聚类的基础上引入了监督信息以辅助无监督学习的过程，其中监督信息不一定是有标注数据，也可能是其他与真实标注有关的知识。Constrained k-means在k-means聚类算法的基础上引入了称为必连（Must Link）和勿连（Connot Link）的约束作为监督信息，其中必连约束限制了一些样本必须属于同一聚类簇，而勿连约束限制了一些样本必须属于不同的聚类簇，且必连约束与勿连约束存在传递机制。Constrained Seed k-means不同于Constrained k-means将必连和勿连约束作为监督信息，而是直接将少量数据标注作为监督信息。
+
+
+### 基于深度学习模型的半监督学习算法
+
+LAMDA-SSL包含18种基于深度模型的半监督学习算法（如图10所示）：其中用于分类任务的算法包括一致性正则方法Ladder Network、Π Model、Temporal Ensembling、Mean Teacher、VAT、UDA，基于伪标注的方法Pseudo Label、S4L，混合方法ICT、MixMatch、ReMixMatch、FixMatch、FlexMatch，生成式方法ImprovedGAN、SSVAE，图神经网络方法SDNE、GCN；用于回归任务的算法包括一致性正则方法Π Model Reg、Mean Teacher Reg和混合方法ICT Reg。
+
+<div align=center>
+
+<img width="1000px"  src="./Imgs/Deep.png" > 
+
+<br>
+
+图10: LAMDA-SSL中的深度机器学习算法
+</div>
+
+一致性正则方法基于一致性假设，即假设对于样本增加一定程度的扰动，其预测结果应尽可能保持不变，可以利用大量无标注数据提升模型对于噪声的稳健性。Ladder network采用了对称的自编码器结构，将数据在加噪的情况下编码后的解码结果与不加噪情况下的编码结果间每一隐层的不一致性作为无监督损失。UDA即无监督数据增广，对无标注数据进行一次数据增广之后比较增广前后模型的数据的预测结果，利用均方误差损失计算一致性正则项作为无监督损失。Π Model对数据进行两次随机数据增广，并分别将两次增广的结果作为神经网络模型的输入进行预测，将预测结果的不一致性作为无监督损失。Temporal Ensembling对Π Model进行了一些改进，将两次增广后的预测结果中的一次改为对历史伪标注的指数移动平均（EMA），缓解了模型对历史信息的遗忘并减少了算力消耗。Mean Teacher借助了知识蒸馏的思想，且教师模型并非是复杂模型，而是在学生模型的基础上对模型参数进行指数移动平均。VAT不同于其他方法对数据增加随机噪声，而是对数据增加对抗噪声，使模型在数据受一定限制条件下噪声影响时的最坏表现不会太差。
+
+基于伪标注的方法通过为无标注数据赋以伪标注使无标注数据对学习过程产生影响。且由于模型对于不同样本的自信度不同，基于伪标注的方法通常取自信度较高的样本参与训练过程。Pseudo Label方法设置了一个自信度阈值，在每一次迭代中，对于无标注数据选择自信度高于阈值的部分计算交叉熵损失作为无监督损失。S4L利用了自监督技术，利用旋转等方式构造自监督任务，且目标任务与自监督任务共享同一表示层，以自监督标注为伪标注，使模型可以利用无标注数据学到更好的隐层表示。
+
+混合方法不局限于仅使用一类技术，而是将一致性、伪标注技术进行结合，各取所长，从而达到更好的训练效果。由于同时使用了多种技术，混合方法往往更加具备通用性。ICT即插值一致性训练，通过Mixup数据增广方法对数据与预测结果进行线性插值，将模型对插值后样本的预测结果与模型对原始数据的预测结果的插值之间的不一致性作为无监督损失。MixMatch也用了Mixup方法，但不同于ICT仅对无标注数据的样本与伪标注进行Mixup，MixMatch将有标注数据与无标注数据混合在一起，并对混合后的数据样本及其标注或伪标注进行了Mixup。ReMixMatch是MixMatch的改进版本，其引入了两种技术：分布对齐和增广锚定，分布对齐目的在于使模型对于无标注数据预测得到的伪标注应与有标注数据的标注有相同的概率分布，增广锚定是为了使模型适应更强的数据增广，使伪标注不会随增广强度增大而改变。FixMatch对样本进行了强数据增广与弱数据增广，并将模型对弱增广数据与强增广数据预测结果的不一致性作为无监督损失。FlexMatch是对于FixMatch的改进，并注重于解决半监督学习中各类别间的不公平现象，对不同类别采用不同的阈值进行样本筛选，缓解了因学习难度不同造成的类别不平衡现象。
+
+深度生成式方法利用真实数据对数据分布进行建模，并且可以利用这一分布生成新的数据。不同于经典的生成式方法，深度生成式方法基于深度神经网络生成数据，其中大部分工作是对生成对抗网络（GAN）和变分自编码器（VAE）的推广。ImprovedGAN的判别器不同于GAN模型，不仅需要判断样本是真实样本还是生成样本，还要完成对真实样本的分类。SSVAE将VAE模型的编码器分为了两个部分，第一部分对原始数据进行编码得到样本标注的概率分布，第二部分将原始数据与伪标注共同作为输入得到隐变量的概率分布。
+
+基于图深度学习的方法针对原始数据是图数据的情况。图中实例之间并非独立关系，而是通过边相连。现实中的图数据任务往往都是半监督的，即图中同时存在有标注结点与无标注结点。SDNE是一种可以在图中结点没有特征表示，仅有图结构信息的情况下学习图中结点嵌入向量的半监督图深度学习方法，该方法采用了自编码器结构，通过将结点的邻接向量作为特征输入自编码器学习得到结点的嵌入表示。GCN更适用于结点本身存在特征的情况，可以同时利用结点自身的特征信息和图结构信息进行学习，通过图卷积将近邻结点的信息进行汇集并更新结点表示。GAT和GCN同样适用于结点本身存在特征的情况，不同于GCN的图卷积操作，GAT引入了注意力机制，每次迭代根据当前结点自身的表示和近邻结点的的表示计算注意力权重，并利用权重对当前结点的表示进行更新。
 
 # 快速开始
 
@@ -66,7 +215,7 @@ LAMDA-SSL提供了针对不同任务的不同评估指标，如针对分类任�
 以CIFAR10数据集为例,首先导入CIFAR10类。
 
 ```python
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
 ```
 
 实例化一个封装好的CIFAR10数据集,相当于一个数据管理器，root参数表示数据集存放地址，labeled_size参数表示有标注样本的数量或比例，stratified参数表示对数据集进行划分时是否要按类别比例划分，shuffle参数表示是否需要对数据集进行打乱，download参数表示是否需要下载数据集。
@@ -91,7 +240,7 @@ test_y=dataset.test_y
 以RandAugment数据增广为例，首先导入RandAugment类。
 
 ```python
-from LAMDA_SSL.Transform.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
 ```
 
 对RandAugment进行实例化，参数n为进行随机增广的次数，表示增广的幅度，num_bins表示幅度划分的级别数。这里设置将增广幅度划分为10个等级，并采用第10级的增广增广2次。
@@ -119,19 +268,20 @@ LAMDA-SSL支持Pipeline机制，将多种数据处理方式以流水线的形式
 
 ```python
 from sklearn.pipeline import Pipeline
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
-from LAMDA_SSL.Transform.RandAugment import RandAugment
-from LAMDA_SSL.Transform.Cutout import Cutout
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
 
-strongly_augmentation=Pipeline([('RandAugment',RandAugment(n=2,m=5,num_bins=10,random=True)),
-                              ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
-                              ('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
+weakly_augmentation = Pipeline([('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect')),
+                                ])
+
+strongly_augmentation = Pipeline([('RandAugment', RandAugment(n=2, m=5, num_bins=10, random=True)),
+                                  ('Cutout', Cutout(v=0.5, fill=(127, 127, 127))),
+                                  ('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                  ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect')),
+                                  ])
 ```
 
 可以直接调用fit_transform()方法完成数据处理。
@@ -163,7 +313,7 @@ test_X=pre_transform.transform(test_X)
 调用并初始化Self-Training模型，以SVM模型为基学习器。
 
 ```python
-from LAMDA_SSL.Algorithm.Classifier.Self_Training import Self_Training
+from LAMDA_SSL.Algorithm.Classification.Self_Training import Self_Training
 from sklearn.svm import SVC
 SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
 model=Self_Training(base_estimator=SVM,threshold=0.8,criterion="threshold",max_iter=100)
@@ -227,7 +377,7 @@ unlabeled_X=pre_transform.transform(unlabeled_X)
 之后导入并初始化TSVM算法，其中参数‘Cl’表示初始状态下有标注样本的权重，参数‘Cu’ 初始状态下无标注样本的权重，参数‘kernel’表示算法中使用的核函数。
 
 ```python
-from LAMDA_SSL.Algorithm.Classifier.TSVM import TSVM
+from LAMDA_SSL.Algorithm.Classification.TSVM import TSVM
 model=TSVM(Cl=15,Cu=0.0001,kernel='linear')
 ```
 
@@ -282,18 +432,20 @@ unlabeled_X=pre_transform.transform(unlabeled_X)
 ```
 
 需要对数据进行多视图划分。
+
 ```python
-from LAMDA_SSL.Split.View_Split import View_Split
-split_labeled_X=View_Split(labeled_X,shuffle=False)
-split_unlabeled_X=View_Split(unlabeled_X,shuffle=False)
-split_test_X=View_Split(test_X,shuffle=False)
+from LAMDA_SSL.Split.ViewSplit import View_Split
+
+split_labeled_X = View_Split(labeled_X, shuffle=False)
+split_unlabeled_X = View_Split(unlabeled_X, shuffle=False)
+split_test_X = View_Split(test_X, shuffle=False)
 ```
 
 之后导入并初始化Co-Training算法。
 
 ```python
 from sklearn.svm import SVC
-from LAMDA_SSL.Algorithm.Classifier.Co_Training import Co_Training
+from LAMDA_SSL.Algorithm.Classification.Co_Training import Co_Training
 SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
 model=Co_Training(base_estimator=SVM,s=(len(labeled_X)+len(unlabeled_X))//10)
 ```
@@ -346,8 +498,9 @@ unlabeled_X=pre_transform.transform(unlabeled_X)
 ```
 
 之后导入并初始化CoReg算法。
+
 ```python
-from LAMDA_SSL.Algorithm.Classifier.CoReg import CoReg
+from LAMDA_SSL.Algorithm.Classification.CoReg import CoReg
 model=CoReg()
 ```
 
@@ -395,7 +548,8 @@ unlabeled_X=pre_transform.transform(unlabeled_X)
 之后导入并初始化Constrained Seed k Means算法。
 
 ```python
-from LAMDA_SSL.Algorithm.Cluster.Constrained_Seed_k_means import Constrained_Seed_k_means
+from LAMDA_SSL.Algorithm.Clustering.Constrained_Seed_k_means import Constrained_Seed_k_means
+
 model = Constrained_Seed_k_means(k=3)
 ```
 进行模型训练。
@@ -405,9 +559,11 @@ model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 ```
 
 也可以导入并初始化Constrained k means算法。
+
 ```python
-from LAMDA_SSL.Algorithm.Cluster.Constrained_k_means import Constrained_k_means
-model=Constrained_k_means(k=3)
+from LAMDA_SSL.Algorithm.Clustering.Constrained_k_means import Constrained_k_means
+
+model = Constrained_k_means(k=3)
 ```
 
 但对于Constrained k Means算法，其监督信息为必连和勿连约束。如果有用户提供的约束信息，可以直接进行训练。
@@ -455,9 +611,10 @@ inner_performence=Davies_Bouldin_Score()(clusters=pred_y,X=np.vstack((labeled_X,
 以FixMatch算法为例。首先导入并初始化CIFAR10数据集。
 
 ```python
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
-dataset=CIFAR10(root='..\Download\cifar-10-python',
-labeled_size=4000,stratified=False,shuffle=True,download=True)
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
+
+dataset = CIFAR10(root='..\Download\cifar-10-python',
+                  labeled_size=4000, stratified=False, shuffle=True, download=True)
 ```
 
 通过访问封装数据集参数的方法获取数据集中的具体数据。
@@ -473,7 +630,7 @@ test_y=dataset.test_y
 之后导入并初始化FixMatch算法。其中参数‘threshold’表示选择无标注样本参与无监督损失计算的自信度阈值，参数‘lamda_u’表示无监督损失的权重，参数‘mu’表示每一批次中无标注样本与有标注样本的比例，参数‘T’表示对软标注的锐化温度，参数‘device’表示训练模型的设备。参数‘epoch’、‘num_it_epoch’，‘num_it_total’分别表示模型训练轮次、每一轮次的迭代次数和所有轮次的总迭代次数，三者设置两个即可对另一个进行补全。其余参数与模块采用默认设置。
 
 ```python
-from LAMDA_SSL.Algorithm.Classifier.Fixmatch import Fixmatch
+from LAMDA_SSL.Algorithm.Classification.Fixmatch import Fixmatch
 model=Fixmatch(threshold=0.95,lambda_u=1.0,mu=7,T=0.5,epoch=1,num_it_epoch=2**20,num_it_total=2**20，device='cuda:0')
 ```
 
@@ -503,9 +660,10 @@ score=Accuracy().scoring(test_y,pred_y)
 首先导入并初始化CIFAR10数据集。
 
 ```python
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
-dataset=CIFAR10(root='..\Download\cifar-10-python',
-labeled_size=4000,stratified=False,shuffle=True,download=True)
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
+
+dataset = CIFAR10(root='..\Download\cifar-10-python',
+                  labeled_size=4000, stratified=False, shuffle=True, download=True)
 ```
 
 通过访问封装数据集参数的方法获取数据集中的具体数据。
@@ -523,16 +681,17 @@ test_y=dataset.test_y
 ```python
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Transform.Normalization import Normalization
-from LAMDA_SSL.Transform.ImageToTensor import ImageToTensor
+from LAMDA_SSL.Transform.Vision.Normalization import Normalization
+from Unused.ImageToTensor import ImageToTensor
 from LAMDA_SSL.Transform.ToImage import ToImage
+
 pre_transform = ToImage()
 transform = Pipeline([('ImageToTensor', ImageToTensor()),
-('Normalization', Normalization(mean=dataset.mean, std=dataset.std))])
-labeled_dataset=LabeledDataset(pre_transform=pre_transform,transform=transform)
-unlabeled_dataset=UnLabeledDataset(pre_transform=pre_transform,transform=transform)
-valid_dataset=UnlabeledDataset(pre_transform=pre_transform,transform=transform)
-test_dataset=UnlabeledDataset(pre_transform=pre_transform,transform=transform)
+                      ('Normalization', Normalization(mean=dataset.mean, std=dataset.std))])
+labeled_dataset = LabeledDataset(pre_transform=pre_transform, transform=transform)
+unlabeled_dataset = UnLabeledDataset(pre_transform=pre_transform, transform=transform)
+valid_dataset = UnlabeledDataset(pre_transform=pre_transform, transform=transform)
+test_dataset = UnlabeledDataset(pre_transform=pre_transform, transform=transform)
 ```
 
 LAMDA-SSL同样支持用户根据需求选择数据采样方法，可以对训练时的有标注数据和无标注数据进行随机采样，而对验证和测试数据进行序列采样。参数‘replacement’表示是否重复采样，参数‘num_samples’表示总采样数量，无标注数据的采样数量可以不指定，等到算法初始化时确定无标注样本与有标注样本的比例后由DeepModelMixin模块完成处理。
@@ -581,27 +740,34 @@ optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 
 ```python
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
-scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
+
+scheduler = CosineAnnealingLR(eta_min=0, T_max=2 ** 20)
 ```
 
 对于存在数据增广的算法，用户可以自由更换数据增广流程，以适应不同的任务场景与数据类型，且数据增广与数据变换一样同时支持sklearn的Pipeline机制和pytorch的Compose机制。对于需要多种增广方式的情况，例如FixMatch中的弱增广和强增广，仅需用python中的列表、元组或字典进行传参，算法内部会完成处理。
+
 ```python
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
-from LAMDA_SSL.Transform.RandAugment import RandAugment
-from LAMDA_SSL.Transform.Cutout import Cutout
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect'))])
-strongly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),('RandAugment',RandAugment(n=2,m=5,num_bins=10,random=True)),('Cutout',Cutout(v=0.5,fill=(127,127,127)))])
-augmentation={
-    'weakly_augmentation':weakly_augmentation,
-    'strongly_augmentation':strongly_augmentation
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
+
+weakly_augmentation = Pipeline([('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect'))])
+strongly_augmentation = Pipeline([('RandomHorizontalFlip', RandomHorizontalFlip()),
+                                  ('RandomCrop', RandomCrop(padding=0.125, padding_mode='reflect')),
+                                  ('RandAugment', RandAugment(n=2, m=5, num_bins=10, random=True)),
+                                  ('Cutout', Cutout(v=0.5, fill=(127, 127, 127)))])
+augmentation = {
+    'weakly_augmentation': weakly_augmentation,
+    'strongly_augmentation': strongly_augmentation
 }
 ```
 
 通过上述组件配置，用户可以非常灵活地根据自身需求更换组件和参数，即可组合出符合使用场景的FixMatch算法，使同一算法可以通用于更广泛的应用场景。
 
 ```python
-from LAMDA_SSL.Algorithm.Classifier.Fixmatch import Fixmatch
+from LAMDA_SSL.Algorithm.Classification.Fixmatch import Fixmatch
 model=Fixmatch(labeled_dataset=labeled_dataset,unlabeled_dataset=unlabeled_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,labeled_sampler=labeled_sampler,unlabeled_sampler=unlabeled_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,labeled_dataloader=labeled_dataloader,unlabeled_dataloader=unlabeled_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,epoch=1,num_it_epoch=2**20,num_it_total=2**20,device='cuda:0',mu=7,T=0.5,weight_decay=5e-4,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
 ```
 
@@ -629,7 +795,7 @@ train_dataloader=TrainDataLoader(num_workers=0)
 可以通过训练数据模块对模型进行配置，取代原先通过有标注数据模块和无标注数据进行配置的方法。
 
 ```python
-from LAMDA_SSL.Algorithm.Classifier.Fixmatch import Fixmatch
+from LAMDA_SSL.Algorithm.Classification.Fixmatch import Fixmatch
 model=Fixmatch(train_dataset=train_dataset,valid_dataset=valid_dataset,test_dataset=test_dataset,train_sampler=train_sampler,valid_sampler=valid_sampler,test_sampler=test_sampler,train_dataloader=train_dataloader,valid_dataloader=valid_dataloader,test_dataloader=test_dataloader,augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,epoch=1,num_it_epoch=2**20,num_it_total=2**20,device='cuda:0',mu=7,T=0.5,weight_decay=5e-4,threshold=0.95,lambda_u=1.0,ema_decay=0.999)
 ```
 
@@ -687,26 +853,27 @@ test_y=dataset.test_y
 初始化数据处理流程并初始换数据集组件。这里在文本数据的预处理过程中用Tokenizer进行分词，在对文本进行增广后首先调整文本长度，使用Glove词向量，根据词典将单词映射为下标并转换为Tensor形式。
 
 ```python
-from LAMDA_SSL.Transform.Vocab import Vocab
-from LAMDA_SSL.Transform.Tokenizer import Tokenizer
+from LAMDA_SSL.Transform.Text.Vocab import Vocab
+from LAMDA_SSL.Transform.Text.Tokenizer import Tokenizer
 from LAMDA_SSL.Transform.Adjust_length import Adjust_length
 from LAMDA_SSL.Transform.ToTensor import ToTensor
-from LAMDA_SSL.Transform.GloVe import Glove
+from LAMDA_SSL.Transform.Text.GloVe import Glove
 from sklearn.pipeline import Pipeline
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
+
 pre_transform = Tokenizer('basic_english')
-vectors=Glove()
-transform = Pipeline([('Adjust_length', Adjust_length(length=dataset.length)), 
+vectors = Glove()
+transform = Pipeline([('Adjust_length', Adjust_length(length=dataset.length)),
                       ('Vocab', Vocab(vectors.vec)),
                       ('ToTensor', ToTensor())])
-labeled_dataset=LabeledDataset(pre_transform=pre_transform,transform=transform)
+labeled_dataset = LabeledDataset(pre_transform=pre_transform, transform=transform)
 
-unlabeled_dataset=UnlabeledDataset(pre_transform=pre_transform,transform=transform)
+unlabeled_dataset = UnlabeledDataset(pre_transform=pre_transform, transform=transform)
 
-valid_dataset=UnlabeledDataset(pre_transform=pre_transform,transform=transform)
+valid_dataset = UnlabeledDataset(pre_transform=pre_transform, transform=transform)
 
-test_dataset=UnlabeledDataset(pre_transform=pre_transform,transform=transform)
+test_dataset = UnlabeledDataset(pre_transform=pre_transform, transform=transform)
 ```
 定义对于文本数据的弱数据增广和强数据增广。弱数据增广随机交换文本中相邻的单词，参数‘n’表示交换次数。强数据增广以一定概率替换文本中的单词，TF-IDF值越低的单词被替换的概率越大。
 ```python
@@ -796,8 +963,9 @@ test_dataset=UnlabeledDataset(transform=transform)
 以高斯噪声作为数据增广方法。
 
 ```python
-from LAMDA_SSL.Transform.Noise import Noise
-augmentation=Noise(noise_level=0.01)
+from LAMDA_SSL.Augmentation.Table.Noise import Noise
+
+augmentation = Noise(noise_level=0.01)
 ```
 
 将多层感知机作为骨干神经网络。
@@ -886,10 +1054,12 @@ dataset=Cora(labeled_size=0.2,root='..\Download\Cora',random_state=0,default_tra
 ```
 
 获取图数据并对数据进行初始化。
+
 ```python
-from LAMDA_SSL.Transform.NormalizeFeatures import NormalizeFeatures
-transform=NormalizeFeatures
-data=dataset.transform.fit_transform(dataset.data)
+from LAMDA_SSL.Transform.Graph.NormalizeFeatures import NormalizeFeatures
+
+transform = NormalizeFeatures
+data = dataset.transform.fit_transform(dataset.data)
 ```
 设置优化器。
 
@@ -898,8 +1068,9 @@ optimizer=Adam(lr=0.01)
 ```
 
 导入并初始化GCN模型。
+
 ```python
-from LAMDA_SSL.Algorithm.Classifier.GCN import GCN
+from LAMDA_SSL.Algorithm.Classification.GCN import GCN
 model=GCN(num_features=1433,
           normalize=True,
           epoch=2000,
@@ -936,10 +1107,12 @@ score=Accuracy().scoring(data.y[data.test_mask],pred_y)
 
 ## 训练一个分布式深度半监督模型
 以FixMatch算法为例，首先导入并初始化CIFAR10数据集。
+
 ```python
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
-dataset=CIFAR10(root='..\Download\cifar-10-python',
-labeled_size=4000,stratified=False,shuffle=True,download=True)
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
+
+dataset = CIFAR10(root='..\Download\cifar-10-python',
+                  labeled_size=4000, stratified=False, shuffle=True, download=True)
 ```
 
 通过访问封装数据集参数的方法获取数据集中的具体数据。
@@ -959,8 +1132,9 @@ parallel=DataParallel(device_ids=['cuda:0','cuda:1'],output_device='cuda:0')
 ```
 
 之后导入并初始化FixMatch算法并设置parallel模块。
+
 ```python
-from LAMDA_SSL.Algorithm.Classifier.Fixmatch import Fixmatch
+from LAMDA_SSL.Algorithm.Classification.Fixmatch import Fixmatch
 model=Fixmatch(threshold=0.95,lambda_u=1.0,mu=7,T=0.5,device='cuda:0',parallel=parallel)
 ```
 通过predict()方法完成预测。
@@ -1158,8 +1332,11 @@ with open(path, 'rb') as f:
 除了LAMDA-SSL提供的数据集，用户可以非常方便地使用自己的数据集。在需要对数据集进行划分时都可以调用LAMDA-SSL中Split模块的Data_Split函数。
 
 ```python
-from LAMDA_SSL.Split.Data_Split import Data_Split
-labeled_X,labeled_y,unlabeled_X,unlabeled_y=Data_Split(X=X,y=y,size_split=self.labeled_size,stratified=self.stratified,shuffle=self.shuffle,random_state=self.random_state)
+from LAMDA_SSL.Split.DataSplit import Data_Split
+
+labeled_X, labeled_y, unlabeled_X, unlabeled_y = Data_Split(X=X, y=y, size_split=self.labeled_size,
+                                                            stratified=self.stratified, shuffle=self.shuffle,
+                                                            random_state=self.random_state)
 ```
 
 在统计半监督学习算法中，直接将预处理过后的数据传入fit()方法即可。
@@ -1223,16 +1400,18 @@ model=FixMatch(augmentation=augmentation)
 
 ```python
 from torchvision.transforms import transforms
-from LAMDA_SSL.Transform.Transformer import Transformer
-class Normalization(Transformer):
-    def __init__(self,mean=None,std=None):
-        super().__init__()
-        self.mean=mean
-        self.std=std
-        self.normalize=transforms.Normalize(mean=self.mean, std=self.std)
+from LAMDA_SSL.Base.Transformer import Transformer
 
-    def transform(self,X):
-        X=self.normalize(X.float())
+
+class Normalization(Transformer):
+    def __init__(self, mean=None, std=None):
+        super().__init__()
+        self.mean = mean
+        self.std = std
+        self.normalize = transforms.Normalize(mean=self.mean, std=self.std)
+
+    def transform(self, X):
+        X = self.normalize(X.float())
         return X
 ```
 
@@ -1241,32 +1420,38 @@ class Normalization(Transformer):
 自定义的采样器需要继承LAMDA_SSL.Sampler.BaseSampler类，需要实现init_sampler()方法，通过输入真实数据集返回一个torch.utils.data.sampler.Sampler对象。以RandomSampler为例。
 
 ```python
-from LAMDA_SSL.Sampler.BaseSampler import BaseSampler
+from LAMDA_SSL.Base.BaseSampler import BaseSampler
 from torch.utils.data import sampler
+
+
 class RandomSampler(BaseSampler):
-    def __init__(self,replacement: bool = False,
-                 num_samples = None, generator=None):
+    def __init__(self, replacement: bool = False,
+                 num_samples=None, generator=None):
         super().__init__()
-        self.replacement=replacement
-        self.num_samples=num_samples
-        self.generator=generator
-    def init_sampler(self,data_source):
-        return sampler.RandomSampler(data_source=data_source,replacement=self.replacement,num_samples=self.num_samples,generator=self.generator)
+        self.replacement = replacement
+        self.num_samples = num_samples
+        self.generator = generator
+
+    def init_sampler(self, data_source):
+        return sampler.RandomSampler(data_source=data_source, replacement=self.replacement,
+                                     num_samples=self.num_samples, generator=self.generator)
 ```
 
 LAMDA_SSL支持使用BatchSampler类，需要实现init_sampler()方法，可以将一个torch.utils.data.sampler.Sampler对象转换为一个torch.utils.data.sampler.BatchSampler对象。
 
 ```python
-from LAMDA_SSL.Sampler.BaseSampler import BaseSampler
+from LAMDA_SSL.Base.BaseSampler import BaseSampler
 import torch.utils.data.sampler as torchsampler
+
+
 class BatchSampler(BaseSampler):
     def __init__(self, batch_size: int, drop_last: bool):
         super().__init__()
-        self.batch_size=batch_size
-        self.drop_last=drop_last
+        self.batch_size = batch_size
+        self.drop_last = drop_last
 
-    def init_sampler(self,sampler):
-        return torchsampler.BatchSampler(sampler=sampler,batch_size=self.batch_size,drop_last=self.drop_last)
+    def init_sampler(self, sampler):
+        return torchsampler.BatchSampler(sampler=sampler, batch_size=self.batch_size, drop_last=self.drop_last)
 ```
 
 ## 自定义优化器
@@ -1274,22 +1459,24 @@ class BatchSampler(BaseSampler):
 自定义的采样器需要继承LAMDA_SSL.Optimizer.BaseOptimizer类，并且需要实现init_optimizer()方法，输入待优化的参数，输出一个torch.optim.optimizer.Optimizer对象。以Adam优化器为例。
 
 ```python
-from LAMDA_SSL.Opitimizer.BaseOptimizer import BaseOptimizer
+from LAMDA_SSL.Base.BaseOptimizer import BaseOptimizer
 from torch.optim import adam
+
+
 class Adam(BaseOptimizer):
-    def __init__(self,lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False):
-        self.lr=lr
-        self.betas=betas
-        self.eps=eps
-        self.weight_decay=weight_decay
-        self.amsgrad=amsgrad
+    def __init__(self, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, amsgrad=False):
+        self.lr = lr
+        self.betas = betas
+        self.eps = eps
+        self.weight_decay = weight_decay
+        self.amsgrad = amsgrad
         defaults = dict(lr=lr, betas=betas, eps=eps,
                         weight_decay=weight_decay, amsgrad=amsgrad)
         super().__init__(defaults=defaults)
 
-    def init_optimizer(self,params):
-        return adam.Adam(params=params,lr=self.lr,betas=self.betas,eps=self.eps,
-                    weight_decay=self.weight_decay,amsgrad=self.amsgrad)
+    def init_optimizer(self, params):
+        return adam.Adam(params=params, lr=self.lr, betas=self.betas, eps=self.eps,
+                         weight_decay=self.weight_decay, amsgrad=self.amsgrad)
 
 ```
 
@@ -1310,8 +1497,11 @@ class BaseScheduler:
 ```
 
 LAMDA-SSL支持pytorch中的LambdaLR调度器，需要继承LAMDA_SSL.Scheduler.LambdaLR类，并且需要实现_lr_lambda方法，输入当前步数，返回学习率变动因子。调整规则为$new_{lr}=lambda(current\_step)\times initial_{lr}$。以Linear_Warmup为例。
+
 ```python
-from LAMDA_SSL.Scheduler.LambdaLR import LambdaLR
+from LAMDA_SSL.Base.LambdaLR import LambdaLR
+
+
 class Linear_Warmup(LambdaLR):
     def __init__(self,
                  num_training_steps,
@@ -1320,18 +1510,19 @@ class Linear_Warmup(LambdaLR):
                  end_factor=1,
                  last_epoch=-1,
                  verbose=False):
-        self.start_factor=start_factor
-        self.end_factor=end_factor
-        self.num_warmup_steps=num_warmup_steps
-        self.num_training_steps=num_training_steps
-        self.verbose=verbose
-        super().__init__(lr_lambda=self._lr_lambda,last_epoch=last_epoch,verbose=self.verbose)
+        self.start_factor = start_factor
+        self.end_factor = end_factor
+        self.num_warmup_steps = num_warmup_steps
+        self.num_training_steps = num_training_steps
+        self.verbose = verbose
+        super().__init__(lr_lambda=self._lr_lambda, last_epoch=last_epoch, verbose=self.verbose)
 
-    def _lr_lambda(self,current_step):
+    def _lr_lambda(self, current_step):
         if current_step > self.num_warmup_steps:
-            return  self.start_factor+float(self.num_training_steps - current_step) \
-                    / (self.num_training_steps - self.num_warmup_steps)*(self.end_factor-self.start_factor)
-        return 1
+            return self.start_factor + float(self.num_training_steps - current_step)
+            / (self.num_training_steps - self.num_warmup_steps) * (self.end_factor - self.start_factor)
+
+    return 1
 ```
 
 ## 自定义损失函数
@@ -1966,6 +2157,7 @@ def evaluate(self,X,y=None,valid=False):
 ```
 
 以FixMatch算法为例，由于继承了DeepModelMixin中的大量模块，仅变动了init_transform()、train()和get_loss()三个方法即可完成对FixMatch算法的完整实现。可见在LAMDA-SSL的框架下进行深度半监督学习算法的自定义非常便捷。
+
 ```python
 import copy
 from LAMDA_SSL.Base.InductiveEstimator import InductiveEstimator
@@ -1973,10 +2165,11 @@ from LAMDA_SSL.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
 import LAMDA_SSL.Config.Fixmatch as config
 from LAMDA_SSL.Loss.Cross_Entropy import Cross_Entropy
-from LAMDA_SSL.Loss.Semi_supervised_Loss import Semi_supervised_loss
+from LAMDA_SSL.Loss.Semi_Supervised_Loss import Semi_supervised_loss
 import torch
 
-class FixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
+
+class FixMatch(InductiveEstimator, DeepModelMixin, ClassifierMixin):
     def __init__(self,
                  threshold=config.threshold,
                  lambda_u=config.lambda_u,
@@ -2019,77 +2212,76 @@ class FixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  file=config.file,
                  verbose=config.verbose
                  ):
-        DeepModelMixin.__init__(self,train_dataset=train_dataset,
-                                    valid_dataset=valid_dataset,
-                                    labeled_dataset=labeled_dataset,
-                                    unlabeled_dataset=unlabeled_dataset,
-                                    test_dataset=test_dataset,
-                                    train_dataloader=train_dataloader,
-                                    valid_dataloader=valid_dataloader,
-                                    test_dataloader=test_dataloader,
-                                    augmentation=augmentation,
-                                    network=network,
-                                    train_sampler=train_sampler,
-                                    train_batch_sampler=train_batch_sampler,
-                                    valid_sampler=valid_sampler,
-                                    valid_batch_sampler=valid_batch_sampler,
-                                    test_sampler=test_sampler,
-                                    test_batch_sampler=test_batch_sampler,
-                                    labeled_dataloader=labeled_dataloader,
-                                    unlabeled_dataloader=unlabeled_dataloader,
-                                    labeled_sampler=labeled_sampler,
-                                    unlabeled_sampler=unlabeled_sampler,
-                                    labeled_batch_sampler=labeled_batch_sampler,
-                                    unlabeled_batch_sampler=unlabeled_batch_sampler,
-                                    epoch=epoch,
-                                    num_it_epoch=num_it_epoch,
-                                    num_it_total=num_it_total,
-                                    eval_epoch=eval_epoch,
-                                    eval_it=eval_it,
-                                    mu=mu,
-                                    weight_decay=weight_decay,
-                                    ema_decay=ema_decay,
-                                    optimizer=optimizer,
-                                    scheduler=scheduler,
-                                    device=device,
-                                    evaluation=evaluation,
-                                    parallel=parallel,
-                                    file=file,
-                                    verbose=verbose
-                                    )
-        self.lambda_u=lambda_u
-        self.threshold=threshold
-        self.T=T
-        self.weight_decay=weight_decay
-        self._estimator_type=ClassifierMixin._estimator_type
-
+        DeepModelMixin.__init__(self, train_dataset=train_dataset,
+                                valid_dataset=valid_dataset,
+                                labeled_dataset=labeled_dataset,
+                                unlabeled_dataset=unlabeled_dataset,
+                                test_dataset=test_dataset,
+                                train_dataloader=train_dataloader,
+                                valid_dataloader=valid_dataloader,
+                                test_dataloader=test_dataloader,
+                                augmentation=augmentation,
+                                network=network,
+                                train_sampler=train_sampler,
+                                train_batch_sampler=train_batch_sampler,
+                                valid_sampler=valid_sampler,
+                                valid_batch_sampler=valid_batch_sampler,
+                                test_sampler=test_sampler,
+                                test_batch_sampler=test_batch_sampler,
+                                labeled_dataloader=labeled_dataloader,
+                                unlabeled_dataloader=unlabeled_dataloader,
+                                labeled_sampler=labeled_sampler,
+                                unlabeled_sampler=unlabeled_sampler,
+                                labeled_batch_sampler=labeled_batch_sampler,
+                                unlabeled_batch_sampler=unlabeled_batch_sampler,
+                                epoch=epoch,
+                                num_it_epoch=num_it_epoch,
+                                num_it_total=num_it_total,
+                                eval_epoch=eval_epoch,
+                                eval_it=eval_it,
+                                mu=mu,
+                                weight_decay=weight_decay,
+                                ema_decay=ema_decay,
+                                optimizer=optimizer,
+                                scheduler=scheduler,
+                                device=device,
+                                evaluation=evaluation,
+                                parallel=parallel,
+                                file=file,
+                                verbose=verbose
+                                )
+        self.lambda_u = lambda_u
+        self.threshold = threshold
+        self.T = T
+        self.weight_decay = weight_decay
+        self._estimator_type = ClassifierMixin._estimator_type
 
     def init_transform(self):
-        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
-        self._train_dataset.add_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation,dim=1,x=0,y=0)
-        self._train_dataset.add_unlabeled_transform(self.strongly_augmentation,dim=1,x=1,y=0)
+        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform), dim=0, x=1)
+        self._train_dataset.add_transform(self.weakly_augmentation, dim=1, x=0, y=0)
+        self._train_dataset.add_unlabeled_transform(self.weakly_augmentation, dim=1, x=0, y=0)
+        self._train_dataset.add_unlabeled_transform(self.strongly_augmentation, dim=1, x=1, y=0)
 
-    def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        w_lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
-        lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
-        w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
+    def train(self, lb_X, lb_y, ulb_X, lb_idx=None, ulb_idx=None, *args, **kwargs):
+        w_lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
+        lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
+        w_ulb_X, s_ulb_X = ulb_X[0], ulb_X[1]
         batch_size = w_lb_X.shape[0]
-        inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
+        inputs = torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
         logits = self._network(inputs)
         lb_logits = logits[:batch_size]
         w_ulb_logits, s_ulb_logits = logits[batch_size:].chunk(2)
-        train_result=(lb_logits,lb_y,w_ulb_logits, s_ulb_logits)
+        train_result = (lb_logits, lb_y, w_ulb_logits, s_ulb_logits)
         return train_result
 
-    def get_loss(self,train_result,*args,**kwargs):
+    def get_loss(self, train_result, *args, **kwargs):
         lb_logits, lb_y, w_ulb_logits, s_ulb_logits = train_result
-        sup_loss=Cross_Entropy(reduction='mean')(logits=lb_logits,targets=lb_y)
+        sup_loss = Cross_Entropy(reduction='mean')(logits=lb_logits, targets=lb_y)
         pseudo_label = torch.softmax(w_ulb_logits.detach() / self.T, dim=-1)
         max_probs, targets_u = torch.max(pseudo_label, dim=-1)
         mask = max_probs.ge(self.threshold).float()
         unsup_loss = (Cross_Entropy(reduction='none')(s_ulb_logits, targets_u) * mask).mean()
-        loss=Semi_supervised_loss(lambda_u =self.lambda_u)(sup_loss,unsup_loss)
+        loss = Semi_supervised_loss(lambda_u=self.lambda_u)(sup_loss, unsup_loss)
         return loss
 ```
 

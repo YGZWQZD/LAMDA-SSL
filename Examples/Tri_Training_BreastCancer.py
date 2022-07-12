@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.Tri_Training import Tri_Training
+from LAMDA_SSL.Algorithm.Classification.Tri_Training import Tri_Training
 from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy

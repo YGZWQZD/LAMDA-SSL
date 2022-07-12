@@ -7,10 +7,11 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Opitimizer.Adam import Adam
 
-num_features=None
+dim_in=None
+dim_hidden=16
 num_classes=None
 normalize=True
-weight_decay=5e-4,
+weight_decay=5e-4
 epoch=2000
 eval_epoch=None
 device='cpu'

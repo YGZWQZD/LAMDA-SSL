@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Cluster.Constrained_k_means import Constrained_k_means
+from LAMDA_SSL.Algorithm.Clustering.Constrained_k_means import Constrained_k_means
 from LAMDA_SSL.Evaluation.Cluster.Davies_Bouldin_Score import Davies_Bouldin_Score
 from LAMDA_SSL.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallows_Score
 from LAMDA_SSL.Evaluation.Cluster.Jaccard_Score import Jaccard_Score

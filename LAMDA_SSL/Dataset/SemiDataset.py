@@ -3,7 +3,7 @@ from .TrainDataset import TrainDataset
 from .LabeledDataset import LabeledDataset
 from .UnlabeledDataset import UnlabeledDataset
 from ..utils import get_indexing_method
-from ..Split.Data_Split import Data_Split
+from ..Split.DataSplit import DataSplit
 import copy
 
 class SemiDataset(Dataset):
@@ -119,7 +119,7 @@ class SemiDataset(Dataset):
             elif test_X is not None:
                 self.test_dataset.inin_dataset(test_X,test_y)
             elif self.test_size is not None:
-                test_X, test_y,labeled_X, labeled_y = Data_Split(X=labeled_X, y=labeled_y,
+                test_X, test_y,labeled_X, labeled_y = DataSplit(X=labeled_X, y=labeled_y,
                                                            size_split=self.test_size,
                                                            stratified=self.stratified,
                                                            shuffle=self.shuffle,
@@ -136,7 +136,7 @@ class SemiDataset(Dataset):
                     labeled_X=getattr(labeled_dataset,'X')
                     labeled_y=getattr(labeled_dataset,'y')
 
-                valid_X, valid_y,labeled_X, labeled_y = Data_Split(X=labeled_X, y=labeled_y,
+                valid_X, valid_y,labeled_X, labeled_y = DataSplit(X=labeled_X, y=labeled_y,
                                                            size_split=self.valid_size,
                                                            stratified=self.stratified,
                                                            shuffle=self.shuffle,

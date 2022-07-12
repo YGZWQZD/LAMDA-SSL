@@ -8,7 +8,7 @@ from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Scheduler.StepLR import StepLR
 from LAMDA_SSL.Opitimizer.Adam import Adam
-from LAMDA_SSL.Algorithm.Classifier.SDNE import SDNE
+from LAMDA_SSL.Algorithm.Classification.SDNE import SDNE
 
 file = open("../Result/SDNE_Cora.txt", "w")
 
@@ -18,7 +18,7 @@ data=dataset.transform.fit_transform(data)
 
 optimizer=Adam(lr=0.001)
 
-scheduler=StepLR(step_size=10,gamma=0.9)
+scheduler= StepLR(step_size=10, gamma=0.9)
 
 evaluation={
     'accuracy':Accuracy(),
@@ -35,8 +35,8 @@ model=SDNE(
     gamma=1e-5,
     alpha=1e-3,
     beta=10,
-    epoch=1000,
-    eval_epoch=100,
+    epoch=500,
+    eval_epoch=200,
     weight_decay=0,
     device='cpu',
     optimizer=optimizer,

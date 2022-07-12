@@ -1,6 +1,5 @@
 import torch.nn as nn
 from LAMDA_SSL.Opitimizer.Adam import Adam
-from LAMDA_SSL.Transform.ToImage import ToImage
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
@@ -14,16 +13,26 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from LAMDA_SSL.Transform.ImageToTensor import ImageToTensor
-from LAMDA_SSL.Scheduler.Linear_Warmup import Linear_Warmup
+from Unused.ImageToTensor import ImageToTensor
+from sklearn.pipeline import Pipeline
+from LAMDA_SSL.Transform.Table.MinMaxScaler import MinMaxScaler
+from LAMDA_SSL.Scheduler.LinearWarmup import LinearWarmup
 
 transforms = None
 target_transform = None
-pre_transform = ToImage()
-transform = ImageToTensor()
-unlabeled_transform = ImageToTensor()
-test_transform = ImageToTensor()
-valid_transform = ImageToTensor()
+pre_transform = None
+transform = Pipeline([('ImageToTensor',ImageToTensor()),
+                    ('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255))
+                  ])
+unlabeled_transform = Pipeline([('ImageToTensor',ImageToTensor()),
+                    ('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255))
+                  ])
+test_transform = Pipeline([('ImageToTensor',ImageToTensor()),
+                    ('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255))
+                  ])
+valid_transform = Pipeline([('ImageToTensor',ImageToTensor()),
+                    ('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255))
+                  ])
 
 train_dataset=None
 labeled_dataset=LabeledDataset(pre_transform=pre_transform,transforms=transforms,
@@ -60,7 +69,7 @@ valid_sampler=SequentialSampler()
 optimizer=Adam(lr=0.02)
 
 # scheduler
-scheduler=Linear_Warmup(num_warmup_steps=15,num_training_steps=10,verbose=False)
+scheduler=LinearWarmup(num_warmup_steps=15,num_training_steps=10,verbose=False)
 
 # network
 network=None

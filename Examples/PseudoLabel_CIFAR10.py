@@ -1,12 +1,12 @@
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
 from LAMDA_SSL.Opitimizer.SGD import SGD
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from LAMDA_SSL.Network.WideResNet import WideResNet
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
-from LAMDA_SSL.Algorithm.Classifier.PseudoLabel import PseudoLabel
+from LAMDA_SSL.Algorithm.Classification.PseudoLabel import PseudoLabel
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
 from sklearn.pipeline import Pipeline
@@ -106,7 +106,7 @@ model=PseudoLabel(threshold=0.95,lambda_u=1,warmup=0.4,mu=1,weight_decay=5e-4,em
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 
-valid_performance=model.valid_result
+valid_performance=model.valid_performance
 print(valid_performance,file=file)
 
 performance=model.evaluate(X=test_X,y=test_y)

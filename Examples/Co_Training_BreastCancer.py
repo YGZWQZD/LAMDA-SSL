@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classifier.Co_Training import Co_Training
+from LAMDA_SSL.Algorithm.Classification.Co_Training import Co_Training
 from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
@@ -6,7 +6,7 @@ from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
-from LAMDA_SSL.Split.View_Split import View_Split
+from LAMDA_SSL.Split.ViewSplit import ViewSplit
 import numpy as np
 from sklearn.svm import SVC
 
@@ -29,9 +29,9 @@ unlabeled_X=pre_transform.transform(unlabeled_X)
 test_X=pre_transform.transform(test_X)
 
 # View split
-split_labeled_X=View_Split(labeled_X,mode='sequential')
-split_unlabeled_X=View_Split(unlabeled_X,mode='sequential')
-split_test_X=View_Split(test_X,mode='sequential')
+split_labeled_X=ViewSplit(labeled_X,shuffle=False)
+split_unlabeled_X=ViewSplit(unlabeled_X,shuffle=False)
+split_test_X=ViewSplit(test_X,shuffle=False)
 
 # Base estimator
 SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')

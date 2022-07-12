@@ -1,5 +1,5 @@
 from torch.utils.data.dataloader import DataLoader
-from LAMDA_SSL.Sampler.BaseSampler import BaseSampler
+from LAMDA_SSL.Base.BaseSampler import BaseSampler
 from LAMDA_SSL.Sampler.BatchSampler import BatchSampler
 class UnlabeledDataLoader:
     def __init__(self,batch_size= 1,

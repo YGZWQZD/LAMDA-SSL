@@ -1,14 +1,14 @@
-from LAMDA_SSL.Transform.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Transform.RandomCrop import RandomCrop
-from LAMDA_SSL.Transform.RandAugment import RandAugment
-from LAMDA_SSL.Transform.Cutout import Cutout
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
+from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
+from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
+from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
+from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
 from LAMDA_SSL.Opitimizer.SGD import SGD
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from LAMDA_SSL.Network.WideResNet import WideResNet
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
-from LAMDA_SSL.Algorithm.Classifier.FixMatch import FixMatch
+from LAMDA_SSL.Algorithm.Classification.FixMatch import FixMatch
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
 from sklearn.pipeline import Pipeline
@@ -68,18 +68,18 @@ optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 
 # augmentation
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+weak_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 
-strongly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+strong_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ('RandAugment',RandAugment(n=2,m=10,num_bins=30)),
                               ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
                               ])
 augmentation={
-    'weakly_augmentation':weakly_augmentation,
-    'strongly_augmentation':strongly_augmentation
+    'weakly_augmentation':weak_augmentation,
+    'strongly_augmentation':strong_augmentation
 }
 
 # evalutation

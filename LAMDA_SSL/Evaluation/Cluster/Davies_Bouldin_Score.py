@@ -1,4 +1,4 @@
-from LAMDA_SSL.Evaluation.Cluster.ClusterEvaluation import ClusterEvaluation
+from LAMDA_SSL.Base.ClusterEvaluation import ClusterEvaluation
 from sklearn.metrics import davies_bouldin_score
 
 class Davies_Bouldin_Score(ClusterEvaluation):

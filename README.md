@@ -82,20 +82,22 @@ For example, train a FixMatch classifier for CIFAR10.
 Firstly, import and initialize CIFAR10.
 
 ```python
-from LAMDA_SSL.Dataset.Vision.cifar10 import CIFAR10
-dataset=CIFAR10(root='..\Download\cifar-10-python',
-                labeled_size=4000,stratified=False,
-                shuffle=True,download=True)
-labeled_X=dataset.labeled_X
-labeled_y=dataset.labeled_y
-unlabeled_X=dataset.unlabeled_X
-test_X=dataset.test_X
-test_y=dataset.test_y
+from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
+
+dataset = CIFAR10(root='..\Download\cifar-10-python',
+                  labeled_size=4000, stratified=False,
+                  shuffle=True, download=True)
+labeled_X = dataset.labeled_X
+labeled_y = dataset.labeled_y
+unlabeled_X = dataset.unlabeled_X
+test_X = dataset.test_X
+test_y = dataset.test_y
 ```
 
 Then import and initialize FixMatch.
+
 ```python
-from LAMDA_SSL.Algorithm.Classifier.Fixmatch import Fixmatch
+from LAMDA_SSL.Algorithm.Classification.Fixmatch import Fixmatch
 model=Fixmatch(threshold=0.95,lambda_u=1.0,mu=7,T=0.5,epoch=1,num_it_epoch=2**20,num_it_total=2**20，device='cuda:0')
 ```
 

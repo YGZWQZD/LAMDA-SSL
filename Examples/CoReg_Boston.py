@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Regressor.CoReg import CoReg
+from LAMDA_SSL.Algorithm.Regression.CoReg import CoReg
 from LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error import Mean_Absolute_Error
 from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Error import Mean_Squared_Error
 from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Log_Error import Mean_Squared_Log_Error

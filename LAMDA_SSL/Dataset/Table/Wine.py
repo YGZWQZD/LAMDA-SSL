@@ -1,6 +1,6 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
-from LAMDA_SSL.Dataset.TableMixin import TableMixin
-from LAMDA_SSL.Split.Data_Split import Data_Split
+from LAMDA_SSL.Base.TableMixin import TableMixin
+from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
@@ -71,7 +71,7 @@ class Wine(SemiDataset,TableMixin):
     def _init_dataset(self):
         X, y = self.dataset.data, self.dataset.target.astype(np.float32)
         if self.test_size is not None:
-            test_X, test_y, train_X, train_y = Data_Split(X=X, y=y,
+            test_X, test_y, train_X, train_y = DataSplit(X=X, y=y,
                                                size_split=self.test_size,
                                                stratified=self.stratified,
                                                shuffle=self.shuffle,
@@ -84,7 +84,7 @@ class Wine(SemiDataset,TableMixin):
             train_y=y
 
         if self.valid_size is not None:
-            valid_X, valid_y, train_X, train_y = Data_Split(X=train_X, y=train_y,
+            valid_X, valid_y, train_X, train_y = DataSplit(X=train_X, y=train_y,
                                                                    size_split=self.valid_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
@@ -95,7 +95,7 @@ class Wine(SemiDataset,TableMixin):
             valid_y=None
 
         if self.labeled_size is not None:
-            labeled_X, labeled_y, unlabeled_X, unlabeled_y = Data_Split(X=train_X,y=train_y,
+            labeled_X, labeled_y, unlabeled_X, unlabeled_y = DataSplit(X=train_X,y=train_y,
                                                                    size_split=self.labeled_size,
                                                                    stratified=self.stratified,
                                                                    shuffle=self.shuffle,
