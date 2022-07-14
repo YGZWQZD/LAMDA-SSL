@@ -1,8 +1,9 @@
 from LAMDA_SSL.Transform.Vision.Normalization import Normalization
 from LAMDA_SSL.Transform.ToTensor import ToTensor
+from LAMDA_SSL.Transform.ToImage import ToImage
 from sklearn.pipeline import Pipeline
 import matplotlib.pyplot as plt
-from LAMDA_SSL.Transform.ToImage import ToImage
+
 class VisionMixin:
     def __init__(self,mean=None,std=None):
         self.mean=mean

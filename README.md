@@ -15,6 +15,7 @@
 #  Introduction
 
 In order to promote the research and application of semi-supervised learning algorithms, we has developed LAMDA which is a convenient and practical semi-supervised learning toolkit. LAMDA-SSL has complete functions, convenient interfaces and detailed documentations. It integrates statistical machine learning algorithms and deep learning algorithms into the same framework. It is compatible with the popular machine learning toolkit sklearn and the popular deep learning toolkit pytorch.  It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 13 algorithms based on statistical machine learning models and 17 algorithms based on deep learning models. LAMDA-SSL also contains 45 data processing methods used for 4 types of data: table, image, text, graph and 15 model evaluation criterias used for 3 types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, algorithm application, model evaluation and so on, which facilitates the completion of the end-to-end semi-supervised learning process.
+
 <div align=center>
 <img width="1000px" src="./Imgs/Overview.png"> 
 </div>
@@ -51,6 +52,7 @@ LAMDA-SSL requires:
 > - matplotlib(>= 3.5.0)
 
 # Installation
+
 ## Install from pip
 
 You can download LAMDA-SSL directly from pip.
@@ -97,8 +99,8 @@ test_y = dataset.test_y
 Then import and initialize FixMatch.
 
 ```python
-from LAMDA_SSL.Algorithm.Classification.Fixmatch import Fixmatch
-model=Fixmatch(threshold=0.95,lambda_u=1.0,mu=7,T=0.5,epoch=1,num_it_epoch=2**20,num_it_total=2**20，device='cuda:0')
+from LAMDA_SSL.Algorithm.Classification.FixMatch import FixMatch
+model=Fixmatch(threshold=0.95,lambda_u=1.0,mu=7,T=0.5,epoch=1,num_it_epoch=2**20,device='cuda:0')
 ```
 
 Next, call the fit() method to complete the training process of the model.
@@ -112,6 +114,8 @@ pred_y=model.predict(X=test_X)
 ```
 
 # Performance
+
+We have evaluated the performance of LAMDA-SSL for semi-supervised classification task on table data using BreastCancer dataset. In this experiment, 30% of the instances are randomly sampled to form the testing dataset by the class distribution. Then 10% of the remaining instances are randomly sampled to form the labeled training dataset and the others are used to form the unlabeled training dataset by dropping their labels. For detailed parameter settings of each method, please refer to the 'Config' module of LAMDA-SSL.
 
 <div align=center>
 
@@ -127,6 +131,77 @@ pred_y=model.predict(X=test_X)
 | Tri-Training| 97.66| 97.47 |
 | Assemble | 94.15| 93.75 |
 | SemiBoost | 97.08 | 96.85 |
+
+</div>
+
+We have evaluated the performance of LAMDA-SSL for semi-supervised regression task on table data using Boston dataset. In this experiment, 30% of the instances are randomly sampled to form the testing dataset by the class distribution. Then 10% of the remaining instances are randomly sampled to form the labeled training dataset and the others are used to form the unlabeled training dataset by dropping their labels. For detailed parameter settings of each method, please refer to the 'Config' module of LAMDA-SSL.
+
+<div align=center>
+
+| Method | Mean Absolute Error | Mean Squared Error |
+| :-: | :-: | :-: |
+|CoReg|	4.66|	59.52|
+|Π Model Reg|	4.32|	37.64|
+|ICT Reg	|4.11|	37.14|
+|Mean Teacher Reg	|4.51|	45.56|
+
+</div>
+
+We have evaluated the performance of LAMDA-SSL for semi-supervised clustring task on table data using Wine dataset. In this experiment, 20% of the instances are randomly sampled to form the labeled dataset and the others are used to form the unlabeled dataset by dropping their labels. For detailed parameter settings of each method, please refer to the 'Config' module of LAMDA-SSL.
+
+<div align=center>
+
+| Method | Davies Bouldin Score | Fowlkes Mallows Score |
+| :-: | :-: | :-: |
+|Constrained k-means	|1.76	|0.75|
+|Constrained Seed k-means	|1.38|	0.93|
+
+</div>
+
+We have evaluated the performance of LAMDA-SSL for semi-supervised clustring task on simple vision data using MNIST dataset. In this experiment, 10% of the instances in training dataset are randomly sampled to form the labeled dataset and the others are used to form the unlabeled dataset by dropping their labels. For detailed parameter settings of each method, please refer to the 'Config' module of LAMDA-SSL.
+
+<div align=center>
+
+| Method | Accuracy(%) | F1 Score |
+| :-: | :-: | :-: |
+|Ladder Network	|97.37	|97.36|
+|ImprovedGAN	|98.81|	98.81|
+|SSVAE|	96.69|	96.67|
+
+</div>
+
+We have evaluated the performance of LAMDA-SSL for semi-supervised classification task on complex vision data using CIFAR10 dataset. In this experiment, 4000 instances in training dataset are randomly sampled to form the labeled training dataset and the others are used to form the unlabeled training dataset by dropping their labels. WideResNet is used as the backbone network. For detailed parameter settings of each method, please refer to the 'Config' module of LAMDA-SSL.
+
+<div align=center>
+
+| Method | Accuracy(%) | F1 Score |
+| :-: | :-: | :-: |
+|UDA	|95.41|	95.40|
+|Π Model	|87.09|	87.07|
+|Temporal Ensembling|	89.30|	89.31|
+|Mean Teacher|	92.01	|91.99|
+|VAT	|88.22	|88.19|
+|Pseudo Label|	85.90|	85.85|
+|S4L	|89.59	|89.54|
+|ICT	|92.64	|92.62|
+|MixMatch	|93.43	|93.43|
+|ReMixMatch	|96.24	|96.24|
+|FixMatch	|95.34	|95.33|
+|FlexMatch|	95.39	|95.40|
+
+
+</div>
+
+We have evaluated the performance of LAMDA-SSL for semi-supervised classification task on graph data using Cora dataset. In this experiment, 20% of the instances are randomly sampled to form the labeled training dataset and the others are used to form the unlabeled training dataset by dropping their labels. For detailed parameter settings of each method, please refer to the 'Config' module of LAMDA-SSL.
+
+<div align=center>
+
+| Method | Accuracy(%) | F1 Score |
+| :-: | :-: | :-: |
+|SDNE|	73.78|	69.85|
+|GCN|	82.04|	80.52|
+|GAT|	79.13|	77.36|
+
 
 </div>
 

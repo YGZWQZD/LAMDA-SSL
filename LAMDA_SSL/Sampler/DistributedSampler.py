@@ -2,6 +2,7 @@ import  torch.utils.data.distributed as dt
 from LAMDA_SSL.Base.BaseSampler import BaseSampler
 class DistributedSampler(BaseSampler):
     def __init__(self,num_replicas=None, rank=None, shuffle=True, seed=0, drop_last=False):
+        # > - Parameter:
         # >> - num_replicas: The Number of processes participating in distributed training.
         # >> - rank : Rank of the current process within `num_replicas`.
         # >> - shuffle: Whether to shuffle the data.

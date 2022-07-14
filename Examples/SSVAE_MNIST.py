@@ -33,11 +33,8 @@ valid_y=dataset.valid_y
 
 labeled_dataset=LabeledDataset(pre_transform=dataset.pre_transform,transforms=dataset.transforms,
                                transform=dataset.transform,target_transform=dataset.target_transform)
-
 unlabeled_dataset=UnlabeledDataset(pre_transform=dataset.pre_transform,transform=dataset.unlabeled_transform)
-
 valid_dataset=UnlabeledDataset(pre_transform=dataset.pre_transform,transform=dataset.valid_transform)
-
 test_dataset=UnlabeledDataset(pre_transform=dataset.pre_transform,transform=dataset.test_transform)
 
 #dataloader
@@ -68,8 +65,8 @@ evaluation={
 
 file = open("../Result/SSVAE_MNIST.txt", "w")
 
-model=SSVAE(alpha=0.1,num_labeled=6000,dim_in=(28,28),num_classes=10,
-             dim_z=50,
+model=SSVAE(alpha=5,num_labeled=6000,dim_in=(28,28),num_classes=10,
+             dim_z=100,
              dim_hidden_de=[500, 500],
              dim_hidden_en_y=[500, 500], dim_hidden_en_z=[500, 500],
              activations_de=[nn.Softplus(), nn.Softplus()],

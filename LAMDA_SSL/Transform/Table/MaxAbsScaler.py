@@ -1,5 +1,3 @@
-import torch
-
 from LAMDA_SSL.Base.Transformer import Transformer
 class MaxAbsScaler(Transformer):
     def __init__(self,max_abs=None):

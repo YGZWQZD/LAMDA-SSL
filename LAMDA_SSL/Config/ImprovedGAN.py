@@ -13,26 +13,16 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
-from Unused.ImageToTensor import ImageToTensor
-from sklearn.pipeline import Pipeline
-from LAMDA_SSL.Transform.Table.MinMaxScaler import MinMaxScaler
+from LAMDA_SSL.Transform.ToImage import ToImage
+from LAMDA_SSL.Transform.ToTensor import ToTensor
 
 transforms = None
 target_transform = None
-pre_transform = None
-transform = Pipeline([('ImageToTensor',ImageToTensor()),
-                    ('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255)),
-                  ])
-unlabeled_transform = Pipeline([('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255)),
-    ('ImageToTensor',ImageToTensor())
-
-                  ])
-test_transform = Pipeline([('ImageToTensor',ImageToTensor()),
-                    ('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255))
-                  ])
-valid_transform =Pipeline([('ImageToTensor',ImageToTensor()),
-                    ('MinMaxScalar',MinMaxScaler(min_val=0,max_val=255))
-                  ])
+pre_transform = ToImage(channels=1,channels_first=False)
+transform = ToTensor(dtype='float',image=True)
+unlabeled_transform = ToTensor(dtype='float',image=True)
+test_transform = ToTensor(dtype='float',image=True)
+valid_transform = ToTensor(dtype='float',image=True)
 
 train_dataset=None
 labeled_dataset=LabeledDataset(pre_transform=pre_transform,transforms=transforms,

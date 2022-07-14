@@ -67,8 +67,6 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
                     _sum+=self.alpha[i]*self.normfun(unlabeled_X[j],self.mu[i],self.sigma[i])
                 for i in range(self.num_classes):
                     self.gamma[j][i]=self.alpha[i]*self.normfun(unlabeled_X[j],self.mu[i],self.sigma[i])/_sum
-                    # print(self.gamma[j][i])
-
 
             # M step
             for i in range(self.num_classes):

@@ -5,6 +5,9 @@ from LAMDA_SSL.Base.Transformer import Transformer
 import torchvision.transforms as tvt
 class ToTensor(Transformer):
     def __init__(self,dtype=None,image=False):
+        # > - Parameter:
+        # >> - dtype: The dtype of Tensor.
+        # >> - image: Whether the X is a image.
         super().__init__()
         self.dtype=dtype
         self.image=image

@@ -1,9 +1,7 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
 from LAMDA_SSL.Base.VisionMixin import VisionMixin
 from LAMDA_SSL.Transform.ToTensor import ToTensor
-from sklearn.pipeline import Pipeline
 from LAMDA_SSL.Transform.ToImage import ToImage
-from LAMDA_SSL.Transform.Table.MinMaxScaler import MinMaxScaler
 from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
@@ -77,19 +75,11 @@ class Mnist(SemiDataset,VisionMixin):
     def init_default_transforms(self):
         self.transforms=None
         self.target_transform=None
-        self.pre_transform=ToImage()
-        self.transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
-                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
-                              ])
-        self.unlabeled_transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
-                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
-                              ])
-        self.test_transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
-                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
-                              ])
-        self.valid_transform=Pipeline([('ToTensor',ToTensor(dtype='float',image=True)),
-                              # ('MinMaxScalar',MinMaxScaler(min_val=self.min_val,max_val=self.max_val))
-                              ])
+        self.pre_transform=ToImage(channels=1,channels_first=False)
+        self.transform=ToTensor(dtype='float',image=True)
+        self.unlabeled_transform=ToTensor(dtype='float',image=True)
+        self.test_transform=ToTensor(dtype='float',image=True)
+        self.valid_transform=ToTensor(dtype='float',image=True)
         return self
 
     def _init_dataset(self):

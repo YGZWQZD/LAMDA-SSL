@@ -60,7 +60,7 @@ class FixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         # >> - thresh_warmup: Whether to use threshold warm-up mechanism.
         # >> - use_hard_labels: Whether to use hard labels in the consistency regularization.
         # >> - use_DA: Whether to perform distribution alignment for soft labels.
-        # >> - p_target: p(y) based on the labeled examples seen during training
+        # >> - p_target: p(y) based on the labeled examples seen during training.
 
         DeepModelMixin.__init__(self,train_dataset=train_dataset,
                                     valid_dataset=valid_dataset,

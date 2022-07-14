@@ -18,7 +18,7 @@ from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from LAMDA_SSL.Transform.Vision.Normalization import Normalization
-from Unused.ImageToTensor import ImageToTensor
+from LAMDA_SSL.Transform.ToTensor import ToTensor
 from LAMDA_SSL.Transform.ToImage import ToImage
 
 mean = [0.4914, 0.4822, 0.4465]
@@ -27,16 +27,16 @@ std = [0.2471, 0.2435, 0.2616]
 pre_transform = ToImage()
 transforms = None
 target_transform = None
-transform = Pipeline([('ToTensor', ImageToTensor()),
+transform = Pipeline([('ToTensor', ToTensor(dtype='float',image=True)),
                     ('Normalization', Normalization(mean=mean, std=std))
                     ])
-unlabeled_transform = Pipeline([('ToTensor', ImageToTensor()),
+unlabeled_transform = Pipeline([('ToTensor', ToTensor(dtype='float',image=True)),
                                 ('Normalization', Normalization(mean=mean, std=std))
                                 ])
-test_transform = Pipeline([('ToTensor', ImageToTensor()),
+test_transform = Pipeline([('ToTensor', ToTensor(dtype='float',image=True)),
                                 ('Normalization', Normalization(mean=mean, std=std))
                                 ])
-valid_transform = Pipeline([('ToTensor', ImageToTensor()),
+valid_transform = Pipeline([('ToTensor', ToTensor(dtype='float',image=True)),
                                  ('Normalization', Normalization(mean=mean, std=std))
                                  ])
 

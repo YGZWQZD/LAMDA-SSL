@@ -15,8 +15,8 @@ from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from LAMDA_SSL.Augmentation.Text.TFIDFReplacement import TFIDFReplacement
-from LAMDA_SSL.Network.TextRCNN import TextRCNN
 from LAMDA_SSL.Augmentation.Text.RandomSwap import RandomSwap
+from LAMDA_SSL.Network.TextRCNN import TextRCNN
 from LAMDA_SSL.Transform.Text.GloVe import Glove
 
 # dataset

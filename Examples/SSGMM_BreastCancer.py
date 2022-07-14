@@ -36,7 +36,7 @@ evaluation={
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
 
-model=SSGMM(num_classes=2,tolerance=0.000001,evaluation=evaluation,file=file,verbose=True)
+model=SSGMM(tolerance=0.000001,evaluation=evaluation,file=file,verbose=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 
