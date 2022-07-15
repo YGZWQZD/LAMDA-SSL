@@ -2333,7 +2333,7 @@ import copy
 from LAMDA_SSL.Base.InductiveEstimator import InductiveEstimator
 from LAMDA_SSL.Base.DeepModelMixin import DeepModelMixin
 from sklearn.base import ClassifierMixin
-import LAMDA_SSL.Config.Fixmatch as config
+import LAMDA_SSL.Config.FixMatch as config
 from LAMDA_SSL.Loss.Cross_Entropy import Cross_Entropy
 from LAMDA_SSL.Loss.Semi_Supervised_Loss import Semi_supervised_loss
 import torch

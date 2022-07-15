@@ -61,8 +61,8 @@ weak_augmentation=RandomSwap(n=1)
 strong_augmentation=TFIDFReplacement(text=labeled_X,p=0.7)
 
 augmentation={
-    'weakly_augmentation':weak_augmentation,
-    'strongly_augmentation':strong_augmentation
+    'weak_augmentation':weak_augmentation,
+    'strong_augmentation':strong_augmentation
 }
 
 # optimizer

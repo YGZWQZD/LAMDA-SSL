@@ -68,8 +68,8 @@ strong_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('Cutout',Cutout(v=0.5,fill=(127, 127, 127))),
                               ])
 augmentation={
-    'weakly_augmentation':weak_augmentation,
-    'strongly_augmentation':strong_augmentation
+    'weak_augmentation':weak_augmentation,
+    'strong_augmentation':strong_augmentation
 }
 # optimizer
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)

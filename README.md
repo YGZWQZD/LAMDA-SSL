@@ -1,5 +1,5 @@
 <div align=center>
-<img width="500px" src="./Imgs/Logo1.png"> 
+<img width="1000px" src="./Imgs/Logo1.png"> 
 
 ![](https://badgen.net/pypi/v/LAMDA-SSL)
 ![](https://badgen.net/github/stars/YGZWQZD/LAMDA-SSL)
@@ -40,7 +40,7 @@ LAMDA-SSL requires:
 
 > - python (>= 3.7)
 > - scikit-learn (>= 1.0.2)
-> - pytorch (>= 1.9.0)
+> - torch (>= 1.9.0)
 > - torchvision (>= 0.10.0)
 > - torchtext (>= 0.10.0)
 > - torch-geometric(>= 2.0.3)
@@ -99,7 +99,7 @@ Then import and initialize FixMatch.
 
 ```python
 from LAMDA_SSL.Algorithm.Classification.FixMatch import FixMatch
-model=Fixmatch(threshold=0.95,lambda_u=1.0,mu=7,T=0.5,epoch=1,num_it_epoch=2**20,device='cuda:0')
+model=FixMatch(threshold=0.95,lambda_u=1.0,mu=7,T=0.5,epoch=1,num_it_epoch=2**20,device='cuda:0')
 ```
 
 Next, call the fit() method to complete the training process of the model.

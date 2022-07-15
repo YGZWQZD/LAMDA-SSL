@@ -6,3 +6,6 @@
 /Save
 /Result
 /Unused/.vector_cache
+/build
+/dist
+/LAMDA_SSL.egg-info

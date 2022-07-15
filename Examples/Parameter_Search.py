@@ -68,18 +68,18 @@ optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 
 # augmentation
-weakly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+weak_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ])
 
-strongly_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
+strong_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
                               ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
                               ('RandAugment',RandAugment(n=2,m=10,num_bins=30)),
                               ('Cutout',Cutout(v=0.5,fill=(127,127,127))),
                               ])
 augmentation={
-    'weakly_augmentation':weakly_augmentation,
-    'strongly_augmentation':strongly_augmentation
+    'weak_augmentation':weak_augmentation,
+    'strong_augmentation':strong_augmentation
 }
 
 # evalutation
