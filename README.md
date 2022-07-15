@@ -126,7 +126,6 @@ We have evaluated the performance of LAMDA-SSL for semi-supervised classificatio
 | LapSVM | 96.49| 96.20 |
 | Label Propagation| 93.57| 92.85 |
 | Label Spreading | 95.32 | 94.90 |
-| Self-Training| 97.66| 97.49 |
 | Co-Training| 97.08| 99.07 |
 | Tri-Training| 97.66| 97.47 |
 | Assemble | 94.15| 93.75 |
