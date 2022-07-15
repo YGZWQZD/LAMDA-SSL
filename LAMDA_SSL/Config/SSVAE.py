@@ -88,11 +88,11 @@ parallel=None
 file=None
 verbose=False
 
-alpha=1
+alpha=5
 num_labeled=None
 dim_in=None
 num_classes=None
-dim_z=50
+dim_z=100
 dim_hidden_de=[500, 500]
 dim_hidden_en_y=[500, 500]
 dim_hidden_en_z=[500, 500]

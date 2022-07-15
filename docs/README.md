@@ -1366,8 +1366,10 @@ valid_result=model.valid_performance
 If you need to track the validation results in real time during the model training process, you can set the parameter 'verbose' to True to output the validation results in real time and you can set the parameter 'file' to complete output redirection.
 
 ```python
-file = open("../Result/ImprovedGAN_MNIST.txt", "w")
-model=FixMatch(threshold=0.95,lambda_u=1.0,T=0.5,mu=7,  ema_decay=0.999,weight_decay=5e-4,epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cuda:0',evaluation=evaluation,verbose=True,file=file)
+file = open("../Unused/Result/ImprovedGAN_MNIST.txt", "w")
+model = FixMatch(threshold=0.95, lambda_u=1.0, T=0.5, mu=7, ema_decay=0.999, weight_decay=5e-4, epoch=1,
+                 num_it_epoch=2 ** 20, num_it_total=2 ** 20, eval_it=2000, device='cuda:0', evaluation=evaluation,
+                 verbose=True, file=file)
 ```
 
 ## HyperParameters Search
