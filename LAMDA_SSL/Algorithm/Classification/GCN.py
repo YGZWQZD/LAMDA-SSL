@@ -150,6 +150,10 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
                 self.valid_performance .update({"epoch_" + str(self._epoch): self.performance })
 
+        if valid_X is not None and (self.eval_epoch is None or self.epoch% self.eval_epoch!=0):
+            self.evaluate(X=valid_X, y=valid_y, valid=True)
+            self.valid_performance.update({"epoch_" + str(self._epoch): self.performance})
+
 
     def train(self, lb_X=None, lb_y=None, ulb_X=None, lb_idx=None, ulb_idx=None, *args, **kwargs):
         self.logits = self._network(self.data)

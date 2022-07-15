@@ -325,20 +325,11 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         mom_fake = torch.mean(mom_fake, dim = 0)
         mom_unlabel = torch.mean(mom_unlabeled, dim = 0)
 
-        # self.Goptim.zero_grad()
-        # self.Doptim.zero_grad()
-        # loss.backward()
-        # self.Goptim.step()
         return mom_fake,mom_unlabel
-
-    # def optimize(self,*args,**kwargs):
-    #     self._optimizer.step()
-    #     self._network.zero_grad()
 
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
         X=X.view(X.shape[0],-1)
-        # X=X*1/255.
         outputs = self._network(X)
         return outputs
 

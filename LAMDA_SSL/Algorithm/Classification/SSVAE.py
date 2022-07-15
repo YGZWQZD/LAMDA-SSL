@@ -216,7 +216,6 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):
         X=X.view(X.shape[0],-1).bernoulli()
-        # X=X*1/255.
         outputs = self._network(X)
         return outputs
 

@@ -341,7 +341,7 @@ class DeepModelMixin(SemiEstimator):
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
                 self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
 
-        if valid_X is not None and self.epoch%self.eval_epoch!=0:
+        if valid_X is not None and (self.eval_epoch is None or self.epoch% self.eval_epoch!=0):
             self.evaluate(X=valid_X, y=valid_y, valid=True)
             self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
 

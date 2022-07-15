@@ -184,6 +184,11 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                 self.evaluate(X=valid_X,y=valid_y,valid=True)
                 self.valid_performance.update({"epoch_" + str(self._epoch): self.performance})
 
+        if valid_X is not None and (self.eval_epoch is None or self.epoch% self.eval_epoch!=0):
+            self.estimator_fit()
+            self.evaluate(X=valid_X, y=valid_y, valid=True)
+            self.valid_performance.update({"epoch_" + str(self._epoch): self.performance})
+
     def end_fit(self):
         self.estimator_fit()
 
