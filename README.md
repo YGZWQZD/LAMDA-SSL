@@ -1,4 +1,3 @@
-<!-- ![logo](./Imgs/Logo.png)(width="50%") -->
 <div align=center>
 <img width="500px" src="./Imgs/Logo1.png"> 
 
@@ -207,6 +206,7 @@ We have evaluated the performance of LAMDA-SSL for semi-supervised classificatio
 # Citation
 Please cite our paper if you find LAMDA-SSL useful in your work:
 ```
+
 ```
 
 # Contribution
@@ -220,3 +220,4 @@ Feel free to contribute in any way you like, we're always open to new ideas and 
 
 # Contact
 If you have any questions, please contact us: Lin-Han Jia[jialh2118@gmail.com].
+>>>>>>> dev
