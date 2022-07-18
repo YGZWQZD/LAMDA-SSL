@@ -26,7 +26,7 @@ For statistical semi-supervised learning, algorithms in LAMDA-SSL can be used fo
 <div align=center>
 <img width="1000px" src="./Imgs/Statistical.png"> 
 </div>
-For deep semi-supervised learning (as shown in Figure 3), algorithms in LAMDA-SSL can be used for classification and regression. The algorithms used for classification task include consistency methods Ladder Network, Π Model, Temporal Ensembling, Mean Teacher, VAT and UDA; Pseudo label-based methods Pseudo Label and S4L; hybrid methods ICT, MixMatch, ReMixMatch, FixMatch and FlexMatch; deep generative methods ImprovedGAN and SSVAE; deep graph-based methods SDNE and GCN. The algorithms for regression task include consistency method Π Model Reg, Mean Teacher Reg; hybrid method ICT Reg. These 3 deep SSL regression algorithms are our extensions of their prototypes used for classification.
+For deep semi-supervised learning, algorithms in LAMDA-SSL can be used for classification and regression. The algorithms used for classification task include consistency methods Ladder Network, Π Model, Temporal Ensembling, Mean Teacher, VAT and UDA; Pseudo label-based methods Pseudo Label and S4L; hybrid methods ICT, MixMatch, ReMixMatch, FixMatch and FlexMatch; deep generative methods ImprovedGAN and SSVAE; deep graph-based methods SDNE and GCN. The algorithms for regression task include consistency method Π Model Reg, Mean Teacher Reg; hybrid method ICT Reg. These 3 deep SSL regression algorithms are our extensions of their prototypes used for classification.
 <div align=center>
 <img width="1000px" src="./Imgs/Deep.png"> 
 </div>
