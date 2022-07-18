@@ -190,7 +190,7 @@ LAMDA-SSL implements up to 30 semi-supervised learning algorithms, including 12 
 
 ### Statistical Learning Algorithms
 
-LAMDA-SSL contains 12 semi-supervised learning algorithms based on statistical machine learning models (as shown in Figure 9), among which the algorithms used for classification tasks include generative method SSGMM, semi-supervised support vector machine methods TSVM, LapSVM, graph-based methods Label Propagation, Label Spreading, divergence-based methods Co-Training, Tri-Training, ensemble methods SemiBoost, Assemble; the algorithms used for regression tasks include CoReg; the algorithms used for clustering tasks include Constrained K Means, Constrained Seed K Means.
+LAMDA-SSL contains 12 semi-supervised learning algorithms based on statistical machine learning models (as shown in Figure 9), among which the algorithms used for classification tasks include generative method SSGMM, semi-supervised support vector machine methods TSVM, LapSVM, graph-based methods Label Propagation, Label Spreading, disagreement-based methods Co-Training, Tri-Training, ensemble methods SemiBoost, Assemble; the algorithms used for regression tasks include CoReg; the algorithms used for clustering tasks include Constrained K Means, Constrained Seed K Means.
 
 <div align=center>
 

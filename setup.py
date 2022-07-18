@@ -12,7 +12,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 setuptools.setup(
     name='LAMDA-SSL',
-    version="0.0.0.1",
+    version="0.0.0.2",
     author="Lin-Han Jia",
     license='MIT',
     author_email="1129198222@qq.com",

@@ -119,6 +119,7 @@ model=FixMatch(threshold=0.95,lambda_u=1.0,T=0.5,mu=7,weight_decay=5e-4,ema_deca
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 
 performance=model.evaluate(X=test_X,y=test_y)
+
 result=model.y_pred
 
 print(result,file=file)

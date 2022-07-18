@@ -57,7 +57,7 @@ LAMDA-SSL的数据模块设计思想如图4所示。
 
 <div align=center>
 
-<img width=500px src="./Imgs/DataModule.png" >
+<img width=1000px src="./Imgs/DataModule.png" >
 
 <br>
 

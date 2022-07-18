@@ -2,6 +2,7 @@
 <img width="1000px" src="./Imgs/Logo1.png"> 
 
 ![](https://badgen.net/pypi/v/LAMDA-SSL)
+![](https://anaconda.org/ygzwqzd/lamda-ssl/badges/version.svg)
 ![](https://badgen.net/github/stars/YGZWQZD/LAMDA-SSL)
 ![visitors](https://visitor-badge.glitch.me/badge?page_id=ygzwqzd.LAMDA-SSL)
 ![](https://badgen.net/github/last-commit/YGZWQZD/LAMDA-SSL)
@@ -13,11 +14,23 @@
 
 #  Introduction
 
-In order to promote the research and application of semi-supervised learning algorithms, we has developed LAMDA which is a convenient and practical semi-supervised learning toolkit. LAMDA-SSL has complete functions, convenient interfaces and detailed documentations. It integrates statistical machine learning algorithms and deep learning algorithms into the same framework. It is compatible with the popular machine learning toolkit sklearn and the popular deep learning toolkit pytorch.  It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 12 algorithms based on statistical machine learning models and 18 algorithms based on deep learning models. LAMDA-SSL also contains 45 data processing methods used for 4 types of data: table, image, text, graph and 15 model evaluation criterias used for 3 types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, algorithm application, model evaluation and so on, which facilitates the completion of the end-to-end semi-supervised learning process.
+In order to promote the research and application of semi-supervised learning algorithms, we has developed LAMDA which is a convenient and practical semi-supervised learning toolkit. LAMDA-SSL has complete functions, convenient interfaces and detailed documentations. It integrates statistical machine learning algorithms and deep learning algorithms into the same framework. It is compatible with the popular machine learning toolkit sklearn and the popular deep learning toolkit pytorch.  It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 12 algorithms based on statistical machine learning models and 18 algorithms based on deep learning models. LAMDA-SSL also contains 45 data processing methods used for 4 types of data: table, image, text, graph and 15 model evaluation criterias used for 3 types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, algorithm application, model deployment and so on, which facilitates the implementation of end to end semi-supervised learning.
 
 <div align=center>
 <img width="1000px" src="./Imgs/Overview.png"> 
 </div>
+
+At present, LAMDA-SSL has implemented 30 semi-supervised learning algorithms, including 12 statistical semi-supervised learning algorithms and 18 deep semi-supervised learning algorithms. 
+
+For statistical semi-supervised learning, algorithms in LAMDA-SSL can be used for classification, regression and clustering. The algorithms used for classification task include generative method SSGMM; semi-supervised support vector machine methods TSVM and LapSVM; graph-based methods Label Propagation and Label Spreading; disagrement-based methods Co-Training and Tri-Training; ensemble methods SemiBoost and Assemble. The algorithm used for regression task is CoReg. The algorithms used for clustering task include Constrained K Means, Constrained Seed K Means.
+<div align=center>
+<img width="1000px" src="./Imgs/Statistical.png"> 
+</div>
+For deep semi-supervised learning (as shown in Figure 3), algorithms in LAMDA-SSL can be used for classification and regression. The algorithms used for classification task include consistency methods Ladder Network, Π Model, Temporal Ensembling, Mean Teacher, VAT and UDA; Pseudo label-based methods Pseudo Label and S4L; hybrid methods ICT, MixMatch, ReMixMatch, FixMatch and FlexMatch; deep generative methods ImprovedGAN and SSVAE; deep graph-based methods SDNE and GCN. The algorithms for regression task include consistency method Π Model Reg, Mean Teacher Reg; hybrid method ICT Reg. These 3 deep SSL regression algorithms are our extensions of their prototypes used for classification.
+<div align=center>
+<img width="1000px" src="./Imgs/Deep.png"> 
+</div>
+
 
 # Advantages
 
@@ -63,7 +76,7 @@ pip install LAMDA-SSL
 
 You can also download LAMDA-SSL directly from anaconda.
 ```
-conda install LAMDA-SSL
+conda install -c ygzwqzd LAMDA-SSL
 ```
 
 
