@@ -28,7 +28,7 @@ The complexity of semi-supervised learning problems has created serious knowledg
 1) It should have advanced design pattern considering user needs from the perspectives of both data and model to make the interfaces as simple as possible and the functions as powerful as possible;
 2) The scope of application should be wide enough, such as supporting multiple common data types such as tables, images, texts and graphs and supporting multiple common task types such as classification, regression, and clustering;
 4) It should be easy to use and expandable. Taking into account the needs of different user groups, it should provide convenient usage methods, default parameters and interfaces for users with low proficiency and support flexible module replacement and customization for users with high proficiency;
-5) Its effectiveness should be verified through a large number of experiments and the performances of different algorithms in various scenarios should be compared;![img.png](img.png)
+5) Its effectiveness should be verified through a large number of experiments and the performances of different algorithms in various scenarios should be compared;
 6) There should be rich and convenient documents for users to reference.
 
 In order to solve the above problems, we developed LAMDA-SSL, a semi-supervised learning toolkit with advanced design pattern, wide application scenarios, rich algorithms, convenient functional interfaces, excellent model effect and detailed documentation. At present, this toolkit covers 30 semi-supervised learning algorithms, including 12 algorithms based on statistical machine learning models and 18 algorithms based on deep neural network models. It includes a variety of data transformation techniques, which can be used to process 4 data types of data: table, image, text and data. It includes a variety of model evaluation methods, which can be used for classification, regression, and clustering tasks. It includes multiple modules such as data management, data transformation, model application, and model deployment, which is easy to complete end-to-end Semi-supervised learning process. It is compatible with popular machine learning toolkit sklearn and deep learning toolkit pytorch, supporting sklearn's Pipeline and parameter search functions and pytorch's GPU acceleration and distributed training functions. It provides users with convenient toolkit usage documents, detailed API documents and rich introduction documents for semi-supervised learning algorithms. It provides good default parameters for non-professional users, and provides convenient and low-coupling module replacement and customization interfaces for professional users.
@@ -169,7 +169,7 @@ The classification task is one of the most basic tasks in the field of machine l
 
 The regression task is another basic task in the field of machine learning. The prediction result of the model is a continuous value, which is often used in scenarios such as price forecasting, sales forecasting and credit scoring. At present, the related research in the field of semi-supervised regression is immature and there are few algorithms available, especially deep semi supervised learning algorithms. In addition to the semi-supervised regression algorithm CoReg, LAMDA-SSL also extends some deep semi-supervised learning algorithms for classification, making them suitable for regression tasks. LAMDA-SSL also provides a variety of evaluation metrics such as 'Mean Absolute Error', 'Mean Squared Error' and 'Mean Square Log Error'.
 
-Clustering task is the most classical application of unsupervised learning. It cannot use real labels to establish the connection between the feature space and the target space. It is widely used in scenarios where real labels do not exist, such as anomaly detection, customers management and value combination. For clustering tasks, the algorithms in LAMDA-SSL all introduce some supervised information based on the original unsupervised clustering algorithms to guide the clustering process, so that the clustering results are more consistent with the real labels. LAMDA-SSL provides two types of clustering evaluation metrics. The first type is external metrics such as ‘Fowlkes Mallows Score’[39] and ‘Rand Score’[40], which are used when there are reliable reference results. The models' performance are evaluated by comparing the difference between the clustering results and the reference results. They are more suitable for the situation where the samples itself have labels. The second type is the internal metrics such as 'Davies Bouldin Score'[38] and 'Silhouette Score' which do not depend on the reference result and evaluate the models' performance only according to the features of the samples and the clustering results.
+The clustering task is the most classical application of unsupervised learning. It cannot use real labels to establish the connection between the feature space and the target space. It is widely used in scenarios where real labels do not exist, such as anomaly detection, customers management and value combination. For clustering tasks, the algorithms in LAMDA-SSL all introduce some supervised information based on the original unsupervised clustering algorithms to guide the clustering process, so that the clustering results are more consistent with the real labels. LAMDA-SSL provides two types of clustering evaluation metrics. The first type is external metrics such as ‘Fowlkes Mallows Score’[39] and ‘Rand Score’[40], which are used when there are reliable reference results. The models' performance are evaluated by comparing the difference between the clustering results and the reference results. They are more suitable for the situation where the samples itself have labels. The second type is the internal metrics such as 'Davies Bouldin Score'[38] and 'Silhouette Score' which do not depend on the reference result and evaluate the models' performance only according to the features of the samples and the clustering results.
 
 <div align=center class="center">
 
@@ -178,7 +178,7 @@ Table 2: Evaluation Metrics in LAMDA-SSL
 |Type of Task|Evaluation Metric|
 |:-:|:-:|
 |Classification|Accuracy<br>Top k Accuracy<br>Recall<br>Precision<br>F1 Score<br>AUC<br>Confusion Matrix|
-|Regression|Mean Absolute Error<br>Mean Squared Error<br>Mean Squared Log Error|
+|Regression|Mean Absolute Error<br>Median Absolute Error<br>Mean Squared Error<br>Mean Squared Log Error|
 |Clustring|Davies Bouldin Score<br>Fowlkes Mallows Score<br>Jaccard Score<br>Rand Score<br>Silhouette Score|
 
 </div>
@@ -216,7 +216,7 @@ The semi-supervised clustering algorithms introduce supervised information to as
 
 ### Deep Learning Algorithms
 
-LAMDA-SSL contains 18 deep model-based semi-supervised learning algorithms (as shown in Figure 10): the algorithms used for classification tasks include the consistency regularization method Ladder Network, Π Model, Temporal Ensembling, Mean Teacher, VAT, UDA, Pseudo label-based methods Pseudo Label, S4L, hybrid methods ICT, MixMatch, ReMixMatch, FixMatch, FlexMatch, generative methods ImprovedGAN, SSVAE, deep graph based methods SDNE, GCN; the algorithms for regression tasks include consistency regularization method Π Model Reg, Mean Teacher Reg and hybrid method ICT Reg.
+LAMDA-SSL contains 18 deep model-based semi-supervised learning algorithms (as shown in Figure 10): the algorithms used for classification tasks include the consistency regularization method Ladder Network, Π Model, Temporal Ensembling, Mean Teacher, VAT, UDA, Pseudo label-based methods Pseudo Label, S4L, hybrid methods ICT, MixMatch, ReMixMatch, FixMatch, FlexMatch, generative methods ImprovedGAN, SSVAE, deep graph based methods SDNE, GCN and GAT; the algorithms for regression tasks include consistency regularization method Π Model Reg, Mean Teacher Reg and hybrid method ICT Reg.
 
 <div align=center>
 
@@ -911,7 +911,7 @@ from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 
 pre_transform = Tokenizer('basic_english')
 vectors = Glove()
-transform = Pipeline([('Adjust_length', Adjust_length(length=dataset.length)),
+transform = Pipeline([('Adjust_length', AdjustLength(length=dataset.length)),
                       ('Vocab', Vocab(vectors.vec)),
                       ('ToTensor', ToTensor())])
 labeled_dataset = LabeledDataset(pre_transform=pre_transform, transform=transform)
@@ -928,9 +928,9 @@ Specific weak data augmentation and strong data augmentation for text data. Weak
 ```python
 from LAMDA_SSL.Augmentation.Text.RandomSwap import RandomSwap
 from LAMDA_SSL.Augmentation.Text.TFIDFReplacement import TFIDFReplacement
-weak_augmentation=Random_swap(n=1)
+weak_augmentation=RandomSwap(n=1)
 
-strong_augmentation=TFIDF_replacement(text=labeled_X,p=0.7)
+strong_augmentation=TFIDFReplacement(text=labeled_X,p=0.7)
 
 augmentation={
     'weak_augmentation':weak_augmentation,
@@ -997,7 +997,6 @@ Preprocess the Data with StandardScaler.
 ```python
 from sklearn import preprocessing
 pre_transform=preprocessing.StandardScaler()
-pre_transform=dataset.pre_transform
 pre_transform.fit(np.vstack([labeled_X, unlabeled_X]))
 labeled_X=pre_transform.transform(labeled_X)
 unlabeled_X=pre_transform.transform(unlabeled_X)
@@ -4661,6 +4660,12 @@ labels=None,
 
 #### LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error
 > CLASS LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error.Mean_Absolute_Error(sample_weight=None, multioutput="uniform_average")
+> - Parameter:
+>> - sample_weight: The weight of each sample.
+>> - multioutput: Aggregation method for multiple outputs.
+
+#### LAMDA_SSL.Evaluation.Regressor.Median_Absolute_Error
+> CLASS LAMDA_SSL.Evaluation.Regressor.Median_Absolute_Error.Median_Absolute_Error(sample_weight=None, multioutput="uniform_average")
 > - Parameter:
 >> - sample_weight: The weight of each sample.
 >> - multioutput: Aggregation method for multiple outputs.
