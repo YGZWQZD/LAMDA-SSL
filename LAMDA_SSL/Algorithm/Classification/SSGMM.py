@@ -13,6 +13,7 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         # >> - num_classes: The number of classes.
         # >> - tolerance: Tolerance for iterative convergence.
         # >> - max_iterations: The maximum number of iterations.
+        
         self.num_classes=num_classes
         self.tolerance=tolerance
         self.max_iterations=max_iterations
