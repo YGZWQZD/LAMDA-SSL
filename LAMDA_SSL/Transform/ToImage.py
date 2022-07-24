@@ -7,7 +7,7 @@ import numpy as np
 
 class ToImage(Transformer):
 
-    def __init__(self,channels=3,channels_first=True):
+    def __init__(self,channels=3,channels_first=False):
         # > - Parameter:
         # >> - channels: The number of channels of input images.
         # >> - channels_first: Whether the number of channels is before the image size.

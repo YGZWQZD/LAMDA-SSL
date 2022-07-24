@@ -25,13 +25,9 @@ class LabelPropagation(TransductiveEstimator,ClassifierMixin):
         # >> - n_jobs: The number of parallel jobs.
         self.max_iter = max_iter
         self.tol = tol
-
-        # kernel parameters
         self.kernel = kernel
         self.gamma = gamma
         self.n_neighbors = n_neighbors
-
-        # clamping factor
 
         self.n_jobs = n_jobs
 

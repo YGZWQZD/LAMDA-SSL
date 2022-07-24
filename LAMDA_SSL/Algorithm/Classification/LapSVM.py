@@ -87,10 +87,8 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         else:
             raise Exception()
 
-        # Computing Graph Laplacian
         L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
 
-        # Computing K with k(i,j) = kernel(i, j)
         if self.kernel_function == 'rbf':
             K = rbf_kernel(self.X,self.X,self.gamma_k)
         elif self.kernel_function is not None:
@@ -102,14 +100,10 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
             K = rbf_kernel(self.X, self.X, self.gamma_k)
         l=X.shape[0]
         u=unlabeled_X.shape[0]
-        # Creating matrix J [I (l x l), 0 (l x (l+u))]
         J = np.concatenate([np.identity(l), np.zeros(l * u).reshape(l, u)], axis=1)
-
-        # Computing "almost" alpha
         almost_alpha = np.linalg.inv(2 * self.gamma_A * np.identity(l + u) \
                                      + ((2 * self.gamma_I) / (l + u) ** 2) * L.dot(K)).dot(J.T).dot(Y)
 
-        # Computing Q
         Q = Y.dot(J).dot(K).dot(almost_alpha)
         Q = (Q+Q.T)/2
 
@@ -118,17 +112,14 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         e = np.ones(l)
         q = -e
 
-        # Objectives
         def objective_func(beta):
             return (1 / 2) * beta.dot(Q).dot(beta) + q.dot(beta)
 
         def objective_grad(beta):
             return np.squeeze(np.array(beta.T.dot(Q) + q))
 
-        #   0 <= beta_i <= 1 / l
         bounds = [(0, 1 / l) for _ in range(l)]
 
-        #  Y.dot(beta) = 0
         def constraint_func(beta):
             return beta.dot(np.diag(Y))
 
@@ -136,18 +127,12 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
             return np.diag(Y)
 
         cons = {'type': 'eq', 'fun': constraint_func, 'jac': constraint_grad}
-
-        # Solving
         x0 = np.zeros(l)
 
         beta_hat = minimize(objective_func, x0, jac=objective_grad, constraints=cons, bounds=bounds)['x']
-
-        # Computing final alpha
         self.alpha = almost_alpha.dot(beta_hat)
 
         del almost_alpha, Q
-
-        # Finding optimal decision boundary b using labeled data
         if self.kernel_function == 'rbf':
             new_K = rbf_kernel(self.X,X,self.gamma_k)
         elif self.kernel_function is not None:

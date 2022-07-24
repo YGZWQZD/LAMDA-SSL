@@ -27,17 +27,11 @@ class LabelSpreading(TransductiveEstimator,ClassifierMixin):
         # >> - n_jobs: The number of parallel jobs.
         self.max_iter = max_iter
         self.tol = tol
-
-        # kernel parameters
         self.kernel = kernel
         self.gamma = gamma
         self.n_neighbors = n_neighbors
         self.alpha=alpha
-
-        # clamping factor
-
         self.n_jobs = n_jobs
-
         self.model=sklp.LabelSpreading(kernel=self.kernel,gamma=self.gamma,n_neighbors=self.n_neighbors,
                                   alpha=self.alpha,max_iter=self.max_iter,tol=self.tol,n_jobs=n_jobs)
         self.evaluation = evaluation

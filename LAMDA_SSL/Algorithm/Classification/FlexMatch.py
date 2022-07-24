@@ -119,7 +119,7 @@ class FlexMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._estimator_type = ClassifierMixin._estimator_type
 
     def init_transform(self):
-        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
+        self._train_dataset.add_unlabeled_transform(copy.copy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.strong_augmentation,dim=1,x=1,y=0)
@@ -139,27 +139,27 @@ class FlexMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        w_lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
         w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
-        num_lb = w_lb_X.shape[0]
+        num_lb = lb_X.shape[0]
         pseudo_counter = Counter(self.selected_label.tolist())
         if max(pseudo_counter.values()) < len(self._train_dataset.unlabeled_dataset):  # not all -1
             if self.threshold_warmup:
                 for i in range(self.num_classes):
                     self.classwise_acc[i] = pseudo_counter[i] / max(pseudo_counter.values())
             else:
-                wo_negative_one = copy.deepcopy(pseudo_counter)
-                if -1 in wo_negative_one.keys():
-                    wo_negative_one.pop(-1)
+                pseudo_counter_without_negative_1 = copy.deepcopy(pseudo_counter)
+                if -1 in pseudo_counter_without_negative_1.keys():
+                    pseudo_counter_without_negative_1.pop(-1)
                 for i in range(self.num_classes):
-                    self.classwise_acc[i] = pseudo_counter[i] / max(wo_negative_one.values())
+                    self.classwise_acc[i] = pseudo_counter[i] / max(pseudo_counter_without_negative_1.values())
 
-        inputs = torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
+        inputs = torch.cat((lb_X, w_ulb_X, s_ulb_X))
         logits = self._network(inputs)
-        logits_x_lb = logits[:num_lb]
-        logits_x_ulb_w , logits_x_ulb_s = logits[num_lb:].chunk(2)
-        logits_x_ulb_w = logits_x_ulb_w.detach()
-        pseudo_label = torch.softmax(logits_x_ulb_w, dim=-1)
+        lb_logits = logits[:num_lb]
+        w_ulb_logits , s_ulb_logits = logits[num_lb:].chunk(2)
+        w_ulb_logits = w_ulb_logits.detach()
+        pseudo_label = torch.softmax(w_ulb_logits, dim=-1)
         if self.use_DA:
             if self.p_model == None:
                 self.p_model = torch.mean(pseudo_label.detach(), dim=0)
@@ -173,17 +173,17 @@ class FlexMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         if ulb_idx[select == 1].nelement() != 0:
             self.selected_label[ulb_idx[select == 1]] = max_idx.long()[select == 1]
         if self.use_hard_labels is not True:
-            pseudo_label = torch.softmax(logits_x_ulb_w / self.T, dim=-1)
+            pseudo_label = torch.softmax(w_ulb_logits / self.T, dim=-1)
         else:
             pseudo_label=max_idx
 
-        result=(logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask)
+        result=(lb_logits,lb_y,s_ulb_logits,pseudo_label,mask)
         return result
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb_s,pseudo_label,mask = train_result
-        sup_loss=Cross_Entropy(reduction='mean')(logits=logits_x_lb,targets=lb_y)
-        unsup_loss =(Cross_Entropy(reduction='none',use_hard_labels=self.use_hard_labels)(logits_x_ulb_s, pseudo_label) * mask).mean()
+        lb_logits,lb_y,s_ulb_logits,pseudo_label,mask = train_result
+        sup_loss=Cross_Entropy(reduction='mean')(logits=lb_logits,targets=lb_y)
+        unsup_loss =(Cross_Entropy(reduction='none',use_hard_labels=self.use_hard_labels)(s_ulb_logits, pseudo_label) * mask).mean()
         loss = Semi_Supervised_Loss(self.lambda_u)(sup_loss ,unsup_loss)
         return loss
 

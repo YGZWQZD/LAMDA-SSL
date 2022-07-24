@@ -139,40 +139,40 @@ class Ladder_Network(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         ulb_X = Variable(ulb_X)
 
         # do a noisy pass for labelled data
-        output_noise_labeled = nn.Softmax(dim=-1)(self._network.forward_encoders_noise(lb_X))
+        lb_noise_logits = nn.Softmax(dim=-1)(self._network.forward_encoders_noise(lb_X))
 
         # do a noisy pass for unlabelled_data
-        output_noise_unlabeled = nn.Softmax(dim=-1)(self._network.forward_encoders_noise(ulb_X))
-        tilde_z_layers_unlabeled = self._network.get_encoders_tilde_z(reverse=True)
+        ulb_noise_logits = nn.Softmax(dim=-1)(self._network.forward_encoders_noise(ulb_X))
+        layers_ulb_tilde_z = self._network.get_encoders_tilde_z(reverse=True)
 
         # do a clean pass for unlabelled data
-        output_clean_unlabeled = nn.Softmax(dim=-1)(self._network.forward_encoders_clean(ulb_X))
-        z_pre_layers_unlabeled = self._network.get_encoders_z_pre(reverse=True)
-        z_layers_unlabeled = self._network.get_encoders_z(reverse=True)
+        ulb_clean_logits = nn.Softmax(dim=-1)(self._network.forward_encoders_clean(ulb_X))
+        ulb_pre_layers_z= self._network.get_encoders_z_pre(reverse=True)
+        ulb_layers_z = self._network.get_encoders_z(reverse=True)
 
-        tilde_z_bottom_unlabeled = self._network.get_encoder_tilde_z_bottom()
+        ulb_tilde_z_bottom = self._network.get_encoder_tilde_z_bottom()
 
         # pass through decoders
-        hat_z_layers_unlabeled = self._network.forward_decoders(tilde_z_layers_unlabeled,
-                                                          output_noise_unlabeled,
-                                                          tilde_z_bottom_unlabeled)
+        ulb_layers_hat_z= self._network.forward_decoders(layers_ulb_tilde_z,
+                                                          ulb_noise_logits,
+                                                          ulb_tilde_z_bottom)
 
-        z_pre_layers_unlabeled.append(ulb_X)
-        z_layers_unlabeled.append(ulb_X)
+        ulb_pre_layers_z.append(ulb_X)
+        ulb_layers_z.append(ulb_X)
 
         # batch normalize using mean, var of z_pre
-        bn_hat_z_layers_unlabeled = self._network.decoder_bn_hat_z_layers(hat_z_layers_unlabeled, z_pre_layers_unlabeled)
-        return output_noise_labeled, lb_y, z_layers_unlabeled, bn_hat_z_layers_unlabeled
+        ulb_layers_bn_hat_z = self._network.decoder_bn_hat_z_layers(ulb_layers_hat_z, ulb_pre_layers_z)
+        return lb_noise_logits, lb_y, ulb_layers_z, ulb_layers_bn_hat_z
 
     def get_loss(self,train_result,*args,**kwargs):
-        output_noise_labeled, lb_y, z_layers_unlabeled, bn_hat_z_layers_unlabeled=train_result
-        cost_supervised = Cross_Entropy(reduction='mean')(output_noise_labeled, lb_y)
-        cost_unsupervised = 0.
-        for cost_lambda, z, bn_hat_z in zip(self.lambda_u, z_layers_unlabeled, bn_hat_z_layers_unlabeled):
-            c = cost_lambda * MSE(reduction='mean')(bn_hat_z, z)
-            cost_unsupervised += c
-        result = cost_supervised + cost_unsupervised
-        return result
+        lb_noise_logits, lb_y, ulb_layers_z, ulb_layers_bn_hat_z=train_result
+        sup_loss = Cross_Entropy(reduction='mean')(lb_noise_logits, lb_y)
+        unsup_loss = 0.
+        for lambda_u, z, bn_hat_z in zip(self.lambda_u, ulb_layers_z, ulb_layers_bn_hat_z):
+            c = lambda_u * MSE(reduction='mean')(bn_hat_z, z)
+            unsup_loss += c
+        loss = sup_loss+ unsup_loss
+        return loss
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()

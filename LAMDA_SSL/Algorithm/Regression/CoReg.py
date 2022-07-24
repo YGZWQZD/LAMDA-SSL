@@ -64,18 +64,11 @@ class CoReg(InductiveEstimator,RegressorMixin):
                 deltas = np.zeros((U_X_pool.shape[0],))
 
                 for idx_u, x_u in enumerate(U_X_pool):
-                    # Make prediction
                     x_u = x_u.reshape(1, -1)
                     y_u_hat = h.predict(x_u)
-                    # Compute neighbors
                     omega = h.kneighbors(x_u, return_distance=False)[0]
-                    # Retrain regressor after adding unlabeled point
-                    # print(L_X.shape)
-                    # print(x_u.shape)
                     X_temp = np.concatenate((L_X, x_u))
-                    # print(L_y.shape)
-                    # print(y_u_hat.shape)
-                    y_temp = np.concatenate((L_y, y_u_hat))  # use predicted y_u_hat
+                    y_temp = np.concatenate((L_y, y_u_hat))
                     h_temp.fit(X_temp, y_temp)
 
                     delta = 0
@@ -86,8 +79,6 @@ class CoReg(InductiveEstimator,RegressorMixin):
                                   h_temp.predict(L_X[idx_o].reshape(1, -1))) ** 2
 
                     deltas[idx_u] = delta
-
-                # Add largest delta (improvement)
                 sort_idxs = np.argsort(deltas)[::-1]  # max to min
                 max_idx = sort_idxs[0]
                 if max_idx in added_idxs: max_idx = sort_idxs[1]

@@ -126,36 +126,36 @@ class ICTReg(DeepModelMixin,InductiveEstimator,RegressorMixin):
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        lb_x = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
+        lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
         lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
-        ulb_x_1 = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
-        logits_x_lb = self._network(lb_x)
-        index = torch.randperm(ulb_x_1.size(0)).to(self.device)
-        ulb_x_2=ulb_x_1[index]
+        ulb_X_1 = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
+        lb_logits = self._network(lb_X)
+        index = torch.randperm(ulb_X_1.size(0)).to(self.device)
+        ulb_X_2=ulb_X_1[index]
         mixup=Mixup(self.alpha)
 
         if self.ema is not None:
             self.ema.apply_shadow()
         with torch.no_grad():
-            logits_x_ulb_1 = self._network(ulb_x_1)
+            ulb_logits_1 = self._network(ulb_X_1)
         if self.ema is not None:
             self.ema.restore()
-        logits_x_ulb_2=logits_x_ulb_1[index]
-        mixed_x= mixup.fit(ulb_x_1).transform(ulb_x_2)
+        ulb_logits_2=ulb_logits_1[index]
+        mixed_X= mixup.fit(ulb_X_1).transform(ulb_X_2)
         lam=mixup.lam
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb_mix = self._network(mixed_x)
+        ulb_logits_mix = self._network(mixed_X)
         self.bn_controller.unfreeze_bn(self._network)
-        return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam
+        return lb_logits,lb_y,ulb_logits_1,ulb_logits_2,ulb_logits_mix,lam
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2,logits_x_ulb_mix,lam=train_result
-        sup_loss = MSE(reduction='mean')(logits_x_lb, lb_y)  # CE_loss for labeled data
+        lb_logits,lb_y,ulb_logits_1,ulb_logits_2,ulb_logits_mix,lam=train_result
+        sup_loss = MSE(reduction='mean')(lb_logits, lb_y)
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = _warmup * (lam*MSE(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_1)+
-                                (1.0 - lam)*MSE(reduction='mean')(logits_x_ulb_mix,logits_x_ulb_2))
+        unsup_loss = _warmup * (lam*MSE(reduction='mean')(ulb_logits_mix,ulb_logits_1)+
+                                (1.0 - lam)*MSE(reduction='mean')(ulb_logits_mix,ulb_logits_2))
 
-        loss =Semi_Supervised_Loss(self.lambda_u)(sup_loss ,   unsup_loss)
+        loss =Semi_Supervised_Loss(self.lambda_u)(sup_loss , unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

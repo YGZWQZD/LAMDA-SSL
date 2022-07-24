@@ -98,31 +98,29 @@ class PseudoLabel(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
-        w_lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
-        w_ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
+        ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
 
-        logits_x_lb = self._network(w_lb_X)
+        lb_logits = self._network(lb_X)
 
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb = self._network(w_ulb_X)
+        ulb_logits = self._network(ulb_X)
         self.bn_controller.unfreeze_bn(self._network)
 
-        return logits_x_lb,lb_y,logits_x_ulb
+        return lb_logits,lb_y,ulb_logits
 
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb=train_result
-        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)  # CE_loss for labeled data
+        lb_logits,lb_y,ulb_logits=train_result
+        sup_loss = Cross_Entropy(reduction='mean')(lb_logits, lb_y)  # CE_loss for labeled data
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        pseudo_label = torch.softmax(logits_x_ulb, dim=-1)
+        pseudo_label = torch.softmax(ulb_logits, dim=-1)
         max_probs, max_idx = torch.max(pseudo_label, dim=-1)
         mask = max_probs.ge(self.threshold).float()
-        unsup_loss = _warmup*(Cross_Entropy(reduction='none')(logits_x_ulb, max_idx.detach())*mask).mean() # MSE loss for unlabeled data
+        unsup_loss = _warmup*(Cross_Entropy(reduction='none')(ulb_logits, max_idx.detach())*mask).mean() # MSE loss for unlabeled data
         loss = Semi_Supervised_Loss(self.lambda_u)(sup_loss, unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):
         return DeepModelMixin.predict(self,X=X,valid=valid)
-
-

@@ -111,15 +111,15 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
         self._estimator_type = ClassifierMixin._estimator_type
 
     def start_fit(self):
-        n_classes = self.num_classes if self.num_classes is not None else \
+        num_classes = self.num_classes if self.num_classes is not None else \
                         class_status(self._train_dataset.labeled_dataset.y).num_classes
 
-        n_samples = self.num_samples if self.num_samples is not None else \
+        num_samples = self.num_samples if self.num_samples is not None else \
                         self._train_dataset.unlabeled_dataset.__len__()
-        self.epoch_pslab = self.create_soft_pslab(n_samples=n_samples,
-                                           n_classes=n_classes,dtype='rand')
-        self.ema_pslab   = self.create_soft_pslab(n_samples=n_samples,
-                                           n_classes=n_classes,dtype='zero')
+        self.epoch_pslab = self.create_soft_pslab(num_samples=num_samples,
+                                           num_classes=num_classes,dtype='rand')
+        self.ema_pslab   = self.create_soft_pslab(num_samples=num_samples,
+                                           num_classes=num_classes,dtype='zero')
         self.it_total = 0
         self._network.zero_grad()
         self._network.train()
@@ -129,11 +129,11 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
         if self._scheduler is not None:
                 self._scheduler.step()
 
-    def create_soft_pslab(self, n_samples, n_classes, dtype='rand'):
+    def create_soft_pslab(self, num_samples, num_classes, dtype='rand'):
         if dtype == 'rand':
-            pslab = torch.randint(0, n_classes, (n_samples, n_classes)).float()
+            pslab = torch.randint(0, num_classes, (num_samples, num_classes)).float()
         elif dtype == 'zero':
-            pslab = torch.zeros(n_samples, n_classes)
+            pslab = torch.zeros(num_samples, num_classes)
         else:
             raise ValueError('Unknown pslab dtype: {}'.format(dtype))
         return pslab.to(self.device)
@@ -147,15 +147,15 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
         lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
         lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
         ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
-        logits_x_lb = self._network(lb_X)
+        lb_logits = self._network(lb_X)
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb = self._network(ulb_X)
+        ulb_logits = self._network(ulb_X)
         self.bn_controller.unfreeze_bn(self._network)
         iter_unlab_pslab = self.epoch_pslab[ulb_idx]
         with torch.no_grad():
-            self.epoch_pslab[ulb_idx] = logits_x_ulb.clone().detach()
+            self.epoch_pslab[ulb_idx] = ulb_logits.clone().detach()
 
-        return logits_x_lb,lb_y,logits_x_ulb,iter_unlab_pslab
+        return lb_logits,lb_y,ulb_logits,iter_unlab_pslab
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()
@@ -165,11 +165,11 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
             self.ema.update()
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb, lb_y, logits_x_ulb,iter_unlab_pslab  = train_result
-        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)
+        lb_logits,lb_y,ulb_logits,iter_unlab_pslab  = train_result
+        sup_loss = Cross_Entropy(reduction='mean')(lb_logits, lb_y)
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = _warmup *Consistency(reduction='mean')(logits_x_ulb,iter_unlab_pslab)
-        loss = Semi_Supervised_Loss(self.lambda_u)(sup_loss ,  unsup_loss)
+        unsup_loss = _warmup *Consistency(reduction='mean')(ulb_logits,iter_unlab_pslab)
+        loss = Semi_Supervised_Loss(self.lambda_u)(sup_loss, unsup_loss)
         return loss
 
     def predict(self,X=None,valid=None):

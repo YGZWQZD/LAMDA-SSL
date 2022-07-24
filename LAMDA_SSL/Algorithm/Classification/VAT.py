@@ -119,21 +119,21 @@ class VAT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        _lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
-        _ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
+        ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
 
-        logits_x_lb = self._network(_lb_X)
+        lb_logits = self._network(lb_X)
 
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb = self._network(_ulb_X)
+        ulb_logits = self._network(ulb_X)
 
-        d = torch.Tensor(_ulb_X.size()).normal_()
+        d = torch.Tensor(ulb_X.size()).normal_()
         for i in range(self.it_vat):
             d = self.xi*_l2_normalize(d)
             d = Variable(d.to(self.device), requires_grad=True)
-            y_hat = self._network(_ulb_X + d)
-            delta_kl = KL_Divergence(reduction='mean')(logits_x_ulb.detach(), y_hat)
+            y_hat = self._network(ulb_X + d)
+            delta_kl = KL_Divergence(reduction='mean')(ulb_logits.detach(), y_hat)
             delta_kl.backward()
             d = d.grad.data.clone()
             self._network.zero_grad()
@@ -141,20 +141,20 @@ class VAT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         d = _l2_normalize(d)
         d = Variable(d)
         r_adv = self.eps * d
-        y_hat = self._network(_ulb_X + r_adv.detach())
+        y_hat = self._network(ulb_X + r_adv.detach())
 
         self.bn_controller.unfreeze_bn(self._network)
-        return logits_x_lb,lb_y,logits_x_ulb, y_hat
+        return lb_logits,lb_y,ulb_logits, y_hat
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb,y_hat=train_result
+        lb_logits,lb_y,ulb_logits,y_hat=train_result
         _warmup = np.clip(self.it_total / (self.warmup * self.num_it_total),
                 a_min=0.0, a_max=1.0)
 
-        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb, lb_y)
+        sup_loss = Cross_Entropy(reduction='mean')(lb_logits, lb_y)
 
-        unsup_loss = _warmup*KL_Divergence(reduction='mean')(logits_x_ulb.detach(), y_hat)
-        entmin_loss=EntMin(reduction='mean',activation=torch.nn.Softmax(dim=-1))(logits_x_ulb)
+        unsup_loss = _warmup*KL_Divergence(reduction='mean')(ulb_logits.detach(), y_hat)
+        entmin_loss=EntMin(reduction='mean',activation=torch.nn.Softmax(dim=-1))(ulb_logits)
 
         loss = sup_loss + self.lambda_u * unsup_loss  + self.lambda_entmin * entmin_loss
         return loss

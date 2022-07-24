@@ -86,13 +86,8 @@ class Co_Training(InductiveEstimator,ClassifierMixin):
             for i in (y2_prob[:, 1].argsort())[-self.p:]:
                 if y2_prob[i, 1] > 0.5:
                     p_list.append(i)
-
-            # label the samples and remove the newly added samples from U_
-
             unlabeled_y[[pool[x] for x in p_list]] = 1
             unlabeled_y[[pool[x] for x in n_list]] = 0
-
-
 
             for x in p_list:
                 X = np.vstack([X, unlabeled_X[pool[x]]])
@@ -119,7 +114,6 @@ class Co_Training(InductiveEstimator,ClassifierMixin):
         self.base_estimator_2.fit(X_2, y)
 
     def supports_proba(self, clf, x):
-        """Checks if a given classifier supports the 'predict_proba' method, given a single vector x"""
         try:
             clf.predict_proba([x])
             return True

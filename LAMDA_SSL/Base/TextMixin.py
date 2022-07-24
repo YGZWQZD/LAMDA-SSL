@@ -51,8 +51,17 @@ class TextMixin:
                                    ('Vocab', self.vocab),
                                    ('ToTensor', ToTensor())
                                    ])
-        self.valid_transform=copy.deepcopy(self.transform)
-        self.test_transform=copy.deepcopy(self.transform)
-        self.unlabeled_transform=copy.deepcopy(self.transform)
+        self.valid_transform=Pipeline([('Adjust_length', AdjustLength(length=self.length)),
+                                   ('Vocab', self.vocab),
+                                   ('ToTensor', ToTensor())
+                                   ])
+        self.test_transform=Pipeline([('Adjust_length', AdjustLength(length=self.length)),
+                                   ('Vocab', self.vocab),
+                                   ('ToTensor', ToTensor())
+                                   ])
+        self.unlabeled_transform=Pipeline([('Adjust_length', AdjustLength(length=self.length)),
+                                   ('Vocab', self.vocab),
+                                   ('ToTensor', ToTensor())
+                                   ])
         self.target_transfrom=None
         self.transforms=None

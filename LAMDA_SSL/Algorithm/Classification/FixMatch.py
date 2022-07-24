@@ -106,19 +106,18 @@ class FixMatch(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self.weight_decay=weight_decay
         self._estimator_type=ClassifierMixin._estimator_type
 
-
     def init_transform(self):
-        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
+        self._train_dataset.add_unlabeled_transform(copy.copy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.strong_augmentation,dim=1,x=1,y=0)
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        w_lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
         w_ulb_X,s_ulb_X=ulb_X[0],ulb_X[1]
-        batch_size = w_lb_X.shape[0]
-        inputs=torch.cat((w_lb_X, w_ulb_X, s_ulb_X))
+        batch_size = lb_X.shape[0]
+        inputs=torch.cat((lb_X, w_ulb_X, s_ulb_X))
         logits = self._network(inputs)
         lb_logits = logits[:batch_size]
         w_ulb_logits, s_ulb_logits = logits[batch_size:].chunk(2)

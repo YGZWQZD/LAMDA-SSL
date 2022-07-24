@@ -108,7 +108,7 @@ class UDA(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._estimator_type = ClassifierMixin._estimator_type
 
     def init_transform(self):
-        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
+        self._train_dataset.add_unlabeled_transform(copy.copy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.strong_augmentation,dim=1,x=1,y=0)
@@ -126,9 +126,9 @@ class UDA(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         num_lb = lb_X.shape[0]
         inputs = torch.cat([lb_X, w_ulb_X, s_ulb_X], dim=0)
         logits = self._network(inputs)
-        logits_x_lb = logits[:num_lb]
-        logits_x_ulb_w, logits_x_ulb_s = logits[num_lb:].chunk(2)
-        return logits_x_lb,lb_y,logits_x_ulb_w, logits_x_ulb_s
+        lb_logits = logits[:num_lb]
+        w_ulb_logits, s_ulb_logits = logits[num_lb:].chunk(2)
+        return lb_logits,lb_y,w_ulb_logits, s_ulb_logits
 
     def get_tsa(self):
         training_progress = self.it_total / self.num_it_total
@@ -150,15 +150,15 @@ class UDA(InductiveEstimator,DeepModelMixin,ClassifierMixin):
             return tsa
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb,lb_y,logits_x_ulb_w, logits_x_ulb_s=train_result
+        lb_logits,lb_y,w_ulb_logits, s_ulb_logits=train_result
         tsa = self.get_tsa()
-        sup_mask = torch.max(torch.softmax(logits_x_lb, dim=-1), dim=-1)[0].le(tsa).float().detach()
-        sup_loss = (Cross_Entropy(reduction='none')(logits_x_lb, lb_y)* sup_mask).mean()  # CE_loss for labeled data
-        pseudo_label = torch.softmax(logits_x_ulb_w, dim=-1)
+        sup_mask = torch.max(torch.softmax(lb_logits, dim=-1), dim=-1)[0].le(tsa).float().detach()
+        sup_loss = (Cross_Entropy(reduction='none')(lb_logits, lb_y)* sup_mask).mean()  # CE_loss for labeled data
+        pseudo_label = torch.softmax(w_ulb_logits, dim=-1)
         max_probs, max_idx = torch.max(pseudo_label, dim=-1)
         mask = max_probs.ge(self.threshold).float()
-        pseudo_label = torch.softmax(logits_x_ulb_w / self.T, dim=-1)
-        unsup_loss = (Cross_Entropy(reduction='none',use_hard_labels=False)(logits_x_ulb_s, pseudo_label)*mask ).mean() # MSE loss for unlabeled data
+        pseudo_label = torch.softmax(w_ulb_logits / self.T, dim=-1)
+        unsup_loss = (Cross_Entropy(reduction='none',use_hard_labels=False)(s_ulb_logits, pseudo_label)*mask ).mean() # MSE loss for unlabeled data
         loss = Semi_Supervised_Loss(self.lambda_u)(sup_loss , unsup_loss)
         return loss
 

@@ -255,21 +255,20 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
             self.emaD = None
 
     def get_loss_D(self,train_result_D):
-        output_label, lb_y,output_unlabel, output_fake=train_result_D
-        logz_label, logz_unlabel, logz_fake = self.log_sum_exp(output_label), \
-                                              self.log_sum_exp(output_unlabel), \
-                                              self.log_sum_exp(output_fake) # log ∑e^x_i
-        prob_label = torch.gather(output_label, 1, lb_y.unsqueeze(1)) # log e^x_label = x_label
-        loss_supervised = -torch.mean(prob_label) + torch.mean(logz_label)
-        loss_unsupervised = 0.5 * (-torch.mean(logz_unlabel) + torch.mean(F.softplus(logz_unlabel))  + # real_data: log Z/(1+Z)
+        lb_logits, lb_y, ulb_logits, fake_logits=train_result_D
+        logz_label, logz_unlabel, logz_fake = self.log_sum_exp(lb_logits), \
+                                              self.log_sum_exp(ulb_logits), \
+                                              self.log_sum_exp(fake_logits) # log ∑e^x_i
+        prob_label = torch.gather(lb_logits, 1, lb_y.unsqueeze(1)) # log e^x_label = x_label
+        sup_loss = -torch.mean(prob_label) + torch.mean(logz_label)
+        unsup_loss = 0.5 * (-torch.mean(logz_unlabel) + torch.mean(F.softplus(logz_unlabel))  + # real_data: log Z/(1+Z)
                             torch.mean(F.softplus(logz_fake)))
-        loss=loss_supervised+self.lambda_u*loss_unsupervised
+        loss=sup_loss+self.lambda_u*unsup_loss
         return loss
 
     def get_loss_G(self,train_result_G):
-        mom_fake, mom_unlabel=train_result_G
-        loss_fm = torch.mean((mom_fake - mom_unlabel) ** 2)
-        loss =loss_fm
+        fake_feature,ulb_feature=train_result_G
+        loss = torch.mean((fake_feature - ulb_feature) ** 2)
         return loss
 
     def end_fit_batch_D(self,train_result_D):
@@ -304,28 +303,28 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         m = torch.max(x, dim=1)[0]
         return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(1)), dim=axis))
 
-    def train_D(self,X,y,unlabeled_X):
-        X=X.view(X.shape[0],-1)
-        unlabeled_X=unlabeled_X.view(unlabeled_X.shape[0],-1)
-        output_label=self._network.D(X)
-        output_unlabel=self._network.D(unlabeled_X)
-        fake_X=self._network.G(unlabeled_X.size()[0]).view(unlabeled_X.size()).detach()
-        output_fake =self._network.D(fake_X)
-        return output_label, y, output_unlabel, output_fake
+    def train_D(self,lb_X,lb_y,ulb_X):
+        lb_X=lb_X.view(lb_X.shape[0],-1)
+        ulb_X=ulb_X.view(ulb_X.shape[0],-1)
+        lb_logits=self._network.D(lb_X)
+        ulb_logits=self._network.D(ulb_X)
+        fake_X=self._network.G(ulb_X.size()[0]).view(ulb_X.size()).detach()
+        fake_logits =self._network.D(fake_X)
+        return lb_logits, lb_y, ulb_logits, fake_logits
 
-    def train_G(self, unlabeled_X):
-        unlabeled_X = unlabeled_X.view(unlabeled_X.shape[0], -1)
-        fake = self._network.G(unlabeled_X.size()[0]).view(unlabeled_X.size())
-        output_fake = self._network.D(fake)
-        mom_fake=self._network.D.feature
+    def train_G(self, ulb_X):
+        ulb_X = ulb_X.view(ulb_X.shape[0], -1)
+        fake_X = self._network.G(ulb_X.size()[0]).view(ulb_X.size())
+        fake_logits = self._network.D(fake_X)
+        fake_feature=self._network.D.feature
 
-        output_unlabeled = self._network.D(Variable(unlabeled_X))
-        mom_unlabeled=self._network.D.feature
+        ulb_logits = self._network.D(Variable(ulb_X))
+        ulb_feature=self._network.D.feature
 
-        mom_fake = torch.mean(mom_fake, dim = 0)
-        mom_unlabel = torch.mean(mom_unlabeled, dim = 0)
+        fake_feature = torch.mean(fake_feature, dim = 0)
+        ulb_feature = torch.mean(ulb_feature, dim = 0)
 
-        return mom_fake,mom_unlabel
+        return fake_feature,ulb_feature
 
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):

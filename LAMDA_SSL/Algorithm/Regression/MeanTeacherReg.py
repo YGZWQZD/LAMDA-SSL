@@ -107,7 +107,7 @@ class MeanTeacherReg(DeepModelMixin,InductiveEstimator,RegressorMixin):
         self._estimator_type = RegressorMixin._estimator_type
 
     def init_transform(self):
-        self._train_dataset.add_unlabeled_transform(copy.deepcopy(self.train_dataset.unlabeled_transform),dim=0,x=1)
+        self._train_dataset.add_unlabeled_transform(copy.copy(self.train_dataset.unlabeled_transform),dim=0,x=1)
         self._train_dataset.add_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weak_augmentation,dim=1,x=0,y=0)
         self._train_dataset.add_unlabeled_transform(self.weak_augmentation,dim=1,x=1,y=0)
@@ -129,23 +129,23 @@ class MeanTeacherReg(DeepModelMixin,InductiveEstimator,RegressorMixin):
         lb_X = lb_X[0] if isinstance(lb_X, (tuple, list)) else lb_X
         lb_y = lb_y[0] if isinstance(lb_y, (tuple, list)) else lb_y
         ulb_X_1,ulb_X_2=ulb_X[0],ulb_X[1]
-        logits_x_lb = self._network(lb_X)
+        lb_logits = self._network(lb_X)
         self.bn_controller.freeze_bn(self._network)
-        logits_x_ulb_2 = self._network(ulb_X_2)
+        ulb_logits_2 = self._network(ulb_X_2)
         self.bn_controller.unfreeze_bn(self._network)
         if self.ema is not None:
             self.ema.apply_shadow()
         with torch.no_grad():
-            logits_x_ulb_1 = self._network(ulb_X_1)
+            ulb_logits_1 = self._network(ulb_X_1)
         if self.ema is not None:
             self.ema.restore()
-        return logits_x_lb,lb_y,logits_x_ulb_1,logits_x_ulb_2
+        return lb_logits,lb_y,ulb_logits_1,ulb_logits_2
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb, lb_y, logits_x_ulb_1, logits_x_ulb_2=train_result
-        sup_loss = MSE()(logits_x_lb, lb_y)  # CE_loss for labeled data
+        lb_logits,lb_y,ulb_logits_1,ulb_logits_2=train_result
+        sup_loss = MSE()(lb_logits, lb_y)
         _warmup = float(np.clip((self.it_total) / (self.warmup * self.num_it_total), 0., 1.))
-        unsup_loss = _warmup *MSE()(logits_x_ulb_2, logits_x_ulb_1.detach())  # MSE loss for unlabeled data
+        unsup_loss = _warmup *MSE()(ulb_logits_2, ulb_logits_1.detach())
         loss = Semi_Supervised_Loss(self.lambda_u)(sup_loss ,unsup_loss)
         return loss
 

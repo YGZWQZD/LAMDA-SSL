@@ -144,15 +144,12 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def loss_components_fn(self,x, y, z, p_y, p_z, p_x_yz, q_z_xy):
-        # SSL paper eq 6 for an given y (observed or enumerated from q_y)
-
         return - p_x_yz.log_prob(x).sum(1) \
                - p_y.log_prob(y) \
                - p_z.log_prob(z).sum(1) \
                + q_z_xy.log_prob(z).sum(1)
 
     def train(self,lb_X=None,lb_y=None,ulb_X=None,lb_idx=None,ulb_idx=None,*args,**kwargs):
-        # print(lb_X)
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(list,tuple)) else lb_y
         ulb_X=ulb_X[0]if isinstance(ulb_X,(list,tuple)) else ulb_X
@@ -203,8 +200,8 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
             unsup_loss += ulb_q_y.log_prob(ulb_y).exp() * L_xy
             idx+=1
         unsup_loss=unsup_loss.mean(0)
-        result=sup_loss+unsup_loss+cls_loss
-        return result
+        loss=sup_loss+unsup_loss+cls_loss
+        return loss
 
 
 

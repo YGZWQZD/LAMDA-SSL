@@ -241,9 +241,9 @@ class DeepModelMixin(SemiEstimator):
                 if len(self._augmentation) > 1:
                     self.strong_augmentation = self._augmentation[1]
             else:
-                self.weak_augmentation = copy.deepcopy(self._augmentation)
+                self.weak_augmentation = copy.copy(self._augmentation)
             if self.strong_augmentation is None:
-                self.strong_augmentation = copy.deepcopy(self.weak_augmentation)
+                self.strong_augmentation = copy.copy(self.weak_augmentation)
 
     def init_transform(self):
         if self.weak_augmentation is not None:

@@ -126,46 +126,46 @@ class S4L(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
     def train(self,lb_X,lb_y,ulb_X,lb_idx=None,ulb_idx=None,*args,**kwargs):
 
-        lb_x_w=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
+        lb_X=lb_X[0] if isinstance(lb_X,(tuple,list)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(tuple,list)) else lb_y
-        ulb_x_w = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
+        ulb_X = ulb_X[0] if isinstance(ulb_X, (tuple, list)) else ulb_X
 
-        logits_x_lb_w = self._network(lb_x_w)[0]
+        lb_logits = self._network(lb_X)[0]
 
-        rot_x = torch.Tensor().to(self.device)
+        rot_X = torch.Tensor().to(self.device)
         rot_y = []
 
-        for item in ulb_x_w:
+        for item in ulb_X:
             if self.all_rot:
                 for _v in self.rotate_v_list:
-                    rot_x = torch.cat((rot_x, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
+                    rot_X = torch.cat((rot_X, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
                     rot_y.append(self.rotate_v_list.index(_v))
             else:
                 _v = np.random.choice(self.rotate_v_list, 1).item()
-                rot_x = torch.cat((rot_x, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
+                rot_X = torch.cat((rot_X, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
                 rot_y.append(self.rotate_v_list.index(_v))
         if self.labeled_usp:
-            for item in lb_x_w:
+            for item in lb_X:
                 if self.all_rot:
                     for _v in self.rotate_v_list:
-                        rot_x = torch.cat((rot_x, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
+                        rot_X = torch.cat((rot_X, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
                         rot_y.append(self.rotate_v_list.index(_v))
                 else:
                     _v = np.random.choice(self.rotate_v_list, 1).item()
-                    rot_x = torch.cat((rot_x, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
+                    rot_X = torch.cat((rot_X, Rotate(v=_v).fit_transform(item).unsqueeze(0)), dim=0)
                     rot_y.append(self.rotate_v_list.index(_v))
 
         rot_y = torch.LongTensor(rot_y).to(self.device)
 
-        logits_x_rot = self._network(rot_x)[1]
+        rot_logits = self._network(rot_X)[1]
 
-        return logits_x_lb_w,lb_y,logits_x_rot,rot_y
+        return lb_logits,lb_y,rot_logits,rot_y
 
 
     def get_loss(self,train_result,*args,**kwargs):
-        logits_x_lb_w,lb_y,logits_x_rot,rot_y=train_result
-        sup_loss = Cross_Entropy(reduction='mean')(logits_x_lb_w, lb_y)  # CE_loss for labeled data
-        rot_loss = Cross_Entropy(reduction='mean')(logits_x_rot, rot_y)
+        lb_logits,lb_y,rot_logits,rot_y=train_result
+        sup_loss = Cross_Entropy(reduction='mean')(lb_logits, lb_y)  # CE_loss for labeled data
+        rot_loss = Cross_Entropy(reduction='mean')(rot_logits, rot_y)
         loss = Semi_Supervised_Loss(self.lambda_u)(sup_loss,rot_loss)
         return loss
 

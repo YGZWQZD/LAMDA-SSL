@@ -206,17 +206,14 @@ class SDNE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
         if self.xeqs:
             beta_matrix = torch.ones_like(self.adjacency_matrix)
-
             mask = self.adjacency_matrix != 0
             beta_matrix[mask] = self.beta
-
             loss_2nd = torch.mean(torch.sum(torch.pow((X - X_hat) * beta_matrix, 2), dim=1))
         else:
             loss_2nd = torch.mean(torch.sum(torch.pow((X - X_hat) , 2), dim=1))
         L_reg = 0
         for param in self._network.parameters():
             L_reg += self.gamma * torch.sum(param * param)
-        # loss_1st: first-order similarity loss function alpha * 2 *tr(Y^T L Y)
         loss_1st =  self.alpha * 2 * torch.trace(torch.matmul(torch.matmul(Y.transpose(0,1), self.laplace_matrix), Y))
         return loss_1st+loss_2nd+L_reg
 

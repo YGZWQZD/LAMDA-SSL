@@ -37,40 +37,36 @@ class Tri_Training(InductiveEstimator,ClassifierMixin):
         l_prime = [0] * 3
         e = [0] * 3
         update = [False] * 3
-        Li_X, Li_y = [[]] * 3, [[]] * 3  # to save proxy labeled data
+        lb_X, lb_y = [[]] * 3, [[]] * 3
         improve = True
         self.iter = 0
-
         while improve:
-            self.iter += 1  # count iterations
-
+            self.iter += 1
             for i in range(3):
                 j, k = np.delete(np.array([0, 1, 2]), i)
                 update[i] = False
                 e[i] = self.measure_error(X, y, j, k)
                 if e[i] < e_prime[i]:
-                    U_y_j = self.estimators[j].predict(unlabeled_X)
-                    U_y_k = self.estimators[k].predict(unlabeled_X)
-                    Li_X[i] = unlabeled_X[U_y_j == U_y_k]  # when two models agree on the label, save it
-                    Li_y[i] = U_y_j[U_y_j == U_y_k]
-                    if l_prime[i] == 0:  # no updated before
+                    ulb_y_j = self.estimators[j].predict(unlabeled_X)
+                    ulb_y_k = self.estimators[k].predict(unlabeled_X)
+                    lb_X[i] = unlabeled_X[ulb_y_j == ulb_y_k]
+                    lb_y[i] = ulb_y_j[ulb_y_j == ulb_y_k]
+                    if l_prime[i] == 0:
                         l_prime[i] = int(e[i] / (e_prime[i] - e[i]) + 1)
-                    if l_prime[i] < len(Li_y[i]):
-                        if e[i] * len(Li_y[i]) < e_prime[i] * l_prime[i]:
+                    if l_prime[i] < len(lb_y[i]):
+                        if e[i] * len(lb_y[i]) < e_prime[i] * l_prime[i]:
                             update[i] = True
                         elif l_prime[i] > e[i] / (e_prime[i] - e[i]):
-                            L_index = np.random.choice(len(Li_y[i]), int(e_prime[i] * l_prime[i] / e[i] - 1))
-                            Li_X[i], Li_y[i] = Li_X[i][L_index], Li_y[i][L_index]
+                            lb_index = np.random.choice(len(lb_y[i]), int(e_prime[i] * l_prime[i] / e[i] - 1))
+                            lb_X[i], lb_y[i] = lb_X[i][lb_index], lb_y[i][lb_index]
                             update[i] = True
-
             for i in range(3):
                 if update[i]:
-                    self.estimators[i].fit(np.append(X, Li_X[i], axis=0), np.append(y, Li_y[i], axis=0))
+                    self.estimators[i].fit(np.append(X, lb_X[i], axis=0), np.append(y, lb_y[i], axis=0))
                     e_prime[i] = e[i]
-                    l_prime[i] = len(Li_y[i])
-
+                    l_prime[i] = len(lb_y[i])
             if update == [False] * 3:
-                improve = False  # if no classifier was updated, no improvement
+                improve = False
         return self
 
     def predict_proba(self,X):
@@ -91,7 +87,6 @@ class Tri_Training(InductiveEstimator,ClassifierMixin):
         j_pred = self.estimators[j].predict(X)
         k_pred = self.estimators[k].predict(X)
         wrong_index = np.logical_and(j_pred != y, k_pred == j_pred)
-        # wrong_index =np.logical_and(j_pred != y_test, k_pred!=y_test)
         return sum(wrong_index) / sum(j_pred == k_pred)
 
     def evaluate(self,X,y=None):
