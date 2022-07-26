@@ -68,7 +68,7 @@ optimizer=SGD(lr=0.001,momentum=0.9,nesterov=True)
 scheduler=CosineAnnealingLR(eta_min=0,T_max=4000)
 
 # network
-network=MLPReg(hidden_dim=[100,50,10],activations=[nn.ReLU(),nn.ReLU()],dim_in=labeled_X.shape[-1])
+network=MLPReg(hidden_dim=[100,50,10],activations=[nn.ReLU(),nn.ReLU(),nn.ReLU()],dim_in=labeled_X.shape[-1])
 
 evaluation={
     'Mean_Absolute_Error':Mean_Absolute_Error(),

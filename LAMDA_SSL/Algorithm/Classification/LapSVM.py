@@ -79,7 +79,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
             W=rbf_kernel(self.X,self.X,self.gamma_d)
             W = sparse.csr_matrix(W)
         elif self.distance_function is not None:
-            if 'gamma' in inspect.getfullargspec(self.distance_function).args:
+            if self.gamma_d is not None:
                 W=self.distance_function(self.X,self.X,self.gamma_d)
             else:
                 W = self.distance_function(self.X, self.X)
@@ -92,7 +92,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         if self.kernel_function == 'rbf':
             K = rbf_kernel(self.X,self.X,self.gamma_k)
         elif self.kernel_function is not None:
-            if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
+            if self.gamma_k is not None:
                 K = self.kernel_function(self.X,self.X,self.gamma_k)
             else:
                 K = self.kernel_function(self.X, self.X)
@@ -136,7 +136,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         if self.kernel_function == 'rbf':
             new_K = rbf_kernel(self.X,X,self.gamma_k)
         elif self.kernel_function is not None:
-            if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
+            if self.gamma_k is not None:
                 new_K = self.kernel_function(self.X,X,self.gamma_k)
             else:
                 new_K = self.kernel_function(self.X,X)
@@ -155,7 +155,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         if self.kernel_function == 'rbf':
             new_K = rbf_kernel(self.X,X,self.gamma_k)
         elif self.kernel_function is not None:
-            if 'gamma' in inspect.getfullargspec(self.kernel_function).args:
+            if self.gamma_k is not None:
                 new_K = self.kernel_function(self.X,X,self.gamma_k)
             else:
                 new_K = self.kernel_function(self.X,X)

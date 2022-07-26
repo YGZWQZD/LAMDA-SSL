@@ -7,7 +7,7 @@ from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from sklearn.metrics.pairwise import rbf_kernel
 
 neighbor_mode='connectivity'
-distance_function= rbf_kernel,
+distance_function= rbf_kernel
 gamma_d=0.03
 t=1
 n_neighbor= 5

@@ -84,7 +84,7 @@ class SemiBoost(InductiveEstimator,ClassifierMixin):
             self.S = sparse.csr_matrix(self.S)
 
         elif self.similarity_kernel is not None:
-            if 'gamma' in inspect.getfullargspec(self.similarity_kernel).args:
+            if self.gamma is not None:
                 self.S = self.similarity_kernel(X_all,X_all,gamma=self.gamma)
             else:
                 self.S = self.similarity_kernel(X_all,X_all)
