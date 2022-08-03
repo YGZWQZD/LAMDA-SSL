@@ -12,4 +12,6 @@
 ./.coverage
 /.pytest_cache
 ./report
-.coveralls.yml
+*.yml
+.gitignore
+Test/.coveralls.yml
