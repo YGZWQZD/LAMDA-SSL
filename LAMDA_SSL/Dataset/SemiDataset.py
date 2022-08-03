@@ -103,11 +103,11 @@ class SemiDataset(Dataset):
             if test_dataset is not None:
                 self.test_dataset = test_dataset
             elif test_X is not None:
-                self.test_dataset.inin_dataset(test_X, test_y)
+                self.test_dataset.init_dataset(test_X, test_y)
             if valid_dataset is not None:
                 self.valid_dataset = valid_dataset
             elif valid_X is not None:
-                self.valid_dataset.inin_dataset(valid_X, valid_y)
+                self.valid_dataset.init_dataset(valid_X, valid_y)
         else:
             if labeled_dataset is not None:
                 labeled_X = getattr(labeled_dataset, 'X')
@@ -117,7 +117,7 @@ class SemiDataset(Dataset):
                 self.test_dataset=test_dataset
 
             elif test_X is not None:
-                self.test_dataset.inin_dataset(test_X,test_y)
+                self.test_dataset.init_dataset(test_X,test_y)
             elif self.test_size is not None:
                 test_X, test_y,labeled_X, labeled_y = DataSplit(X=labeled_X, y=labeled_y,
                                                            size_split=self.test_size,
@@ -125,12 +125,12 @@ class SemiDataset(Dataset):
                                                            shuffle=self.shuffle,
                                                            random_state=self.random_state
                                                         )
-                self.test_dataset.inin_dataset(test_X, test_y)
+                self.test_dataset.init_dataset(test_X, test_y)
 
             if valid_dataset is not None:
                 self.valid_dataset=valid_dataset
             elif valid_X is not None:
-                self.valid_dataset.inin_dataset(valid_X,valid_y)
+                self.valid_dataset.init_dataset(valid_X,valid_y)
             elif self.valid_size is not None:
                 if labeled_dataset is not None:
                     labeled_X=getattr(labeled_dataset,'X')
@@ -142,7 +142,7 @@ class SemiDataset(Dataset):
                                                            shuffle=self.shuffle,
                                                            random_state=self.random_state
                                                            )
-                self.valid_dataset.inin_dataset(valid_X, valid_y)
+                self.valid_dataset.init_dataset(valid_X, valid_y)
 
             self.train_dataset.init_dataset(labeled_X=labeled_X,labeled_y=labeled_y,unlabeled_X=unlabeled_X,
                     unlabeled_y=unlabeled_y,labeled_dataset=labeled_dataset,unlabeled_dataset=unlabeled_dataset)
@@ -199,30 +199,18 @@ class SemiDataset(Dataset):
         self.train_dataset.add_transforms(transforms, dim, x, y)
 
     def add_unlabeled_transform(self,unlabeled_transform,dim,x,y=0):
-        self.train_dataset_dataset.add_unlabeled_transform(unlabeled_transform,dim,x,y)
+        self.train_dataset.add_unlabeled_transform(unlabeled_transform,dim,x,y)
 
     def add_valid_transform(self,valid_transform,dim,x,y=0):
-        self.valid_dataset_dataset.add_transform(valid_transform,dim,x,y)
+        self.valid_dataset.add_transform(valid_transform,dim,x,y)
 
     def add_test_transform(self,test_transform,dim,x,y=0):
-        self.test_dataset_dataset.add_transform(test_transform,dim,x,y)
+        self.test_dataset.add_transform(test_transform,dim,x,y)
 
     def add_pre_transform(self,transform,dim,x,y=0):
         self.train_dataset.add_pre_transform(transform, dim, x, y)
         self.valid_dataset.add_pre_transform(transform, dim, x, y)
         self.test_dataset.add_pre_transform(transform, dim, x, y)
-
-    def get_dataset(self,train=True,test=False,valid=False,labeled=True):
-        if train:
-            return self.train_dataset
-        elif test:
-            return self.test_dataset
-        elif valid:
-            return self.valid_dataset
-        elif labeled:
-            return self.labeled_dataset
-        else:
-            return self.unlabeled_dataset
 
     def __getitem__(self, i, test=False,valid=False,labeled=True):
         if test:

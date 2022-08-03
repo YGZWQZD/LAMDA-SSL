@@ -166,14 +166,13 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
                 y[_] = self.class_dict[y[_]]
             return self.clf.score(X, y,sample_weight)
 
-    def evaluate(self,X,y=None,Transductive=True):
+    def evaluate(self,X=None,y=None,Transductive=True):
 
         if isinstance(X,Dataset) and y is None:
             y=getattr(X,'y')
 
         self.y_score = self.predict_proba(X,Transductive=Transductive)
         self.y_pred=self.predict(X,Transductive=Transductive)
-
 
         if self.evaluation is None:
             return None

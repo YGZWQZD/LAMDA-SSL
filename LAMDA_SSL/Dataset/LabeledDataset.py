@@ -40,15 +40,14 @@ class LabeledDataset(Dataset):
         if isinstance(transforms,(list,tuple)):
             for item in transforms:
                 X,y=self._transforms(self.X,y,item)
-
         elif callable(transforms):
             X,y=transforms(X,y)
         elif hasattr(transforms,'fit_transform'):
             X,y=transforms.fit_transform(X,y)
+        elif hasattr(transforms, 'forward'):
+            X, y = transforms.forward(X, y)
         elif hasattr(transforms,'transform'):
             X, y = transforms.transform(X, y)
-        elif hasattr(transforms,'forward'):
-            X, y = transforms.forward(X,y)
         else:
             raise Exception('Transforms is not Callable!')
         return X,y
@@ -142,12 +141,10 @@ class LabeledDataset(Dataset):
         return X
 
     def apply_transform(self,X,y):
-        # print(self.pre_transform)
         if self.pre_transform is not None:
             if isinstance(self.pre_transform,(tuple,list)):
                 list_X=[]
                 for item in self.pre_transform:
-                    # print(item)
                     _X=self._transform(X,item)
                     list_X.append(_X)
                 X=list_X
@@ -155,24 +152,21 @@ class LabeledDataset(Dataset):
             elif isinstance(self.pre_transform,dict):
                 dict_X={}
                 for key, val in self.pre_transform.items():
-
                     _X=self._transform(X,val)
                     dict_X[key]=_X
                 X = dict_X
-
             else:
                 X=self._transform(X,self.pre_transform)
         if self.transforms is not None:
             if isinstance(self.transforms,(tuple,list)):
-                list_X=[],list_y=[]
+                list_X=[]
+                list_y=[]
                 for item in self.transforms:
-
                     _X,_y=self._transforms(X,y,item)
-
                     list_X.append(_X)
                     list_y.append(_y)
-                X=list_X
-                y=list_y
+                X=list_X if len(list_X) is not 1 else list_X[0]
+                y=list_y if len(list_y) is not 1 else list_y[0]
             elif isinstance(self.transforms,dict):
                 dict_X={}
                 dict_y={}
@@ -184,37 +178,36 @@ class LabeledDataset(Dataset):
                 y = dict_y
             else:
                 X,y=self._transforms(X,y,self.transforms)
-        else:
-            if self.transform is not None:
-                if isinstance(self.transform, (tuple, list)):
-                    list_X = []
-                    for item in self.transform:
-                        _X = self._transform(X, item)
-                        list_X.append(_X)
-                    X = list_X
-                elif isinstance(self.transform, dict):
-                    dict_X = {}
-                    for key, val in self.transform.items():
-                        _X = self._transform(X, val)
-                        dict_X[key] = _X
-                    X = dict_X
-                else:
-                    X=self._transform(X,self.transform)
-            if self.target_transform is not None:
-                if isinstance(self.target_transform, (tuple, list)):
-                    list_y = []
-                    for item in self.target_transform:
-                        _y = self._transform(y, item)
-                        list_y.append(_y)
-                    y = list_y
-                elif isinstance(self.target_transform, dict):
-                    dict_y = {}
-                    for key, val in self.target_transform.items():
-                        _y = self._transform(y, val)
-                        dict_y[key] = _y
-                    y = dict_y
-                else:
-                    y=self._transform(y,self.target_transform)
+        if self.transform is not None:
+            if isinstance(self.transform, (tuple, list)):
+                list_X = []
+                for item in self.transform:
+                    _X = self._transform(X, item)
+                    list_X.append(_X)
+                X = list_X
+            elif isinstance(self.transform, dict):
+                dict_X = {}
+                for key, val in self.transform.items():
+                    _X = self._transform(X, val)
+                    dict_X[key] = _X
+                X = dict_X
+            else:
+                X=self._transform(X,self.transform)
+        if self.target_transform is not None:
+            if isinstance(self.target_transform, (tuple, list)):
+                list_y = []
+                for item in self.target_transform:
+                    _y = self._transform(y, item)
+                    list_y.append(_y)
+                y = list_y
+            elif isinstance(self.target_transform, dict):
+                dict_y = {}
+                for key, val in self.target_transform.items():
+                    _y = self._transform(y, val)
+                    dict_y[key] = _y
+                y = dict_y
+            else:
+                y=self._transform(y,self.target_transform)
         return X,y
 
     def __getitem__(self, i):

@@ -97,16 +97,6 @@ class Constrained_Seed_k_means(TransductiveEstimator, ClusterMixin):
         self.y = self.is_clustered
         return self
 
-    def violate_constraints(self, data_index, cluster_index, ml, cl):
-        for i in ml[data_index]:
-            if self.is_clustered[i] != -1 and self.is_clustered[i] != cluster_index:
-                return True
-
-        for i in cl[data_index]:
-            if self.is_clustered[i] != -1 and self.is_clustered[i] == cluster_index:
-                return True
-        return False
-
     def predict(self, X=None, Transductive=True):
         if Transductive:
             result = self.y

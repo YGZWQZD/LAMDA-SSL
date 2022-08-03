@@ -69,7 +69,7 @@ class LabelSpreading(TransductiveEstimator,ClassifierMixin):
         return y_proba
 
 
-    def evaluate(self,X,y=None,Transductive=True):
+    def evaluate(self,X=None,y=None,Transductive=True):
 
         if isinstance(X,Dataset) and y is None:
             y=getattr(X,'y')

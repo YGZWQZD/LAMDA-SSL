@@ -43,18 +43,17 @@ class  SST2(SemiDataset,TextMixin):
                              valid_transform=valid_transform,valid_size=valid_size,labeled_size=labeled_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
 
-        TextMixin.__init__(self,length=length,vectors=vectors,word_vocab=word_vocab,unk_token=unk_token,
-                               pad_token=pad_token,min_freq=min_freq,special_first=special_first,default_index=default_index)
+
         self.default_transforms=default_transforms
         self.root=root
 
         if download:
             self.download()
+        self.init_dataset()
+        TextMixin.__init__(self,length=length,vectors=vectors,word_vocab=word_vocab,unk_token=unk_token,
+                               pad_token=pad_token,min_freq=min_freq,special_first=special_first,default_index=default_index)
         if self.default_transforms:
             self.init_default_transforms()
-        self.init_dataset()
-
-
 
 
 

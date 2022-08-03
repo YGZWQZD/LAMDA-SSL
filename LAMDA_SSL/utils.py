@@ -26,27 +26,27 @@ def indexing_none(data, i):
     return None
 
 
-def indexing_dict(data, i):
-    return {k: v[i] for k, v in data.items()}
-
-
-def indexing_list_tuple_of_data(data, i, indexings=None):
-    if not indexings:
-        return [indexing(x, i) for x in data]
-    return [indexing(x, i, ind)
-            for x, ind in zip(data, indexings)]
-
-def indexing_sparse(data,i):
-    data=copy.copy(data)
-    data = data.toarray().squeeze(0)
-    return data[i]
-
-def indexing_ndframe(data, i):
-    if hasattr(data, 'iloc'):
-        data=data.copy(data)
-        data = {k: data[k].values.reshape(-1, 1) for k in data}
-        return data.iloc[i]
-    return indexing_dict(data, i)
+# def indexing_dict(data, i):
+#     return {k: v[i] for k, v in data.items()}
+#
+#
+# def indexing_list_tuple_of_data(data, i, indexings=None):
+#     if not indexings:
+#         return [indexing(x, i) for x in data]
+#     return [indexing(x, i, ind)
+#             for x, ind in zip(data, indexings)]
+#
+# def indexing_sparse(data,i):
+#     data=copy.copy(data)
+#     data = data.toarray().squeeze(0)
+#     return data[i]
+#
+# def indexing_ndframe(data, i):
+#     if hasattr(data, 'iloc'):
+#         data=data.copy(data)
+#         data = {k: data[k].values.reshape(-1, 1) for k in data}
+#         return data.iloc[i]
+#     return indexing_dict(data, i)
 
 
 def indexing_other(data, i):
@@ -173,32 +173,32 @@ def to_device(X, device):
 
     return X.to(device)
 
-def to_tensor(X, device=None, accept_sparse=False):
-    to_tensor_ = partial(to_tensor, device=device)
-    if is_torch_data_type(X):
-        return to_device(X, device)
-    if isinstance(X, dict):
-        return {key: to_tensor_(val) for key, val in X.items()}
-    if isinstance(X, (list, tuple)):
-        try:
-            indexing(X[0],0)
-            return [to_tensor_(x) for x in X]
-        except:
-            return torch.as_tensor(np.array(X), device=device)
-    if np.isscalar(X):
-        return torch.as_tensor(X, device=device)
-    if isinstance(X, Sequence):
-        return torch.as_tensor(np.array(X), device=device)
-    if isinstance(X, np.ndarray):
-        return torch.as_tensor(X, device=device)
-    if sparse.issparse(X):
-        if accept_sparse:
-            return torch.sparse_coo_tensor(
-                X.nonzero(), X.data, size=X.shape).to(device)
-        raise TypeError("Sparse matrices are not supported. Set "
-                        "accept_sparse=True to allow sparse matrices.")
-
-    raise TypeError("Cannot convert this data type to a torch tensor.")
+# def to_tensor(X, device=None, accept_sparse=False):
+#     to_tensor_ = partial(to_tensor, device=device)
+#     if is_torch_data_type(X):
+#         return to_device(X, device)
+#     if isinstance(X, dict):
+#         return {key: to_tensor_(val) for key, val in X.items()}
+#     if isinstance(X, (list, tuple)):
+#         try:
+#             indexing(X[0],0)
+#             return [to_tensor_(x) for x in X]
+#         except:
+#             return torch.as_tensor(np.array(X), device=device)
+#     if np.isscalar(X):
+#         return torch.as_tensor(X, device=device)
+#     if isinstance(X, Sequence):
+#         return torch.as_tensor(np.array(X), device=device)
+#     if isinstance(X, np.ndarray):
+#         return torch.as_tensor(X, device=device)
+#     if sparse.issparse(X):
+#         if accept_sparse:
+#             return torch.sparse_coo_tensor(
+#                 X.nonzero(), X.data, size=X.shape).to(device)
+#         raise TypeError("Sparse matrices are not supported. Set "
+#                         "accept_sparse=True to allow sparse matrices.")
+#
+#     raise TypeError("Cannot convert this data type to a torch tensor.")
 
 
 def to_numpy(X):
@@ -218,13 +218,13 @@ def to_numpy(X):
         X = X.detach()
     return X.numpy()
 
-def to_image(X):
-    if isinstance(X,Image.Image):
-        return X
-    else:
-        X=to_numpy(X)
-        X=Image.fromarray(X)
-        return X
+# def to_image(X):
+#     if isinstance(X,Image.Image):
+#         return X
+#     else:
+#         X=to_numpy(X)
+#         X=Image.fromarray(X)
+#         return X
 
 class partial:
     """New function with partial application of the given arguments

@@ -95,38 +95,38 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         if isinstance(X,Dataset):
             X=X.data
         if not isinstance(X,Data):
+            if not isinstance(X, torch.Tensor):
+                X = torch.Tensor(X)
+            if not isinstance(y, torch.Tensor):
+                y = torch.LongTensor(y)
+            if unlabeled_X is not None and not isinstance(unlabeled_X, torch.Tensor):
+                unlabeled_X = torch.Tensor(unlabeled_X)
+            if not isinstance(edge_index, torch.Tensor):
+                edge_index = torch.LongTensor(edge_index)
+            if not isinstance(train_mask, torch.Tensor):
+                train_mask = torch.BoolTensor(train_mask)
+            if not isinstance(labeled_mask, torch.Tensor):
+                labeled_mask = torch.BoolTensor(labeled_mask)
+            if not isinstance(unlabeled_mask, torch.Tensor):
+                unlabeled_mask = torch.BoolTensor(unlabeled_mask)
+            if not isinstance(val_mask, torch.Tensor):
+                val_mask = torch.BoolTensor(val_mask)
+            if not isinstance(val_mask, torch.Tensor):
+                test_mask = torch.BoolTensor(test_mask)
+
             if unlabeled_X is not None:
-                if not isinstance(X, torch.Tensor):
-                    X = torch.Tensor(X)
-                if not isinstance(y, torch.Tensor):
-                    y = torch.LongTensor(y)
-                if not isinstance(unlabeled_X, torch.Tensor):
-                    unlabeled_X = torch.Tensor(unlabeled_X)
-                if not isinstance(edge_index, torch.Tensor):
-                    edge_index = torch.LongTensor(edge_index)
-                if not isinstance(train_mask, torch.Tensor):
-                    train_mask = torch.BoolTensor(train_mask)
-                if not isinstance(labeled_mask, torch.Tensor):
-                    labeled_mask = torch.BoolTensor(labeled_mask)
-                if not isinstance(unlabeled_mask, torch.Tensor):
-                    unlabeled_mask = torch.BoolTensor(unlabeled_mask)
-                if not isinstance(val_mask, torch.Tensor):
-                    val_mask = torch.BoolTensor(val_mask)
-                if not isinstance(val_mask, torch.Tensor):
-                    test_mask = torch.BoolTensor(test_mask)
+                X = torch.cat((X, unlabeled_X), dim=0)
+                unlabeled_y = torch.ones(unlabeled_X.shape[0]) * -1
+                y = torch.cat((y, unlabeled_y), dim=0)
 
-                if unlabeled_X is not None:
-                    X = torch.cat((X, unlabeled_X), dim=0)
-                    unlabeled_y = torch.ones(unlabeled_X.shape[0]) * -1
-                    y = torch.cat((y, unlabeled_y), dim=0)
-
-            X=Data(X=X,y=y,edge_index=edge_index,train_mask=train_mask,labeled_mask=labeled_mask,
+            X=Data(x=X,y=y,edge_index=edge_index,train_mask=train_mask,labeled_mask=labeled_mask,
                    unlabeled_mask=unlabeled_mask,val_mask=val_mask,test_mask=test_mask)
-        self.data=X
-        self.labeled_mask = self.data.labeled_mask if hasattr(self.data,'labeled_mask') else None
-        self.unlabeled_mask = self.data.unlabeled_mask if hasattr(self.data,'unlabeled_mask') else None
-        self.valid_mask = self.data.val_mask if hasattr(self.data, 'val_mask') else None
-        self.test_mask = self.data.test_mask if hasattr(self.data, 'test_mask') else None
+        self.data=X.to(self.device)
+        self.train_mask = self.data.train_mask.to(self.device) if hasattr(self.data, 'train_mask') else None
+        self.labeled_mask = self.data.labeled_mask.to(self.device) if hasattr(self.data,'labeled_mask') else None
+        self.unlabeled_mask = self.data.unlabeled_mask.to(self.device) if hasattr(self.data,'unlabeled_mask') else None
+        self.valid_mask = self.data.val_mask.to(self.device) if hasattr(self.data, 'val_mask') else None
+        self.test_mask = self.data.test_mask.to(self.device) if hasattr(self.data, 'test_mask') else None
 
 
     def end_fit_epoch(self, train_result,*args, **kwargs):
