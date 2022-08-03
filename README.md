@@ -8,7 +8,7 @@
 ![](https://badgen.net/github/last-commit/YGZWQZD/LAMDA-SSL)
 ![](https://badgen.net/github/license/YGZWQZD/LAMDA-SSL)
 [![Coverage Status](https://coveralls.io/repos/github/YGZWQZD/LAMDA-SSL/badge.svg?branch=jialh)](https://coveralls.io/github/YGZWQZD/LAMDA-SSL?branch=jialh)
-
+[![Downloads](https://pepy.tech/badge/lamda-ssl)](https://pepy.tech/project/lamda-ssl)
 **[Documentation](https://ygzwqzd.github.io/LAMDA-SSL)** | **[Paper]()** |  **[Examples](https://github.com/ygzwqzd/LAMDA-SSL/tree/master/Examples)**
 
 </div>
