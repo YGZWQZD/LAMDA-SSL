@@ -10,6 +10,6 @@
 /dist
 /LAMDA_SSL.egg-info
 ./.coverage
-./.coveralls.yml
 /.pytest_cache
 ./report
+.coveralls.yml
