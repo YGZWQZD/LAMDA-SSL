@@ -9,7 +9,7 @@
 /build
 /dist
 /LAMDA_SSL.egg-info
-/.coverage
-/.coveralls.yml
+./.coverage
+./.coveralls.yml
 /.pytest_cache
-/report
+./report
