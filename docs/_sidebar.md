@@ -14,7 +14,7 @@
 - [Usage Tutorial](/README.md?id=Usage-Tutorial)
     - [Dataset Initialization](/README.md?id=Dataset-Initialization)
     - [Data Transformation](/README.md?id=Data-Transformation)
-    - [Pipeline Mechanisml](/README.md?id=Pipeline-Mechanism)
+    - [Pipeline Mechanism](/README.md?id=Pipeline-Mechanism)
     - [Train an Inductive Statistical Semi-Supervised classification Model](/README.md?id=Train-an-Inductive-Statistical-Semi-Supervised-classification-Model)
     - [Train a Transductive Statistical Semi-Supervised Classification Model](/README.md?id=Train-a-Transductive-Statistical-Semi-Supervised-Classification-Model)
     - [Train a Multi-view Statistical Semi-Supervised Classification Model](/README.md?id=Train-a-Multi-view-Statistical-Semi-Supervised-Classification-Model)
