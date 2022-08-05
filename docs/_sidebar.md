@@ -103,6 +103,6 @@
     - [LADMA_SSL.Split](/README.md?id=lamda_sslsplit)
     - [LADMA_SSL.Transform](/README.md?id=lamda_ssltransform)
 
-- [FAQ](/README.md?id=FAQ)
+- [FAQ](/README.md?id=faq)
 
-- [Reference](/README.md?id=Reference)
+- [Reference](/README.md?id=reference)
