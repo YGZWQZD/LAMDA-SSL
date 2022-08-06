@@ -1,5 +1,5 @@
 <div align=center>
-<img width="600px" src="./Imgs/Logo1.png"> 
+<img width="750px" src="./Imgs/Logo1.png"> 
 
 ![](https://badgen.net/pypi/v/LAMDA-SSL)
 ![](https://anaconda.org/ygzwqzd/lamda-ssl/badges/version.svg)
