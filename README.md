@@ -12,7 +12,7 @@
 [![Downloads](https://pepy.tech/badge/lamda-ssl)](https://pepy.tech/project/lamda-ssl)
 ![](https://anaconda.org/ygzwqzd/lamda-ssl/badges/platforms.svg)
 
-**[Documentation](https://ygzwqzd.github.io/LAMDA-SSL)** | **[Paper]()** |  **[Examples](https://github.com/ygzwqzd/LAMDA-SSL/tree/master/Examples)**
+**[Documentation](https://ygzwqzd.github.io/LAMDA-SSL)** | **[Paper](https://arxiv.org/pdf/2208.04610.pdf)** |  **[Examples](https://github.com/ygzwqzd/LAMDA-SSL/tree/master/Examples)**
 
 </div>
 
@@ -223,7 +223,12 @@ We have evaluated the performance of LAMDA-SSL for semi-supervised classificatio
 # Citation
 Please cite our paper if you find LAMDA-SSL useful in your work:
 ```
-
+@article{jia2022lamdassl,
+      title={LAMDA-SSL: Semi-Supervised Learning in Python}, 
+      author={Lin-Han Jia and Lan-Zhe Guo and Zhi Zhou and Yu-Feng Li},
+      journal={arXiv preprint arXiv:2208.04610},
+      year={2022}
+}
 ```
 
 # Contribution
@@ -233,7 +238,7 @@ Feel free to contribute in any way you like, we're always open to new ideas and 
 - Learn more about how to customize modules of LAMDA-SSL from the [Usage](https://ygzwqzd.github.io/LAMDA-SSL/#/README?id=usage) section of the [documentation](https://ygzwqzd.github.io/LAMDA-SSL/#/).
 
 # The Team
- LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)12@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are .
+ LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)12@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are Lin-Han Jia, Lan-Zhe Guo, Zhi Zhou and Yu-Feng Li.
 
 # Contact
 If you have any questions, please contact us: Lin-Han Jia[jialh2118@gmail.com].
