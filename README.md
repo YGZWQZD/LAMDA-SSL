@@ -18,19 +18,19 @@
 
 #  Introduction
 
-In order to promote the research and application of semi-supervised learning algorithms, we has developed LAMDA-SSL which is a convenient and practical semi-supervised learning toolkit. LAMDA-SSL has complete functions, convenient interfaces and detailed documentations. It integrates statistical machine learning algorithms and deep learning algorithms into the same framework. It is compatible with the popular machine learning toolkit sklearn and the popular deep learning toolkit pytorch.  It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 12 algorithms based on statistical machine learning models and 18 algorithms based on deep learning models. LAMDA-SSL also contains 45 data processing methods used for 4 types of data: table, image, text, graph and 15 model evaluation criterias used for 3 types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, algorithm application, model deployment and so on, which facilitates the implementation of end to end semi-supervised learning.
+In order to promote the research and application of semi-supervised learning (SSL) algorithms, we has developed LAMDA-SSL which is a comprehensive and easy-to-use toolkit for SSL in python. LAMDA-SSL has powerful functions, simple interfaces and extensive documentations. It integrates statistical SSL algorithms and deep SSL algorithms into the same framework. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 12 algorithms based on statistical machine learning models and 18 algorithms based on deep learning models. LAMDA-SSL also contains 45 data processing methods used for 4 types of data: tabular, image, text, graph and 15 model evaluation criterias used for 3 types of task: classification, regression and clustering. It is compatible with the popular machine learning toolkit scikit-learn and the popular deep learning toolkit Pytorch. It supports Pipeline mechanism and parameter search functions like scikit-learn and also supports GPU acceleration and distributed training functions like Pytorch. LAMDA-SSL includes multiple modules such as data management, data transformation, model application and model deployment, which facilitates the implementation of end to end SSL.
 
 <div align=center>
 <img width="1000px" src="./Imgs/Overview.png"> 
 </div>
 
-At present, LAMDA-SSL has implemented 30 semi-supervised learning algorithms, including 12 statistical semi-supervised learning algorithms and 18 deep semi-supervised learning algorithms. 
+At present, LAMDA-SSL has implemented 30 SSL algorithms, including 12 statistical SSL algorithms and 18 deep SSL algorithms. 
 
-For statistical semi-supervised learning, algorithms in LAMDA-SSL can be used for classification, regression and clustering. The algorithms used for classification task include generative method SSGMM; semi-supervised support vector machine methods TSVM and LapSVM; graph-based methods Label Propagation and Label Spreading; disagrement-based methods Co-Training and Tri-Training; ensemble methods SemiBoost and Assemble. The algorithm used for regression task is CoReg. The algorithms used for clustering task include Constrained K Means, Constrained Seed K Means.
+For statistical SSL, algorithms in LAMDA-SSL can be used for classification, regression and clustering. The algorithms used for classification task include generative method SSGMM; semi-supervised support vector machine methods TSVM and LapSVM; graph-based methods Label Propagation and Label Spreading; disagrement-based methods Co-Training and Tri-Training; ensemble methods SemiBoost and Assemble. The algorithm used for regression task is CoReg. The algorithms used for clustering task include Constrained K Means, Constrained Seed K Means.
 <div align=center>
 <img width="1000px" src="./Imgs/Statistical.png"> 
 </div>
-For deep semi-supervised learning, algorithms in LAMDA-SSL can be used for classification and regression. The algorithms used for classification task include consistency methods Ladder Network, Π Model, Temporal Ensembling, Mean Teacher, VAT and UDA; Pseudo label-based methods Pseudo Label and S4L; hybrid methods ICT, MixMatch, ReMixMatch, FixMatch and FlexMatch; deep generative methods ImprovedGAN and SSVAE; deep graph-based methods SDNE and GCN. The algorithms for regression task include consistency method Π Model Reg, Mean Teacher Reg; hybrid method ICT Reg. These 3 deep SSL regression algorithms are our extensions of their prototypes used for classification.
+For deep SSL, algorithms in LAMDA-SSL can be used for classification and regression. The algorithms used for classification task include consistency methods Ladder Network, Π Model, Temporal Ensembling, Mean Teacher, VAT and UDA; Pseudo label-based methods Pseudo Label and S4L; hybrid methods ICT, MixMatch, ReMixMatch, FixMatch and FlexMatch; deep generative methods ImprovedGAN and SSVAE; deep graph-based methods SDNE and GCN. The algorithms for regression task include consistency method Π Model Reg, Mean Teacher Reg; hybrid method ICT Reg. These 3 deep SSL regression algorithms are our extensions of their prototypes used for classification.
 <div align=center>
 <img width="1000px" src="./Imgs/Deep.png"> 
 </div>
@@ -38,17 +38,17 @@ For deep semi-supervised learning, algorithms in LAMDA-SSL can be used for class
 
 # Advantages
 
-> - LAMDA-SSL contains 30 semi-supervised learning algorithms.
+> - LAMDA-SSL contains 30 SSL algorithms.
 > - LAMDA-SSL can handle 4 types of data and has rich data processing functions.
 > - LAMDA-SSL can handle 3 types of tasks and has rich metrics for model evaluation.
-> - LAMDA-SSL supports both statistical semi-supervised learning algorithms and deep semi-supervised learning algorithms.
-> - LAMDA-SSL is compatible with the popular machine learning toolkit sklearn and the popular deep learning toolkit pytorch.
-> - LAMDA-SSL has simple interfaces similiar to sklearn so that it is easy to use.
-> - LAMDA-SSL has powerful functions. It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch.
-> - LAMDA-SSL considers the needs of different user groups. It provides well tuned default parameters and modules for low-proficiency users. It also supports flexible module replacement for high-proficiency users.
+> - LAMDA-SSL supports both statistical SSL algorithms and deep SSL algorithms.
+> - LAMDA-SSL is compatible with the popular machine learning toolkit scikit-learn and the popular deep learning toolkit Pytorch.
+> - LAMDA-SSL has simple interfaces similar to scikit-learn so that it is easy to use.
+> - LAMDA-SSL has powerful functions. It supports Pipeline mechanism and parameter search functions like scikit-learn and also supports GPU acceleration and distributed training functions like Pytorch.
+> - LAMDA-SSL considers the needs of different user groups. It provides well tuned default parameters and modules for entry-level users. It also supports flexible module replacement and customization for professional users.
 > - LAMDA-SSL has strong extensibility, which is convenient for users to customize new modules and algorithms.
 > - LAMDA-SSL has been verified by a large number of experiments and has strong reliability.
-> - LAMDA-SSL has complete user documentations.
+> - LAMDA-SSL has comprehensive user documentation.
 
 
 # Dependencies
@@ -102,14 +102,11 @@ Firstly, import and initialize CIFAR10.
 ```python
 from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
 
-dataset = CIFAR10(root='..\Download\cifar-10-python',
-                  labeled_size=4000, stratified=False,
-                  shuffle=True, download=True)
-labeled_X = dataset.labeled_X
-labeled_y = dataset.labeled_y
+dataset = CIFAR10(root='..\Download\CIFAR10',
+                  labeled_size=4000,download=True)
+labeled_X, labeled_y = dataset.labeled_X, dataset.labeled_y
 unlabeled_X = dataset.unlabeled_X
-test_X = dataset.test_X
-test_y = dataset.test_y
+test_X, test_y = dataset.test_X, dataset.test_y
 ```
 
 Then import and initialize FixMatch.
