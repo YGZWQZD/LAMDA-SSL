@@ -238,7 +238,7 @@ Feel free to contribute in any way you like, we're always open to new ideas and 
 - Learn more about how to customize modules of LAMDA-SSL from the [Usage](https://ygzwqzd.github.io/LAMDA-SSL/#/README?id=usage) section of the [documentation](https://ygzwqzd.github.io/LAMDA-SSL/#/).
 
 # The Team
- LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)12@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are Lin-Han Jia@ygzwqzd, Lan-Zhe Guo, Zhi Zhou and Yu-Feng Li.
+ LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)12@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are [Lin-Han Jia](https://www.lamda.nju.edu.cn/jialh/), [Lan-Zhe Guo](https://www.lamda.nju.edu.cn/guolz/), [Zhi Zhou](https://www.lamda.nju.edu.cn/zhouz/) and [Yu-Feng Li](https://www.lamda.nju.edu.cn/liyf/).
 
 # Contact
 If you have any questions, please contact us: Lin-Han Jia[jialh2118@gmail.com].
