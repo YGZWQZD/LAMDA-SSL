@@ -58,14 +58,20 @@ LAMDA-SSL requires:
 > - python (>= 3.7)
 > - scikit-learn (>= 1.0.2)
 > - torch (>= 1.9.0)
-> - torchvision (>= 0.10.0)
-> - torchtext (>= 0.10.0)
+> - torchvision (>= 0.11.2)
+> - torchtext (>= 0.11.1)
 > - torch-geometric(>= 2.0.3)
 > - Pillow(>= 8.4.0)
-> - numpy(>= 1.21.5)
-> - scipy(>= 1.7.3)
+> - numpy(>= 1.19.2)
+> - scipy(>= 1.5.2)
 > - pandas(>= 1.3.4)
 > - matplotlib(>= 3.5.0)
+
+You can create the environment directly by anaconda.
+
+```
+conda env create -f environment.yaml
+```
 
 # Installation
 
