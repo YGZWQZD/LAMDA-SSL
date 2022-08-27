@@ -1,19 +1,12 @@
-from LAMDA_SSL.Augmentation.Vision.RandomHorizontalFlip import RandomHorizontalFlip
-from LAMDA_SSL.Augmentation.Vision.RandomCrop import RandomCrop
-from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
-from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
-from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
+from LAMDA_SSL.Dataset.Text.SST2 import SST2
 from LAMDA_SSL.Opitimizer.SGD import SGD
-from LAMDA_SSL.Scheduler.CosineWarmup import CosineWarmup
-from LAMDA_SSL.Network.WideResNet import WideResNet
+from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
-from LAMDA_SSL.Algorithm.Classification.UDA import UDA
+from LAMDA_SSL.Algorithm.Classification.FlexMatch import FlexMatch
 from LAMDA_SSL.Sampler.RandomSampler import RandomSampler
 from LAMDA_SSL.Sampler.SequentialSampler import SequentialSampler
-from sklearn.pipeline import Pipeline
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classifier.Top_k_Accuracy import Top_k_Accurary
 from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1
@@ -21,9 +14,13 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
 from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
+from LAMDA_SSL.Augmentation.Text.TFIDFReplacement import TFIDFReplacement
+from LAMDA_SSL.Augmentation.Text.RandomSwap import RandomSwap
+from LAMDA_SSL.Network.TextRCNN import TextRCNN
+from LAMDA_SSL.Transform.Text.GloVe import Glove
 
 # dataset
-dataset=CIFAR10(root='..\Download\cifar-10-python',labeled_size=4000,stratified=True,shuffle=True,download=False,default_transforms=True)
+dataset=SST2(root='..\Download\SST2',stratified=True,shuffle=True,download=False,vectors=Glove(cache='..\Download\Glove\.vector_cache'),length=50,default_transforms=True)
 
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -58,33 +55,29 @@ valid_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False
 test_dataloader=UnlabeledDataLoader(batch_size=64,num_workers=0,drop_last=False)
 
 # augmentation
-weak_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ])
 
-strong_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
-                              ('RandomCrop',RandomCrop(padding=0.125,padding_mode='reflect')),
-                              ('RandAugment',RandAugment(n=2,m=10,num_bins=10)),
-                              ('Cutout',Cutout(v=0.5,fill=(127, 127, 127))),
-                              ])
+weak_augmentation=RandomSwap(n=1)
+
+strong_augmentation=TFIDFReplacement(text=labeled_X,p=0.7)
 
 augmentation={
     'weak_augmentation':weak_augmentation,
     'strong_augmentation':strong_augmentation
 }
+
 # optimizer
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 
 # scheduler
-scheduler=CosineWarmup(num_cycles=7./16,num_training_steps=2**20)
+scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
 
 # network
-network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
-
+network=TextRCNN(n_vocab=dataset.vectors.vec.vectors.shape[0],embedding_dim=dataset.vectors.vec.vectors.shape[1],
+                 pretrained_embeddings=dataset.vectors.vec.vectors,len_seq=50,
+                 num_classes=2)
 # evalutation
 evaluation={
     'accuracy':Accuracy(),
-    'top_5_accuracy':Top_k_Accurary(k=5),
     'precision':Precision(average='macro'),
     'Recall':Recall(average='macro'),
     'F1':F1(average='macro'),
@@ -92,31 +85,18 @@ evaluation={
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
 
-file = open("../Result/UDA_CIFAR10.txt", "w")
+file = open("../Result/FixMatch_SST2.txt", "w")
 
-model=UDA(threshold=0.8,lambda_u=1.0,T=0.4,mu=7,
-          weight_decay=5e-4, ema_decay=0.999,
-          epoch=1, num_it_epoch=2 ** 20, num_it_total=2 ** 20,
-          eval_it=2000, device='cpu',
-          labeled_dataset=labeled_dataset,
-          unlabeled_dataset=unlabeled_dataset,
-          valid_dataset=valid_dataset,
-          test_dataset=test_dataset,
-          labeled_sampler=labeled_sampler,
-          unlabeled_sampler=unlabeled_sampler,
-          valid_sampler=valid_sampler,
-          test_sampler=test_sampler,
-          labeled_dataloader=labeled_dataloader,
-          unlabeled_dataloader=unlabeled_dataloader,
-          valid_dataloader=valid_dataloader,
-          test_dataloader=test_dataloader,
-          augmentation=augmentation,
-          network=network,
-          optimizer=optimizer,
-          scheduler=scheduler,
-          evaluation=evaluation,
-          file=file, verbose=True
-          )
+model=FlexMatch(threshold=0.95,lambda_u=1.0,T=0.5,mu=7,ema_decay=0.999,weight_decay=5e-4,
+               epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cpu',
+               labeled_dataset=labeled_dataset, unlabeled_dataset=unlabeled_dataset,
+               valid_dataset=valid_dataset, test_dataset=test_dataset,
+               labeled_sampler=labeled_sampler,unlabeled_sampler=unlabeled_sampler,
+               valid_sampler=valid_sampler,test_sampler=test_sampler,
+               labeled_dataloader=labeled_dataloader, unlabeled_dataloader=unlabeled_dataloader,
+               valid_dataloader=valid_dataloader, test_dataloader=test_dataloader,
+               augmentation=augmentation,network=network,optimizer=optimizer,scheduler=scheduler,
+               evaluation=evaluation,verbose=True,file=file)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X,valid_X=valid_X,valid_y=valid_y)
 

@@ -93,7 +93,7 @@ evaluation={
 
 file = open("../Result/FlexMatch_CIFAR10.txt", "w")
 
-model=FlexMatch(threshold=0.95,lambda_u=1.0,T=0.5,num_classes=10,
+model=FlexMatch(threshold=0.95,lambda_u=1.0,T=1.0,num_classes=10,
                use_hard_labels=True,threshold_warmup=True,mu=7,weight_decay=5e-4,ema_decay=0.999,
                epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cpu',
                labeled_dataset=labeled_dataset,

@@ -4,7 +4,7 @@ from LAMDA_SSL.Augmentation.Vision.RandAugment import RandAugment
 from LAMDA_SSL.Augmentation.Vision.Cutout import Cutout
 from LAMDA_SSL.Dataset.Vision.CIFAR10 import CIFAR10
 from LAMDA_SSL.Opitimizer.SGD import SGD
-from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
+from LAMDA_SSL.Scheduler.CosineWarmup import CosineWarmup
 from LAMDA_SSL.Network.WideResNet import WideResNet
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
@@ -64,7 +64,7 @@ network=WideResNet(num_classes=10,depth=28,widen_factor=2,drop_rate=0)
 optimizer=SGD(lr=0.03,momentum=0.9,nesterov=True)
 
 # scheduler
-scheduler=CosineAnnealingLR(eta_min=0,T_max=2**20)
+scheduler=CosineWarmup(num_cycles=7./16,num_training_steps=2**20)
 
 # augmentation
 weak_augmentation=Pipeline([('RandomHorizontalFlip',RandomHorizontalFlip()),
@@ -94,7 +94,7 @@ evaluation={
 
 file = open("../Result/FixMatch_CIFAR10.txt", "w")
 
-model=FixMatch(threshold=0.95,lambda_u=1.0,T=0.5,mu=7,weight_decay=5e-4,ema_decay=0.999,
+model=FixMatch(threshold=0.95,lambda_u=1.0,T=1.0,mu=7,weight_decay=5e-4,ema_decay=0.999,
                epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cpu',
                labeled_dataset=labeled_dataset,
                unlabeled_dataset=unlabeled_dataset,
