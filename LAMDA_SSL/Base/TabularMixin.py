@@ -2,7 +2,7 @@ from sklearn.pipeline import Pipeline
 from sklearn import preprocessing
 from LAMDA_SSL.Transform.ToTensor import ToTensor
 
-class TableMixin:
+class TabularMixin:
     def __init__(self):
         pass
 

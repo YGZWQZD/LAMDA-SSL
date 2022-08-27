@@ -10,7 +10,7 @@ from LAMDA_SSL.Transform.ToTensor import ToTensor
 from LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error import Mean_Absolute_Error
 from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Error import Mean_Squared_Error
 from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Log_Error import Mean_Squared_Log_Error
-from LAMDA_SSL.Augmentation.Table.Noise import Noise
+from LAMDA_SSL.Augmentation.Tabular.Noise import Noise
 
 
 transforms = None

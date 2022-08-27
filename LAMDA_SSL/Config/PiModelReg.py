@@ -1,4 +1,4 @@
-from LAMDA_SSL.Augmentation.Table.Noise import Noise
+from LAMDA_SSL.Augmentation.Tabular.Noise import Noise
 from LAMDA_SSL.Opitimizer.SGD import SGD
 from LAMDA_SSL.Scheduler.CosineAnnealingLR import CosineAnnealingLR
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader

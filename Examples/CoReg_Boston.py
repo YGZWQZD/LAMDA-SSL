@@ -2,7 +2,7 @@ from LAMDA_SSL.Algorithm.Regression.CoReg import CoReg
 from LAMDA_SSL.Evaluation.Regressor.Mean_Absolute_Error import Mean_Absolute_Error
 from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Error import Mean_Squared_Error
 from LAMDA_SSL.Evaluation.Regressor.Mean_Squared_Log_Error import Mean_Squared_Log_Error
-from LAMDA_SSL.Dataset.Table.Boston import Boston
+from LAMDA_SSL.Dataset.Tabular.Boston import Boston
 import numpy as np
 
 file = open("../Result/CoReg_Boston.txt", "w")

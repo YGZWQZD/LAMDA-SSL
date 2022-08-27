@@ -1,5 +1,5 @@
 from LAMDA_SSL.Algorithm.Classification.Co_Training import Co_Training
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
 from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall

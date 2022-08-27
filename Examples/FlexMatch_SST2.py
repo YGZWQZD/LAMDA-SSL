@@ -87,7 +87,7 @@ evaluation={
 
 file = open("../Result/FixMatch_SST2.txt", "w")
 
-model=FlexMatch(threshold=0.95,lambda_u=1.0,T=0.5,mu=7,ema_decay=0.999,weight_decay=5e-4,
+model=FlexMatch(threshold=0.95,lambda_u=1.0,T=1.0,mu=7,ema_decay=0.999,weight_decay=5e-4,
                epoch=1,num_it_epoch=2**20,num_it_total=2**20,eval_it=2000,device='cpu',
                labeled_dataset=labeled_dataset, unlabeled_dataset=unlabeled_dataset,
                valid_dataset=valid_dataset, test_dataset=test_dataset,

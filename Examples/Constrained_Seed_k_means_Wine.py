@@ -4,7 +4,7 @@ from LAMDA_SSL.Evaluation.Cluster.Fowlkes_Mallows_Score import Fowlkes_Mallows_S
 from LAMDA_SSL.Evaluation.Cluster.Jaccard_Score import Jaccard_Score
 from LAMDA_SSL.Evaluation.Cluster.Silhouette_Score import Silhouette_Score
 from LAMDA_SSL.Evaluation.Cluster.Rand_Score import Rand_Score
-from LAMDA_SSL.Dataset.Table.Wine import Wine
+from LAMDA_SSL.Dataset.Tabular.Wine import Wine
 import numpy as np
 
 file = open("../Result/Constrained_Seed_k_means_Wine.txt", "w")

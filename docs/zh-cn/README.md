@@ -1027,7 +1027,7 @@ test_dataset=UnlabeledDataset(transform=transform)
 以高斯噪声作为数据增广方法。
 
 ```python
-from LAMDA_SSL.Augmentation.Table.Noise import Noise
+from LAMDA_SSL.Augmentation.Tabular.Noise import Noise
 
 augmentation = Noise(noise_level=0.01)
 ```

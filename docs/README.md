@@ -1022,7 +1022,7 @@ test_dataset=UnlabeledDataset(transform=transform)
 Gaussian noise is used as the data augmentation method.
 
 ```python
-from LAMDA_SSL.Augmentation.Table.Noise import Noise
+from LAMDA_SSL.Augmentation.Tabular.Noise import Noise
 
 augmentation = Noise(noise_level=0.01)
 ```

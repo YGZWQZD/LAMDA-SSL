@@ -1,6 +1,6 @@
 from LAMDA_SSL.Algorithm.Classification.LabelPropagation import LabelPropagation
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.Precision import Precision

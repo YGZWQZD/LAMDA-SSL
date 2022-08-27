@@ -1,5 +1,5 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
-from LAMDA_SSL.Base.TableMixin import TableMixin
+from LAMDA_SSL.Base.TabularMixin import TableMixin
 from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
@@ -7,7 +7,7 @@ from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from sklearn import datasets
 import numpy as np
 
-class BreastCancer(SemiDataset,TableMixin):
+class Wine(SemiDataset,TableMixin):
     def __init__(
         self,
         default_transforms=False,
@@ -23,7 +23,7 @@ class BreastCancer(SemiDataset,TableMixin):
         labeled_size=0.1,
         stratified=False,
         shuffle=True,
-        random_state=0,
+        random_state=None,
     ) -> None:
         self.default_transforms=default_transforms
         self.labeled_X=None
@@ -58,7 +58,7 @@ class BreastCancer(SemiDataset,TableMixin):
         self.test_y_indexing_method=None
 
 
-        self.dataset = datasets.load_breast_cancer()
+        self.dataset=datasets.load_wine()
         SemiDataset.__init__(self,pre_transform=pre_transform,transforms=transforms,transform=transform, target_transform=target_transform,
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,labeled_size=labeled_size,test_size=test_size,

@@ -5,7 +5,7 @@ from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
 from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 import numpy as np
 
 file = open("../Result/LapSVM_BreastCancer.txt", "w")

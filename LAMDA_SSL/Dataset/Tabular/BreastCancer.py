@@ -1,5 +1,5 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
-from LAMDA_SSL.Base.TableMixin import TableMixin
+from LAMDA_SSL.Base.TabularMixin import TableMixin
 from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
@@ -7,7 +7,7 @@ from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from sklearn import datasets
 import numpy as np
 
-class Boston(SemiDataset,TableMixin):
+class BreastCancer(SemiDataset,TableMixin):
     def __init__(
         self,
         default_transforms=False,
@@ -23,7 +23,7 @@ class Boston(SemiDataset,TableMixin):
         labeled_size=0.1,
         stratified=False,
         shuffle=True,
-        random_state=None,
+        random_state=0,
     ) -> None:
         self.default_transforms=default_transforms
         self.labeled_X=None
@@ -58,12 +58,11 @@ class Boston(SemiDataset,TableMixin):
         self.test_y_indexing_method=None
 
 
-        self.dataset=datasets.load_boston()
-        SemiDataset.__init__(self,pre_transform=pre_transform,transforms=transforms,transform=transform,
-                             target_transform=target_transform,
+        self.dataset = datasets.load_breast_cancer()
+        SemiDataset.__init__(self,pre_transform=pre_transform,transforms=transforms,transform=transform, target_transform=target_transform,
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
-                             valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,test_size=test_size,
-                             stratified=stratified,shuffle=shuffle,random_state=random_state)
+                             valid_transform=valid_transform,labeled_size=labeled_size,test_size=test_size,
+                             valid_size=valid_size,stratified=stratified,shuffle=shuffle,random_state=random_state)
         TableMixin.__init__(self)
         if self.default_transforms:
             self.init_default_transforms()
