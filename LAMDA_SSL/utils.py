@@ -9,8 +9,6 @@ from torch.utils.data import dataset
 import numpy as np
 from scipy import sparse
 from torch.nn.utils.rnn import PackedSequence
-from collections.abc import Sequence
-from PIL import Image
 import torch.nn as nn
 
 
@@ -26,27 +24,27 @@ def indexing_none(data, i):
     return None
 
 
-# def indexing_dict(data, i):
-#     return {k: v[i] for k, v in data.items()}
-#
-#
-# def indexing_list_tuple_of_data(data, i, indexings=None):
-#     if not indexings:
-#         return [indexing(x, i) for x in data]
-#     return [indexing(x, i, ind)
-#             for x, ind in zip(data, indexings)]
-#
-# def indexing_sparse(data,i):
-#     data=copy.copy(data)
-#     data = data.toarray().squeeze(0)
-#     return data[i]
-#
-# def indexing_ndframe(data, i):
-#     if hasattr(data, 'iloc'):
-#         data=data.copy(data)
-#         data = {k: data[k].values.reshape(-1, 1) for k in data}
-#         return data.iloc[i]
-#     return indexing_dict(data, i)
+def indexing_dict(data, i):
+    return {k: v[i] for k, v in data.items()}
+
+
+def indexing_list_tuple_of_data(data, i, indexings=None):
+    if not indexings:
+        return [indexing(x, i) for x in data]
+    return [indexing(x, i, ind)
+            for x, ind in zip(data, indexings)]
+
+def indexing_sparse(data,i):
+    data=copy.copy(data)
+    data = data.toarray().squeeze(0)
+    return data[i]
+
+def indexing_ndframe(data, i):
+    if hasattr(data, 'iloc'):
+        data=data.copy(data)
+        data = {k: data[k].values.reshape(-1, 1) for k in data}
+        return data.iloc[i]
+    return indexing_dict(data, i)
 
 
 def indexing_other(data, i):

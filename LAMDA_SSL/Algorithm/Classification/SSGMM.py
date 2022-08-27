@@ -8,7 +8,7 @@ import LAMDA_SSL.Config.SSGMM as config
 
 class SSGMM(InductiveEstimator,ClassifierMixin):
     def __init__(self,tolerance=config.tolerance, max_iterations=config.max_iterations, num_classes=config.num_classes,
-                 evaluation=config.evaluation,verbose=config.verbose,file=config.file):
+                 enlarge_factor=config.enlarge_factor,random_state=config.random_state,evaluation=config.evaluation,verbose=config.verbose,file=config.file):
         # >> Parameter
         # >> - num_classes: The number of classes.
         # >> - tolerance: Tolerance for iterative convergence.
@@ -17,6 +17,8 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         self.num_classes=num_classes
         self.tolerance=tolerance
         self.max_iterations=max_iterations
+        self.enlarge_factor=enlarge_factor
+        self.random_state=random_state
         self.evaluation = evaluation
         self.verbose = verbose
         self.file = file
@@ -30,8 +32,8 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
 
         dis = np.expand_dims(x - mu, axis=0)
 
-        pdf = np.exp(-0.5 * dis.dot(np.linalg.inv(sigma)).dot(dis.T)) / np.sqrt(
-            ((2 * np.pi) ** k) * np.linalg.det(sigma))
+        pdf = np.exp(-0.5 * dis.dot(np.linalg.inv(sigma)).dot(dis.T))*self.enlarge_factor / np.sqrt(
+            ((2 * np.pi) ** k) * np.linalg.det(sigma))*self.enlarge_factor
 
         return pdf
 
@@ -47,17 +49,21 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
             labele_set[_]=set()
         for _ in range(L):
             labele_set[y[_]].add(_)
-        self.mu=[]
-        self.alpha=[]
 
         self.gamma=np.empty((U,self.num_classes))
-        self.alpha = np.random.rand(self.num_classes)
-        self.alpha = self.alpha / self.alpha.sum()
-        self.mu = np.random.rand(self.num_classes, X.shape[1])
-        self.sigma = np.empty((self.num_classes, X.shape[1], X.shape[1]))
+        self.alpha = np.zeros(self.num_classes)
+        self.mu=np.zeros((self.num_classes,X.shape[1]))
+        self.sigma=np.zeros((self.num_classes,X.shape[1],X.shape[1]))
         for i in range(self.num_classes):
-            self.sigma[i] = np.eye(X.shape[1])
-
+            self.alpha[i]=len(labele_set[i])/L
+            _sum_mu=0
+            for j in labele_set[i]:
+                _sum_mu+=X[j]
+            self.mu[i]=_sum_mu/len(labele_set[i])
+            _sum_sigma=0
+            for j in labele_set[i]:
+                _sum_sigma += np.outer(X[j] - self.mu[i], X[j] - self.mu[i])
+            self.sigma[i]=_sum_sigma/len(labele_set[i])
         for _ in range(self.max_iterations):
             # E Step
             pre=copy.copy(self.alpha)

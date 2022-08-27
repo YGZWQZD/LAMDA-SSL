@@ -7,7 +7,7 @@ from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 
 Cl = 15
 Cu = 0.0001
-kernel = 'linear'
+kernel = 'rbf'
 degree = 3
 gamma = "scale"
 coef0 = 0.0

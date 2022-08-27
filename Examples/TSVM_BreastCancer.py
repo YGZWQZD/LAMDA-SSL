@@ -8,7 +8,7 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 import numpy as np
 
-file = open("../Result/TSVM.txt", "w")
+file = open("../Result/TSVM_BreastCancer.txt", "w")
 
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0,default_transforms=True)
 
@@ -35,7 +35,7 @@ evaluation={
     'AUC':AUC(multi_class='ovo'),
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
-model=TSVM(Cl=15,Cu=0.0001,kernel='linear',probability=True,evaluation=evaluation,file=file,verbose=True)
+model=TSVM(evaluation=evaluation,file=file)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 

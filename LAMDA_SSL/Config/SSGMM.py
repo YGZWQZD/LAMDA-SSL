@@ -8,6 +8,8 @@ from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 tolerance=1e-8
 max_iterations=300
 num_classes=None
+random_state=None
+enlarge_factor=1e5
 evaluation={
     'accuracy':Accuracy(),
     'precision':Precision(average='macro'),

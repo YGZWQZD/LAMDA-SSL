@@ -1,15 +1,15 @@
-from LAMDA_SSL.Algorithm.Classification.Assemble import Assemble
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Algorithm.Classification.Self_Training import Self_Training
 from LAMDA_SSL.Evaluation.Classifier.Accuracy import Accuracy
-from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
+from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
 from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1
+from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
 from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from sklearn.svm import SVC
 import numpy as np
 
-file = open("../Result/Assemble_BreastCancer.txt", "w")
+file = open("../Result/Self_Training_BreastCancer.txt", "w")
 
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0,default_transforms=True)
 
@@ -28,6 +28,8 @@ labeled_X=pre_transform.transform(labeled_X)
 unlabeled_X=pre_transform.transform(unlabeled_X)
 test_X=pre_transform.transform(test_X)
 
+SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
+
 evaluation={
     'accuracy':Accuracy(),
     'precision':Precision(average='macro'),
@@ -37,10 +39,7 @@ evaluation={
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
 
-# Base estimater
-SVM=SVC(probability=True)
-
-model=Assemble(T=100,base_estimater=SVM,evaluation=evaluation,verbose=True,file=file)
+model=Self_Training(base_estimator=SVM,threshold=0.8,criterion="threshold",max_iter=100,evaluation=evaluation,file=file,verbose=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 

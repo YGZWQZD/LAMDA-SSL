@@ -5,11 +5,12 @@ import random
 import copy
 from torch.utils.data.dataset import Dataset
 import LAMDA_SSL.Config.Co_Training as config
+from LAMDA_SSL.Split.ViewSplit import ViewSplit
 
 class Co_Training(InductiveEstimator,ClassifierMixin):
     # Binary
     def __init__(self, base_estimator=config.base_estimator, base_estimator_2=config.base_estimator_2,
-                 p=config.p, n=config.n, k=config.k, s=config.s, evaluation=config.evaluation,
+                 p=config.p, n=config.n, k=config.k, s=config.s, random_state=config.random_state,evaluation=config.evaluation,
                  verbose=config.verbose, file=config.file):
         # >> Parameter:
         # >> - base_estimator: the first learner for co-training.
@@ -18,13 +19,13 @@ class Co_Training(InductiveEstimator,ClassifierMixin):
         # >> - n: In each round, each base learner selects at most n negative samples to assign pseudo-labels.
         # >> - k: iteration rounds.
         # >> - s: the size of the buffer pool in each iteration.
-
         self.base_estimator = base_estimator
         self.base_estimator_2=base_estimator_2
         self.p=p
         self.n=n
         self.k=k
         self.s=s
+        self.random_state=random_state
         self.evaluation = evaluation
         self.verbose = verbose
         self.file = file
@@ -34,91 +35,83 @@ class Co_Training(InductiveEstimator,ClassifierMixin):
             self.base_estimator_2=copy.deepcopy(self.base_estimator)
         self.y_pred=None
         self.y_score=None
-        random.seed()
+        random.seed(self.random_state)
         self._estimator_type = ClassifierMixin._estimator_type
 
     def fit(self, X, y, unlabeled_X,X_2=None,unlabeled_X_2=None):
+        if X_2 is None:
+            if isinstance(X,(list,tuple)):
+                X,X_2=X[0],X[1]
+            else:
+                X,X_2 = ViewSplit(X, shuffle=False)
+        if unlabeled_X_2 is None:
+            if isinstance(unlabeled_X,(list,tuple)):
+                unlabeled_X,unlabeled_X_2=unlabeled_X[0],unlabeled_X[1]
+            else:
+                unlabeled_X,unlabeled_X_2 = ViewSplit(unlabeled_X, shuffle=False)
 
-        if isinstance(X,(list,tuple)):
-            X,X_2=X[0],X[1]
-
-        if isinstance(unlabeled_X,(list,tuple)):
-            unlabeled_X,unlabeled_X_2=unlabeled_X[0],unlabeled_X[1]
-
-        # unlabeled_X=copy.copy(unlabeled_X)
         X=copy.copy(X)
         X_2=copy.copy(X_2)
         y=copy.copy(y)
 
         unlabeled_y=np.ones(len(unlabeled_X))*-1
 
-        u_idx=np.arange(len(unlabeled_X))
+        unlabeled_idx=np.arange(len(unlabeled_X))
 
-        random.shuffle(u_idx)
+        random.shuffle(unlabeled_idx)
 
-        pool = u_idx[-min(len(u_idx), self.s):]
+        selected_unlabeled_idx = unlabeled_idx[-min(len(unlabeled_idx), self.s):]
 
-        u_idx=u_idx[:-len(pool)]
+        unlabeled_idx=unlabeled_idx[:-len(selected_unlabeled_idx)]
 
-        it = 0  # number of cotraining iterations we've done so far
+        it = 0
 
-        while it != self.k and len(u_idx):
+        while it != self.k and len(unlabeled_idx):
             it += 1
 
             self.base_estimator.fit(X, y)
             self.base_estimator_2.fit(X_2, y)
 
-            y1_prob = self.base_estimator.predict_proba(unlabeled_X[pool])
-            y2_prob = self.base_estimator_2.predict_proba(unlabeled_X_2[pool])
+            proba_1 = self.base_estimator.predict_proba(unlabeled_X[selected_unlabeled_idx])
+            proba_2 = self.base_estimator_2.predict_proba(unlabeled_X_2[selected_unlabeled_idx])
 
-            n_list, p_list = [], []
+            negative_samples, positive_samples = [], []
 
-            for i in (y1_prob[:, 0].argsort())[-self.n:]:
-                if y1_prob[i, 0] > 0.5:
-                    n_list.append(i)
-            for i in (y1_prob[:, 1].argsort())[-self.p:]:
-                if y1_prob[i, 1] > 0.5:
-                    p_list.append(i)
+            for i in (proba_1[:, 0].argsort())[-self.n:]:
+                if proba_1[i, 0] > 0.5:
+                    negative_samples.append(i)
+            for i in (proba_1[:, 1].argsort())[-self.p:]:
+                if proba_1[i, 1] > 0.5:
+                    positive_samples.append(i)
 
-            for i in (y2_prob[:, 0].argsort())[-self.n:]:
-                if y2_prob[i, 0] > 0.5:
-                    n_list.append(i)
-            for i in (y2_prob[:, 1].argsort())[-self.p:]:
-                if y2_prob[i, 1] > 0.5:
-                    p_list.append(i)
-            unlabeled_y[[pool[x] for x in p_list]] = 1
-            unlabeled_y[[pool[x] for x in n_list]] = 0
+            for i in (proba_2[:, 0].argsort())[-self.n:]:
+                if proba_2[i, 0] > 0.5:
+                    positive_samples.append(i)
+            for i in (proba_2[:, 1].argsort())[-self.p:]:
+                if proba_2[i, 1] > 0.5:
+                    positive_samples.append(i)
+            unlabeled_y[[selected_unlabeled_idx[x] for x in positive_samples]] = 1
+            unlabeled_y[[selected_unlabeled_idx[x] for x in negative_samples]] = 0
 
-            for x in p_list:
-                X = np.vstack([X, unlabeled_X[pool[x]]])
-                X_2 = np.vstack([X_2, unlabeled_X_2[pool[x]]])
-                y=np.hstack([y,unlabeled_y[pool[x]]])
+            for x in positive_samples:
+                X = np.vstack([X, unlabeled_X[selected_unlabeled_idx[x]]])
+                X_2 = np.vstack([X_2, unlabeled_X_2[selected_unlabeled_idx[x]]])
+                y=np.hstack([y,unlabeled_y[selected_unlabeled_idx[x]]])
 
-            for x in n_list:
-                X = np.vstack([X, unlabeled_X[pool[x]]])
-                X_2 = np.vstack([X_2, unlabeled_X_2[pool[x]]])
-                y=np.hstack([y,unlabeled_y[pool[x]]])
+            for x in negative_samples:
+                X = np.vstack([X, unlabeled_X[selected_unlabeled_idx[x]]])
+                X_2 = np.vstack([X_2, unlabeled_X_2[selected_unlabeled_idx[x]]])
+                y=np.hstack([y,unlabeled_y[selected_unlabeled_idx[x]]])
 
-
-            pool = [elem for elem in pool if not (elem in p_list or elem in n_list)]
-
-            # add new elements to U_
-            add_counter = 0  # number we have added from U to U_
-            num_to_add = len(p_list) + len(n_list)
-            while add_counter != num_to_add and len(u_idx):
-                add_counter += 1
-                pool.append(u_idx[0])
-                u_idx=u_idx[1:]
+            selected_unlabeled_idx = np.array([elem for elem in selected_unlabeled_idx if not (elem in positive_samples or elem in negative_samples)])
+            num_selected = len(positive_samples) + len(negative_samples)
+            num_selected = min(num_selected,len(unlabeled_idx))
+            selected_unlabeled_idx=np.concatenate((selected_unlabeled_idx,unlabeled_idx[:num_selected]))
+            unlabeled_idx=unlabeled_idx[num_selected:]
 
         self.base_estimator.fit(X, y)
         self.base_estimator_2.fit(X_2, y)
-
-    def supports_proba(self, clf, x):
-        try:
-            clf.predict_proba([x])
-            return True
-        except:
-            return False
+        return self
 
     def predict(self, X, X_2=None):
         y_proba=self.predict_proba(X=X,X_2=X_2)
@@ -126,8 +119,11 @@ class Co_Training(InductiveEstimator,ClassifierMixin):
         return y_pred
 
     def predict_proba(self,  X,X_2=None):
-        if isinstance(X,(list,tuple)):
-            X,X_2=X[0],X[1]
+        if X_2 is None:
+            if isinstance(X,(list,tuple)):
+                X,X_2=X[0],X[1]
+            else:
+                X,X_2 = ViewSplit(X, shuffle=False)
         y_proba = np.full((X.shape[0], 2), -1, np.float)
 
         y1_proba = self.base_estimator.predict_proba(X)

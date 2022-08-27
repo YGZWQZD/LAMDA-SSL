@@ -5,9 +5,9 @@ from LAMDA_SSL.Evaluation.Classifier.Precision import Precision
 from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from sklearn.svm import SVC
-base_estimator=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
-base_estimator_2=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
-base_estimator_3=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
+base_estimator=SVC(C=1.0,kernel='rbf',probability=True,gamma='auto')
+base_estimator_2=SVC(C=1.0,kernel='rbf',probability=True,gamma='auto')
+base_estimator_3=SVC(C=1.0,kernel='rbf',probability=True,gamma='auto')
 evaluation={
     'accuracy':Accuracy(),
     'precision':Precision(average='macro'),

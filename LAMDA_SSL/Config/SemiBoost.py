@@ -6,14 +6,15 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from sklearn.svm import SVC
 
-base_estimator = SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
+base_estimator = SVC(C=1.0,kernel='rbf',probability=True,gamma='auto')
 n_neighbors=4
 n_jobs = 1
-max_models = 300
+T = 300
 sample_percent = 0.01
 sigma_percentile = 90
 similarity_kernel = 'rbf'
-gamma=0.001
+gamma=None
+
 evaluation={
     'accuracy':Accuracy(),
     'precision':Precision(average='macro'),

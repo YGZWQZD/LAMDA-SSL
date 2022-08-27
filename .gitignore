@@ -15,3 +15,7 @@
 *.yml
 .gitignore
 Test/.coveralls.yml
+/Evaluation
+/LAMDA_SSL/Algorithm/Classification/Self_Training.py
+/Examples/Self_Training_BreastCancer.py
+/LAMDA_SSL/Config/Self_Training.py

@@ -1,12 +1,10 @@
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.neighbors import kneighbors_graph
-from scipy import sparse
 from LAMDA_SSL.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
-from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.metrics.pairwise import rbf_kernel,linear_kernel
 import copy
-import inspect
 from torch.utils.data.dataset import Dataset
 import LAMDA_SSL.Config.LapSVM as config
 
@@ -52,7 +50,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
     def fit(self,X,y,unlabeled_X):
         classes, y_indices = np.unique(y, return_inverse=True)
         if len(classes)!=2:
-            raise ValueError('TSVM can only be used in binary classification.')
+            raise ValueError('LapSVM can only be used in binary classification.')
 
         self.class_dict={classes[0]:-1,classes[1]:1}
         self.rev_class_dict = {-1:classes[0] ,  1:classes[1]}
@@ -60,37 +58,35 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         for _ in range(X.shape[0]):
             y[_]=self.class_dict[y[_]]
 
-
-        # Construct Graph
-
         self.X=np.vstack([X,unlabeled_X])
         Y=np.diag(y)
+
         if self.distance_function == 'knn':
             if self.neighbor_mode=='connectivity':
                 W = kneighbors_graph(self.X, self.n_neighbor, mode='connectivity',include_self=False)
-                W = (((W + W.T) > 0) * 1)
-
-            elif self.neighbor_mode=='distance':
+                W = (((W + W.T) > 0) * 1).todense()
+            else:
                 W = kneighbors_graph(self.X, self.n_neighbor, mode='distance',include_self=False)
-                W = W.maximum(W.T)
-                W = sparse.csr_matrix((np.exp(-W.data**2/4/self.t),W.indices,W.indptr),shape=(self.X.shape[0],self.X.shape[0]))
-
+                W = W.maximum(W.T).todense()
+                W = np.exp(-W**2/4/self.t)
+        elif self.distance_function == 'linear':
+            W=linear_kernel(self.X,self.X)
         elif self.distance_function =='rbf':
             W=rbf_kernel(self.X,self.X,self.gamma_d)
-            W = sparse.csr_matrix(W)
+
         elif self.distance_function is not None:
             if self.gamma_d is not None:
                 W=self.distance_function(self.X,self.X,self.gamma_d)
             else:
                 W = self.distance_function(self.X, self.X)
-            W=sparse.csr_matrix(W)
         else:
-            raise Exception()
-
-        L = sparse.diags(np.array(W.sum(0))[0]).tocsr() - W
+            W=rbf_kernel(self.X,self.X,self.gamma_d)
+        L = np.diag(np.array(W.sum(0))) - W
 
         if self.kernel_function == 'rbf':
             K = rbf_kernel(self.X,self.X,self.gamma_k)
+        elif self.kernel_function == 'linear':
+            K=linear_kernel(self.X,self.X)
         elif self.kernel_function is not None:
             if self.gamma_k is not None:
                 K = self.kernel_function(self.X,self.X,self.gamma_k)
@@ -98,83 +94,84 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
                 K = self.kernel_function(self.X, self.X)
         else:
             K = rbf_kernel(self.X, self.X, self.gamma_k)
-        l=X.shape[0]
-        u=unlabeled_X.shape[0]
-        J = np.concatenate([np.identity(l), np.zeros(l * u).reshape(l, u)], axis=1)
-        almost_alpha = np.linalg.inv(2 * self.gamma_A * np.identity(l + u) \
-                                     + ((2 * self.gamma_I) / (l + u) ** 2) * L.dot(K)).dot(J.T).dot(Y)
+        num_labeled=X.shape[0]
+        num_unlabeled=unlabeled_X.shape[0]
+        J = np.concatenate([np.identity(num_labeled), np.zeros(num_labeled * num_unlabeled).reshape(num_labeled, num_unlabeled)], axis=1)
+        alpha_star = np.linalg.inv(2 * self.gamma_A * np.identity(num_labeled + num_unlabeled) \
+                                     + ((2 * self.gamma_I) / (num_labeled + num_unlabeled) ** 2) * L.dot(K)).dot(J.T).dot(Y)
 
-        Q = Y.dot(J).dot(K).dot(almost_alpha)
+        Q = Y.dot(J).dot(K).dot(alpha_star)
         Q = (Q+Q.T)/2
 
-        del W, L, K, J
-
-        e = np.ones(l)
+        e = np.ones(num_labeled)
         q = -e
 
-        def objective_func(beta):
-            return (1 / 2) * beta.dot(Q).dot(beta) + q.dot(beta)
+        def objective_fun(x):
+            return (1 / 2) * x.dot(Q).dot(x) + q.dot(x)
 
-        def objective_grad(beta):
-            return np.squeeze(np.array(beta.T.dot(Q) + q))
+        def objective_jac(x):
+            return np.squeeze(np.array(x.T.dot(Q) + q))
 
-        bounds = [(0, 1 / l) for _ in range(l)]
+        def constraints_fun(x):
+            return x.dot(np.diag(Y))
 
-        def constraint_func(beta):
-            return beta.dot(np.diag(Y))
-
-        def constraint_grad(beta):
+        def constraints_jac(x):
             return np.diag(Y)
 
-        cons = {'type': 'eq', 'fun': constraint_func, 'jac': constraint_grad}
-        x0 = np.zeros(l)
+        bounds = [(0, 1 / num_labeled) for _ in range(num_labeled)]
 
-        beta_hat = minimize(objective_func, x0, jac=objective_grad, constraints=cons, bounds=bounds)['x']
-        self.alpha = almost_alpha.dot(beta_hat)
+        constraints = {'type': 'eq', 'fun': constraints_fun, 'jac': constraints_jac}
 
-        del almost_alpha, Q
+        beta_star = minimize(objective_fun, np.zeros(num_labeled), jac=objective_jac, constraints=constraints, bounds=bounds)['x']
+        self.alpha = alpha_star.dot(beta_star)
+
         if self.kernel_function == 'rbf':
-            new_K = rbf_kernel(self.X,X,self.gamma_k)
+            K = rbf_kernel(self.X,X,self.gamma_k)
+        elif self.kernel_function == 'linear':
+            K= linear_kernel(self.X,X)
         elif self.kernel_function is not None:
             if self.gamma_k is not None:
-                new_K = self.kernel_function(self.X,X,self.gamma_k)
+                K = self.kernel_function(self.X,X,self.gamma_k)
             else:
-                new_K = self.kernel_function(self.X,X)
+                K = self.kernel_function(self.X,X)
         else:
-            new_K = rbf_kernel(self.X, X, self.gamma_k)
-        f = np.squeeze(np.array(self.alpha)).dot(new_K)
-
-        self.sv_ind=np.nonzero((beta_hat>1e-7)*(beta_hat<(1/l-1e-7)))[0]
-
-        ind=self.sv_ind[0]
-        self.b=np.diag(Y)[ind]-f[ind]
+            K = rbf_kernel(self.X, X, self.gamma_k)
+        f = np.squeeze(np.array(self.alpha)).dot(K)
+        idx_super_vectors=np.nonzero((beta_star-1e-8>0)*(1/num_labeled-beta_star>1e-8))[0]
+        try:
+            idx = idx_super_vectors[0]
+        except:
+            idx=0
+        self.bound=np.diag(Y)[idx]-f[idx]
         return self
 
 
     def decision_function(self,X):
         if self.kernel_function == 'rbf':
-            new_K = rbf_kernel(self.X,X,self.gamma_k)
+            K = rbf_kernel(self.X,X,self.gamma_k)
+        elif self.kernel_function == 'linear':
+            K = linear_kernel(self.X, X)
         elif self.kernel_function is not None:
             if self.gamma_k is not None:
-                new_K = self.kernel_function(self.X,X,self.gamma_k)
+                K = self.kernel_function(self.X,X,self.gamma_k)
             else:
-                new_K = self.kernel_function(self.X,X)
+                K = self.kernel_function(self.X,X)
         else:
-            new_K = rbf_kernel(self.X, X, self.gamma_k)
-        f = np.squeeze(np.array(self.alpha)).dot(new_K)
-        return f+self.b
+            K = rbf_kernel(self.X, X, self.gamma_k)
+        f = np.squeeze(np.array(self.alpha)).dot(K)
+        return f+self.bound
 
     def predict_proba(self,X):
-        Y_ = self.decision_function(X)
-        y_proba = np.full((X.shape[0], 2), 0, np.float)
-        y_proba[:,0]=1/(1+np.exp(Y_))
-        y_proba[:, 1] =1- y_proba[:,0]
-        return y_proba
+        y_desision = self.decision_function(X)
+        y_score = np.full((X.shape[0], 2), 0, np.float)
+        y_score[:,0]=1/(1+np.exp(y_desision))
+        y_score[:, 1] =1- y_score[:,0]
+        return y_score
 
     def predict(self,X):
-        Y_ = self.decision_function(X)
+        y_desision = self.decision_function(X)
         y_pred = np.ones(X.shape[0])
-        y_pred[Y_ < 0] = -1
+        y_pred[y_desision < 0] = -1
         for _ in range(X.shape[0]):
             y_pred[_]=self.rev_class_dict[y_pred[_]]
         return y_pred
@@ -186,7 +183,6 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
 
         self.y_score = self.predict_proba(X)
         self.y_pred=self.predict(X)
-
 
         if self.evaluation is None:
             return None

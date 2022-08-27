@@ -6,13 +6,14 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from sklearn.metrics.pairwise import rbf_kernel
 
-neighbor_mode='connectivity'
+
+neighbor_mode=None
 distance_function= rbf_kernel
-gamma_d=0.03
+gamma_d=None
 t=1
 n_neighbor= 5
 kernel_function= rbf_kernel
-gamma_k=0.03
+gamma_k=None
 gamma_A= 0.03
 gamma_I= 0
 

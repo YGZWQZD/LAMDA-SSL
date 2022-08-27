@@ -1,5 +1,5 @@
 from sklearn.svm import SVC
-
+random_state=None
 base_estimator = SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
 base_estimator_2 = SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
 p = 5

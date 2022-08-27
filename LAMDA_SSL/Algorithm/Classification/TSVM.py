@@ -20,7 +20,7 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
             tol=config.tol,
             cache_size=config.cache_size,
             class_weight=config.class_weight,
-            max_iter=-config.max_iter,
+            max_iter=config.max_iter,
             decision_function_shape=config.decision_function_shape,
             break_ties=config.break_ties,
             random_state=config.random_state,evaluation=config.evaluation,
@@ -59,7 +59,7 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
         self.decision_function_shape = decision_function_shape
         self.break_ties = break_ties
         self.random_state = random_state
-        self.clf=SVC(C=self.Cl,
+        self.base_estimator=SVC(C=self.Cl,
                     kernel=self.kernel,
                     degree = self.degree,
                     gamma = self.gamma,
@@ -101,9 +101,9 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
         for _ in range(L):
             y[_]=self.class_dict[y[_]]
 
-        self.clf.fit(X, y)
+        self.base_estimator.fit(X, y)
 
-        unlabeled_y = self.clf.predict(unlabeled_X)
+        unlabeled_y = self.base_estimator.predict(unlabeled_X)
 
         u_X_id = np.arange(len(unlabeled_y))
         _X = np.vstack([X, unlabeled_X])
@@ -111,11 +111,11 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
 
 
         while self.Cu < self.Cl:
-            self.clf.fit(_X, _y, sample_weight=sample_weight)
+            self.base_estimator.fit(_X, _y, sample_weight=sample_weight)
             while True:
-                unlabeled_y_d = self.clf.decision_function(unlabeled_X)    # linear: w^Tx + b
+                unlabeled_y_d = self.base_estimator.decision_function(unlabeled_X)
                 self.unlabeled_y_d=unlabeled_y_d
-                epsilon = 1 - unlabeled_y * unlabeled_y_d   # calculate function margin
+                epsilon = 1 - unlabeled_y * unlabeled_y_d
 
                 positive_set, positive_id = epsilon[unlabeled_y > 0], u_X_id[unlabeled_y > 0]
                 negative_set, negative_id = epsilon[unlabeled_y < 0], u_X_id[unlabeled_y < 0]
@@ -126,7 +126,7 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
                     unlabeled_y[positive_max_id] = unlabeled_y[positive_max_id] * -1
                     unlabeled_y[negative_max_id] = unlabeled_y[negative_max_id] * -1
                     _y = np.hstack([y, unlabeled_y])
-                    self.clf.fit(_X, _y, sample_weight=sample_weight)
+                    self.base_estimator.fit(_X, _y, sample_weight=sample_weight)
                 else:
                     break
             self.Cu = min(2*self.Cu, self.Cl)
@@ -141,14 +141,14 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
             y_proba[:, 0] = 1 / (1 + np.exp(self.unlabeled_y_d))
             y_proba[:, 1] = 1 - y_proba[:, 0]
         else:
-            y_proba= self.clf.predict_proba(X)
+            y_proba= self.base_estimator.predict_proba(X)
         return y_proba
 
     def predict(self,X=None,Transductive=True):
         if Transductive:
             result=self.unlabeled_y
         else:
-            result= self.clf.predict(X)
+            result= self.base_estimator.predict(X)
         _len=len(result)
         result=copy.copy(result)
         for _ in range(_len):
@@ -157,14 +157,13 @@ class TSVM(TransductiveEstimator,ClassifierMixin):
 
     def score(self,X=None, y=None,sample_weight=None,Transductive=True):
         if Transductive:
-            return self.clf.score(self.unlabeled_X,self.unlabeled_y,sample_weight)
+            return self.base_estimator.score(self.unlabeled_X,self.unlabeled_y,sample_weight)
         else:
-
             _len=len(X)
             y=copy.copy(y)
             for _ in range(_len):
                 y[_] = self.class_dict[y[_]]
-            return self.clf.score(X, y,sample_weight)
+            return self.base_estimator.score(X, y,sample_weight)
 
     def evaluate(self,X=None,y=None,Transductive=True):
 
