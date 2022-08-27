@@ -3572,7 +3572,7 @@ train_dataset=None,
 similarity_kernel = 'rbf',
                         n_neighbors=4, 
                         gamma=0.1, 
-                        max_models = 300,
+                        T = 300,
                         sample_percent = 0.01,
                         sigma_percentile = 90,
                         n_jobs = 1
@@ -3583,7 +3583,7 @@ similarity_kernel = 'rbf',
 >> - n_neighbors: It is valid when the kernel function is 'knn', indicating the value of k in the k nearest neighbors.
 >> - n_jobs: It is valid when the kernel function is 'knn', indicating the number of parallel jobs.
 >> - gamma: It is valid when the kernel function is 'rbf', indicating the gamma value of the rbf kernel.
->> - max_models: The most number of models in the ensemble.
+>> - T: The maximum number of models in the ensemble and the number of iterations.
 >> - sample_percent: The number of samples sampled at each iteration as a proportion of the remaining unlabeled samples.
 >> - sigma_percentile: Scale parameter used in the 'rbf' kernel.
 

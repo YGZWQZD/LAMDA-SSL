@@ -3865,7 +3865,7 @@ train_dataset=None,
 similarity_kernel = 'rbf',
                         n_neighbors=4, 
                         gamma=0.1, 
-                        max_models = 300,
+                        T = 300,
                         sample_percent = 0.01,
                         sigma_percentile = 90,
                         n_jobs = 1
@@ -3876,7 +3876,7 @@ similarity_kernel = 'rbf',
 >> - n_neighbors: 核函数为'knn'时有效，表示k近邻中k的值。
 >> - n_jobs: 核函数为'knn'时有效，表示并行作业数量。
 >> - gamma: 核函数为'rbf'时有效，表示rbf核的gamma值。
->> - max_models: 集成中最大模型数量。
+>> - T: 集成中最大模型数量。
 >> - sample_percent: 每次迭代采样的样本数量占剩余无标注样本的比例。
 >> - sigma_percentile: 'rbf'核中使用的比例参数。
 
