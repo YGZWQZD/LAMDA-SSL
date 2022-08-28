@@ -12,8 +12,8 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 setuptools.setup(
     name='LAMDA-SSL',
-    version="0.0.0.2",
-    author="Lin-Han Jia",
+    version="0.0.0.3",
+    author="Lin-Han Jia, Lan-Zhe Guo, Zhi Zhou, Yu-Feng Li",
     license='MIT',
     author_email="1129198222@qq.com",
     description="LAMDA-SSL is an useful toolkit for semi-supervised learning.",
