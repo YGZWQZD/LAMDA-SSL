@@ -329,7 +329,7 @@ strong_augmented_X=strong_augmentation.fit_transform(X)
 以SSGMM算法为例，首先导入BreastCancer数据集，参数‘labeled_size’表示有标注数据集的数量(整数)或比例(浮点数)，参数‘stratified’和‘shuffle’分别表示数据集划分时是否需要按类别比划分和是否需要将数据打乱。
 
 ```python
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
 ```
 
@@ -388,7 +388,7 @@ performance=AUC(multi_class='ovo').scoring(test_y,pred_y,score_y)
 以TSVM算法为例，首先导入BreastCancer数据集，参数‘labeled_size’表示有标注数据集的数量(整数)或比例(浮点数)，参数‘stratified’和‘shuffle’分别表示数据集划分时是否需要按类别比划分和是否需要将数据打乱。
 
 ```python
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 dataset=BreastCancer(labeled_size=0.1, stratified=True,
 shuffle=True)
 labeled_X=dataset.labeled_X
@@ -447,7 +447,7 @@ score=Accuracy().scoring(test_y,pred_y)
 以Co-Training算法为例，首先导入BreastCancer数据集，参数‘labeled_size’表示有标注数据集的数量(整数)或比例(浮点数)，参数‘stratified’和‘shuffle’分别表示数据集划分时是否需要按类别比划分和是否需要将数据打乱。
 
 ```python
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 dataset=BreastCancer(labeled_size=0.1, stratified=True,
 shuffle=True)
 labeled_X=dataset.labeled_X
@@ -515,7 +515,7 @@ score=Accuracy().scoring(test_y,pred_y)
 以CoReg算法为例，首先导入Boston数据集，参数‘labeled_size’表示有标注数据集的数量(整数)或比例(浮点数)，参数‘stratified’和‘shuffle’分别表示数据集划分时是否需要按类别比划分和是否需要将数据打乱。
 
 ```python
-from LAMDA_SSL.Dataset.Table.Boston import Boston
+from LAMDA_SSL.Dataset.Tabular.Boston import Boston
 dataset=Boston(labeled_size=0.3,test_size=0.1,stratified=False,shuffle=True,random_state=0,default_transforms=True)
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -567,7 +567,7 @@ performance = Mean_Squared_Error().scoring(test_y, pred_y)
 以Constrained Seed k Means和Constrained k Means算法为例。首先导入Wine数据集。
 
 ```python
-from LAMDA_SSL.Dataset.Table.Wine import Wine
+from LAMDA_SSL.Dataset.Tabular.Wine import Wine
 dataset = Wine(labeled_size=0.2, stratified=True, shuffle=True,random_state=0,default_transforms=True)
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -982,7 +982,7 @@ score=Accuracy().scoring(test_y,pred_y)
 以PiModelReg算法为例。首先导入Boston数据集。
 
 ```python
-from LAMDA_SSL.Dataset.Table.Boston import Boston
+from LAMDA_SSL.Dataset.Tabular.Boston import Boston
 dataset=Boston(test_size=0.3,labeled_size=0.1,stratified=False,shuffle=True,random_state=0,default_transforms=True)
 ```
 
@@ -4523,9 +4523,9 @@ similarity_kernel = 'rbf',
 
 ## LAMDA_SSL.Augmentation
 
-### LAMDA_SSL.Augmentation.Table
+### LAMDA_SSL.Augmentation.Tabular
 
-#### LAMDA_SSL.Augmentation.Table.Noise
+#### LAMDA_SSL.Augmentation.Tabular.Noise
 > CLASS LAMDA_SSL.Transform.Noise.Noise(noise_level)
 > - Parameter:
 >> - noise_level: 噪声幅度。
@@ -4755,8 +4755,8 @@ similarity_kernel = 'rbf',
 >> - last_epoch: 最后一个轮次的索引。
 >> - verbose: 是否输出冗余信息。
 
-### LAMDA_SSL.Base.TableMixin
-> CLASS LAMDA_SSL.Base.TableMixin.TableMixin():
+### LAMDA_SSL.Base.TabularMixin
+> CLASS LAMDA_SSL.Base.TabularMixin.TabularMixin():
 > - init_transform: 对数据变换方式进行初始化。
 
 ### LAMDA_SSL.Base.VisionMixin
@@ -5516,22 +5516,22 @@ labels=None,
 
 ## LAMDA_SSL.Transform
 
-### LAMDA_SSL.Transform.Table
+### LAMDA_SSL.Transform.Tabular
 
-#### LAMDA_SSL.Transform.Table.MinMaxScaler
-> CLASS LAMDA_SSL.Transform.Table.MinMaxScaler.MinMaxScaler(min_val=None,max_val=None)
+#### LAMDA_SSL.Transform.Tabular.MinMaxScaler
+> CLASS LAMDA_SSL.Transform.Tabular.MinMaxScaler.MinMaxScaler(min_val=None,max_val=None)
 > - Parameter:
 >> - min_val: 最小值。
 >> - max_val: 最大值。
 
-#### LAMDA_SSL.Transform.Table.StandardScaler
-> CLASS LAMDA_SSL.Transform.Table.StandardScaler.StandardScaler(mean=None,std=None)
+#### LAMDA_SSL.Transform.Tabular.StandardScaler
+> CLASS LAMDA_SSL.Transform.Tabular.StandardScaler.StandardScaler(mean=None,std=None)
 > - Parameter:
 >> - mean: 均值。
 >> - std: 方差。
 
-#### LAMDA_SSL.Transform.Table.MaxAbsScaler
-> CLASS LAMDA_SSL.Transform.Table.MaxAbsScaler.MaxAbsScaler(max_abs=None)
+#### LAMDA_SSL.Transform.Tabular.MaxAbsScaler
+> CLASS LAMDA_SSL.Transform.Tabular.MaxAbsScaler.MaxAbsScaler(max_abs=None)
 > - Parameter:
 >> - max_abs: 绝对值的最大值。
 

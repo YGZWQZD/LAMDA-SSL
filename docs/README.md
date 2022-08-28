@@ -1,6 +1,6 @@
 #  Introduction
 
-In order to promote the research and application of semi-supervised learning algorithms[1-3], we has developed LAMDA which is a convenient and practical semi-supervised learning toolkit. LAMDA-SSL has complete functions, convenient interfaces and detailed documentations. It integrates statistical machine learning algorithms and deep learning algorithms into the same framework. It is compatible with the popular machine learning toolkit sklearn[34] and the popular deep learning toolkit pytorch. It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 12 algorithms based on statistical machine learning models and 18 algorithms based on deep learning models. LAMDA-SSL also contains plentiful data processing and augmentation methods used for 4 types of data: table, image, text, graph and plentiful model evaluation criterias used for 3 types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, model application and model deployment, which facilitates the completion of the end-to-end semi-supervised learning process.
+In order to promote the research and application of semi-supervised learning algorithms[1-3], we has developed LAMDA which is a convenient and practical semi-supervised learning toolkit. LAMDA-SSL has complete functions, convenient interfaces and detailed documentations. It integrates statistical machine learning algorithms and deep learning algorithms into the same framework. It is compatible with the popular machine learning toolkit sklearn[34] and the popular deep learning toolkit pytorch. It supports Pipeline mechanism and parameter search functions of sklearn and also supports GPU acceleration and distributed training functions of pytorch. At present, LAMDA-SSL contains 30 semi-supervised learning algorithms, including 12 algorithms based on statistical machine learning models and 18 algorithms based on deep learning models. LAMDA-SSL also contains plentiful data processing and augmentation methods used for 4 types of data: tabular, image, text, graph and plentiful model evaluation criterias used for 3 types of task: classification, regression and clustering. LAMDA-SSL includes multiple modules such as data management, data transformation, model application and model deployment, which facilitates the completion of the end-to-end semi-supervised learning process.
 
 ##  Background
 
@@ -71,7 +71,7 @@ Data Transformation: In sklearn, data transformers inherit both BaseEstimator an
 
 Dataloader: In deep semi-supervised learning, the amount of data is usually large so the data needs to be loaded in batches by the sampler. In each iteration, a batch of instances is sampled and indexed by the __getitem__() method. Then the indexed instances are combined into torch.Tensor. LAMDA-SSL designs LabeledDataloader and UnlabeledDataloader for LabeledDataset and UnlabeledDataset respectively and uses a TrainDataloader class to manage the training process of the two dataloaders for semi-supervised learning. In addition to including two dataloaders at the same time, TrainDataloader also plays a role in adjusting the relationship between them, such as adjusting the ratio of of the number of samples and the batch size between unlabeled instances and labeled instances.
 
-Data-specific Mixin: LAMDA-SSL can handle four common data types in practical applications: table, image, text, and graph. It designs four components corresponding to the data types: TableMixin, VisionMixin, TextMixin, and GraphMixin. For a dataset, you can inherit the component corresponding to its data type to obtain the default data processing function in the component. For example, CIFAR10 inherits two modules: SemiDataset and VisionMixin and thus has the default image data processing function. For custom datasets, users can set the data source of the dataset by overriding the init_dataset() method in SemiDataset and set the default data processing flow by overriding the init_default_transform() method of the Mixin module.
+Data-specific Mixin: LAMDA-SSL can handle four common data types in practical applications: table, image, text, and graph. It designs four components corresponding to the data types: TabularMixin, VisionMixin, TextMixin, and GraphMixin. For a dataset, you can inherit the component corresponding to its data type to obtain the default data processing function in the component. For example, CIFAR10 inherits two modules: SemiDataset and VisionMixin and thus has the default image data processing function. For custom datasets, users can set the data source of the dataset by overriding the init_dataset() method in SemiDataset and set the default data processing flow by overriding the init_default_transform() method of the Mixin module.
 
 ### Model Module
 
@@ -126,7 +126,7 @@ LAMDA-SSL has a wide range of application scenarios. It can support four types o
 Figure 7: Data scenarios of LAMDA-SSL
 </div>
 
-Table is the most basic form of data. There is no spatial and temporal connection between features and samples for this type of data. A large part of statistical machine learning algorithms are designed for table data. It is widely used in applications such as stock analysis and network anomaly detection. For table data, the preprocessing module in sklearn has already provided rich enough processing methods, such as 'StandardScaler', 'MinMaxScaler', 'MaxAbsScaler' etc. LAMDA-SSL supplements it on the basis. The TableMixin module provides the default processing method for table data, using 'StandardScaler' as the default pre-transformation method. After pre-transformation, data augmentation is performed according to requirements. If it is applied to deep learning, the data will be converted into torch.Tensor form. In order to perform data augmentation on table data, LAMDA-SSL implements the augmentation method 'Noise' which apply a noise disturbance that obeys normal distribution is to the standardized data and the disturbance amplitude is controlled by the standard deviation of the normal distribution.
+Table is the most basic form of data. There is no spatial and temporal connection between features and samples for this type of data. A large part of statistical machine learning algorithms are designed for table data. It is widely used in applications such as stock analysis and network anomaly detection. For table data, the preprocessing module in sklearn has already provided rich enough processing methods, such as 'StandardScaler', 'MinMaxScaler', 'MaxAbsScaler' etc. LAMDA-SSL supplements it on the basis. The TabularMixin module provides the default processing method for table data, using 'StandardScaler' as the default pre-transformation method. After pre-transformation, data augmentation is performed according to requirements. If it is applied to deep learning, the data will be converted into torch.Tensor form. In order to perform data augmentation on table data, LAMDA-SSL implements the augmentation method 'Noise' which apply a noise disturbance that obeys normal distribution is to the standardized data and the disturbance amplitude is controlled by the standard deviation of the normal distribution.
 
 Image data is one of the most commonly used data types in the field of deep learning. It is used in the learning process in the form of tensors and there are spatial relationships among its features. This data type is widely used in medical imaging, automatic driving, security recognition and other fields. For image data, TorchVision has provided processing some methods for image data, such as cropping, rotation, sharpening, etc. LAMDA-SSL supplements it on the basis. The VisionMixin module provides a default processing method for image data. During the pre-transformation process, the samples stored in other forms are converted into images. After the pre-transformation, the samples are augmented according to requirements. Finally the images are converted into the types can be processed by models. For data augmentation of image data, LAMDA-SSL provides a variety of weak augmentation methods such as 'RandomCrop' and 'RandomHorizontalFlip' and strong augmentation methods such as 'RandAugment' and 'Cutout'.
 
@@ -151,7 +151,7 @@ Table 1: Data processing and data augmentation in LAMDA-SSL
 
 |Types of data|Data Processing|Data Augmentation|
 |:-:|:-:|:-:|
-|Table|StandardScaler<br>MinMaxScaler<br>MaxAbsScaler|Noise|
+|Tabular|StandardScaler<br>MinMaxScaler<br>MaxAbsScaler|Noise|
 |Vision|Resize<br>Normlization|RandomCrop<br>RandomHorizontalFlip<br>AutoContrast<br>Brightness<br>Color<br>Contrast<br>Rotate<br>Sharpness<br>Equalize<br>Solarize<br>Posterize<br>Invert<br>ShearX<br>ShearY<br>TranslateX<br>TranslateY<br>RandAugment<br>Cutout<br>CutoutAbs<br>Mixup|
 |Text|Tokenizer<br>Truncate<br>PadSquence<br>AdjustLength<br>Vocab<br>Vectors<br>Glove<br>FastText<br>CharNGram|RandomDeletion<br>RandomSwap<br>TFIDFReplacement|
 |Graph|GCNNorm<br> GDC<br> SVDFeatureReduction<br> NormalizeFeatures|DropNodes<br>DropEdges|
@@ -325,7 +325,7 @@ strong_augmented_X=strong_augmentation.fit_transform(X)
 Taking the SSGMM algorithm as an example, firstly import the BreastCancer data set. The parameter 'labeled_size' indicates the number(int) or ratio(float) of the labeled data set. The parameter 'stratified' and 'shuffle' respectively indicate whether the data set needs to be divided according to the class distribution and whether the data needs to be shuffled.
 
 ```python
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 dataset=BreastCancer(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0)
 ```
 
@@ -384,7 +384,7 @@ performance=AUC(multi_class='ovo').scoring(test_y,pred_y,score_y)
 Taking the TSVM algorithm as an example, firstly import the BreastCancer data set. The parameter 'labeled_size' indicates the number(int) or ratio(float) of the labeled data set. The parameter 'stratified' and 'shuffle' respectively indicate whether the data set needs to be divided according to the class distribution and whether the data needs to be shuffled.
 
 ```python
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 dataset=BreastCancer(labeled_size=0.1, stratified=True,
 shuffle=True)
 labeled_X=dataset.labeled_X
@@ -443,7 +443,7 @@ score=Accuracy().scoring(test_y,pred_y)
 Taking the Co-Training algorithm as an example, firstly import the BreastCancer data set. The parameter 'labeled_size' indicates the number(int) or ratio(float) of the labeled data set. The parameter 'stratified' and 'shuffle' respectively indicate whether the data set needs to be divided according to the class distribution and whether the data needs to be shuffled.
 
 ```python
-from LAMDA_SSL.Dataset.Table.BreastCancer import BreastCancer
+from LAMDA_SSL.Dataset.Tabular.BreastCancer import BreastCancer
 dataset=BreastCancer(labeled_size=0.1, stratified=True,
 shuffle=True)
 labeled_X=dataset.labeled_X
@@ -511,7 +511,7 @@ score=Accuracy().scoring(test_y,pred_y)
 Taking the CoReg algorithm as an example, firstly import the Boston data set. The parameter 'labeled_size' indicates the number(int) or ratio(float) of the labeled data set. The parameter 'stratified' and 'shuffle' respectively indicate whether the data set needs to be divided according to the class distribution and whether the data needs to be shuffled.
 
 ```python
-from LAMDA_SSL.Dataset.Table.Boston import Boston
+from LAMDA_SSL.Dataset.Tabular.Boston import Boston
 dataset=Boston(labeled_size=0.3,test_size=0.1,stratified=False,shuffle=True,random_state=0,default_transforms=True)
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -563,7 +563,7 @@ performance = Mean_Squared_Error().scoring(test_y, pred_y)
 Take Constrained Seed k Means and Constrained k Means algorithms as examples. Firstly import the Wine dataset.
 
 ```python
-from LAMDA_SSL.Dataset.Table.Wine import Wine
+from LAMDA_SSL.Dataset.Tabular.Wine import Wine
 dataset = Wine(labeled_size=0.2, stratified=True, shuffle=True,random_state=0,default_transforms=True)
 labeled_X=dataset.labeled_X
 labeled_y=dataset.labeled_y
@@ -978,7 +978,7 @@ score=Accuracy().scoring(test_y,pred_y)
 Take PiModelReg algorithm as an example. Firstly import the Boston dataset.
 
 ```python
-from LAMDA_SSL.Dataset.Table.Boston import Boston
+from LAMDA_SSL.Dataset.Tabular.Boston import Boston
 dataset=Boston(test_size=0.3,labeled_size=0.1,stratified=False,shuffle=True,random_state=0,default_transforms=True)
 ```
 
@@ -4015,9 +4015,9 @@ similarity_kernel = 'rbf',
 
 ## LAMDA_SSL.Augmentation
 
-### LAMDA_SSL.Augmentation.Table
+### LAMDA_SSL.Augmentation.Tabular
 
-#### LAMDA_SSL.Augmentation.Table.Noise
+#### LAMDA_SSL.Augmentation.Tabular.Noise
 > CLASS LAMDA_SSL.Transform.Noise.Noise(noise_level)
 > - Parameter:
 >> - noise_level: the level of noise.
@@ -4249,8 +4249,8 @@ similarity_kernel = 'rbf',
 >> - last_epoch: The index of last epoch.
 >> - verbose: If 'True', prints a message to stdout for each update.
 
-### LAMDA_SSL.Base.TableMixin
-> CLASS LAMDA_SSL.Base.TableMixin.TableMixin():
+### LAMDA_SSL.Base.TabularMixin
+> CLASS LAMDA_SSL.Base.TabularMixin.TabularMixin():
 > - init_transform: Initialize the default data transformation method.
 
 ### LAMDA_SSL.Base.VisionMixin
@@ -5010,22 +5010,22 @@ labels=None,
 
 ## LAMDA_SSL.Transform
 
-### LAMDA_SSL.Transform.Table
+### LAMDA_SSL.Transform.Tabular
 
-#### LAMDA_SSL.Transform.Table.MinMaxScaler
-> CLASS LAMDA_SSL.Transform.Table.MinMaxScaler.MinMaxScaler(min_val=None,max_val=None)
+#### LAMDA_SSL.Transform.Tabular.MinMaxScaler
+> CLASS LAMDA_SSL.Transform.Tabular.MinMaxScaler.MinMaxScaler(min_val=None,max_val=None)
 > - Parameter:
 >> - min_val: The minimum value.
 >> - max_val: The maximum value.
 
-#### LAMDA_SSL.Transform.Table.StandardScaler
-> CLASS LAMDA_SSL.Transform.Table.StandardScaler.StandardScaler(mean=None,std=None)
+#### LAMDA_SSL.Transform.Tabular.StandardScaler
+> CLASS LAMDA_SSL.Transform.Tabular.StandardScaler.StandardScaler(mean=None,std=None)
 > - Parameter:
 >> - mean: The value of mean.
 >> - std: The value of standard deviation.
 
-#### LAMDA_SSL.Transform.Table.MaxAbsScaler
-> CLASS LAMDA_SSL.Transform.Table.MaxAbsScaler.MaxAbsScaler(max_abs=None)
+#### LAMDA_SSL.Transform.Tabular.MaxAbsScaler
+> CLASS LAMDA_SSL.Transform.Tabular.MaxAbsScaler.MaxAbsScaler(max_abs=None)
 > - Parameter:
 >> - max_abs: The max abs value.
 
