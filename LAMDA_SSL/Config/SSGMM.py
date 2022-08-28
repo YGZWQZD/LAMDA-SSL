@@ -5,11 +5,10 @@ from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 
-tolerance=1e-8
+tolerance=1e-5
 max_iterations=300
 num_classes=None
 random_state=None
-enlarge_factor=1e5
 evaluation={
     'accuracy':Accuracy(),
     'precision':Precision(average='macro'),

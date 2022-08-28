@@ -1,5 +1,5 @@
 from LAMDA_SSL.Dataset.SemiDataset import SemiDataset
-from LAMDA_SSL.Base.TabularMixin import TableMixin
+from LAMDA_SSL.Base.TabularMixin import TabularMixin
 from LAMDA_SSL.Split.DataSplit import DataSplit
 from LAMDA_SSL.Dataset.TrainDataset import TrainDataset
 from LAMDA_SSL.Dataset.LabeledDataset import LabeledDataset
@@ -7,7 +7,7 @@ from LAMDA_SSL.Dataset.UnlabeledDataset import UnlabeledDataset
 from sklearn import datasets
 import numpy as np
 
-class Boston(SemiDataset,TableMixin):
+class Boston(SemiDataset,TabularMixin):
     def __init__(
         self,
         default_transforms=False,
@@ -64,7 +64,7 @@ class Boston(SemiDataset,TableMixin):
                              unlabeled_transform=unlabeled_transform,test_transform=test_transform,
                              valid_transform=valid_transform,labeled_size=labeled_size,valid_size=valid_size,test_size=test_size,
                              stratified=stratified,shuffle=shuffle,random_state=random_state)
-        TableMixin.__init__(self)
+        TabularMixin.__init__(self)
         if self.default_transforms:
             self.init_default_transforms()
         self.init_dataset()

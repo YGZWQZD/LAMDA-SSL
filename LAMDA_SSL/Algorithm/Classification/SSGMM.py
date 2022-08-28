@@ -5,10 +5,10 @@ import numpy as np
 from torch.utils.data.dataset import Dataset
 from LAMDA_SSL.utils import class_status
 import LAMDA_SSL.Config.SSGMM as config
-
+from scipy import stats
 class SSGMM(InductiveEstimator,ClassifierMixin):
     def __init__(self,tolerance=config.tolerance, max_iterations=config.max_iterations, num_classes=config.num_classes,
-                 enlarge_factor=config.enlarge_factor,random_state=config.random_state,evaluation=config.evaluation,verbose=config.verbose,file=config.file):
+                 random_state=config.random_state,evaluation=config.evaluation,verbose=config.verbose,file=config.file):
         # >> Parameter
         # >> - num_classes: The number of classes.
         # >> - tolerance: Tolerance for iterative convergence.
@@ -17,7 +17,6 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         self.num_classes=num_classes
         self.tolerance=tolerance
         self.max_iterations=max_iterations
-        self.enlarge_factor=enlarge_factor
         self.random_state=random_state
         self.evaluation = evaluation
         self.verbose = verbose
@@ -27,14 +26,7 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         self._estimator_type = ClassifierMixin._estimator_type
 
     def normfun(self,x, mu, sigma):
-
-        k = len(x)
-
-        dis = np.expand_dims(x - mu, axis=0)
-
-        pdf = np.exp(-0.5 * dis.dot(np.linalg.inv(sigma)).dot(dis.T))*self.enlarge_factor / np.sqrt(
-            ((2 * np.pi) ** k) * np.linalg.det(sigma))*self.enlarge_factor
-
+        pdf=stats.multivariate_normal(mu,sigma,allow_singular=True).pdf(x)
         return pdf
 
     def fit(self,X,y,unlabeled_X):
@@ -73,8 +65,10 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
                 for i in range(self.num_classes):
                     _sum+=self.alpha[i]*self.normfun(unlabeled_X[j],self.mu[i],self.sigma[i])
                 for i in range(self.num_classes):
-                    self.gamma[j][i]=self.alpha[i]*self.normfun(unlabeled_X[j],self.mu[i],self.sigma[i])/_sum
-
+                    if _sum==0:
+                        self.gamma[j][i]=self.alpha[i]/self.num_classes
+                    else:
+                        self.gamma[j][i]=self.alpha[i]*self.normfun(unlabeled_X[j],self.mu[i],self.sigma[i])/_sum
             # M step
             for i in range(self.num_classes):
                 _sum_mu=0
@@ -117,7 +111,10 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
             for j in range(self.num_classes):
                 _sum+=self.normfun(X[i],self.mu[j],self.sigma[j])
             for j in range(self.num_classes):
-                y_proba[i][j]=self.normfun(X[i],self.mu[j],self.sigma[j])/_sum
+                if _sum ==0:
+                    y_proba[i][j]=1/self.num_classes
+                else:
+                    y_proba[i][j]=self.normfun(X[i],self.mu[j],self.sigma[j])/_sum
         return y_proba
 
     def predict(self,X):
@@ -126,13 +123,11 @@ class SSGMM(InductiveEstimator,ClassifierMixin):
         return y_pred
 
     def evaluate(self,X,y=None):
-
         if isinstance(X,Dataset) and y is None:
             y=getattr(X,'y')
 
         self.y_score = self.predict_proba(X)
         self.y_pred=self.predict(X)
-
 
         if self.evaluation is None:
             return None

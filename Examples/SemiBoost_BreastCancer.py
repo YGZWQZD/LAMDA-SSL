@@ -28,7 +28,7 @@ labeled_X=pre_transform.transform(labeled_X)
 unlabeled_X=pre_transform.transform(unlabeled_X)
 test_X=pre_transform.transform(test_X)
 
-SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
+SVM=SVC(C=1.0,kernel='rbf',probability=True,gamma='auto')
 
 evaluation={
     'accuracy':Accuracy(),
@@ -39,7 +39,7 @@ evaluation={
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
 
-model=SemiBoost(sample_percent=0.01,gamma=0.001,base_estimator=SVM,evaluation=evaluation,file=file,verbose=True)
+model=SemiBoost(gamma=10,base_estimator=SVM,evaluation=evaluation,file=file,verbose=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 

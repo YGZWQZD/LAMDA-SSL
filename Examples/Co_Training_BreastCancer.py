@@ -34,7 +34,6 @@ split_unlabeled_X=ViewSplit(unlabeled_X,shuffle=False)
 split_test_X=ViewSplit(test_X,shuffle=False)
 
 # Base estimator
-SVM=SVC(C=1.0,kernel='linear',probability=True,gamma='auto')
 
 evaluation={
     'accuracy':Accuracy(),
@@ -45,7 +44,7 @@ evaluation={
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
 
-model=Co_Training(base_estimator=SVM,s=(len(labeled_X)+len(unlabeled_X))//10,evaluation=evaluation,verbose=True,file=file)
+model=Co_Training(evaluation=evaluation,verbose=True,file=file)
 
 model.fit(X=split_labeled_X,y=labeled_y,unlabeled_X=split_unlabeled_X)
 

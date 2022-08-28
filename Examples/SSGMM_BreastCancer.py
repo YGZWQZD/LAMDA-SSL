@@ -24,6 +24,7 @@ pre_transform=dataset.pre_transform
 pre_transform.fit(np.vstack([labeled_X, unlabeled_X]))
 
 labeled_X=pre_transform.transform(labeled_X)
+
 unlabeled_X=pre_transform.transform(unlabeled_X)
 test_X=pre_transform.transform(test_X)
 
@@ -36,7 +37,7 @@ evaluation={
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
 
-model=SSGMM(tolerance=0.000001,evaluation=evaluation,file=file,verbose=True)
+model=SSGMM(evaluation=evaluation,file=file,verbose=True)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 
