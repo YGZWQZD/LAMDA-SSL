@@ -32,8 +32,6 @@ split_labeled_X=ViewSplit(labeled_X,shuffle=False)
 split_unlabeled_X=ViewSplit(unlabeled_X,shuffle=False)
 split_test_X=ViewSplit(test_X,shuffle=False)
 
-# Base estimator
-
 evaluation={
     'accuracy':Accuracy(),
     'precision':Precision(average='macro'),
