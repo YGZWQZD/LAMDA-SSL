@@ -140,15 +140,15 @@ We have evaluated the performance of LAMDA-SSL for semi-supervised classificatio
 
 | Method | Accuracy(%) | F1 Score |
 | :-: | :-: | :-: |
-| SSGMM | 94.74 | 94.43 |
-| TSVM | 92.40 | 91.62 |
+| SSGMM | 87.13 | 86.85 |
+| TSVM | 95.91 | 95.56 |
 | LapSVM | 96.49| 96.20 |
-| Label Propagation| 93.57| 92.85 |
+| Label Propagation| 95.32| 94.86|
 | Label Spreading | 95.32 | 94.90 |
-| Co-Training| 97.08| 99.07 |
+| Co-Training| 94.74| 94.20 |
 | Tri-Training| 97.66| 97.47 |
 | Assemble | 94.15| 93.75 |
-| SemiBoost | 97.08 | 96.85 |
+| SemiBoost | 96.49 | 96.20 |
 
 </div>
 
@@ -241,7 +241,7 @@ Feel free to contribute in any way you like, we're always open to new ideas and 
 - Learn more about how to customize modules of LAMDA-SSL from the [Usage](https://ygzwqzd.github.io/LAMDA-SSL/#/README?id=usage) section of the [documentation](https://ygzwqzd.github.io/LAMDA-SSL/#/).
 
 # The Team
- LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)12@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are [Lin-Han Jia](https://www.lamda.nju.edu.cn/jialh/), [Lan-Zhe Guo](https://www.lamda.nju.edu.cn/guolz/), [Zhi Zhou](https://www.lamda.nju.edu.cn/zhouz/) and [Yu-Feng Li](https://www.lamda.nju.edu.cn/liyf/).
+ LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)12@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are [Lin-Han Jia](https://github.com/YGZWQZD), [Lan-Zhe Guo](https://www.lamda.nju.edu.cn/guolz/), [Zhi Zhou](https://www.lamda.nju.edu.cn/zhouz/) and [Yu-Feng Li](https://www.lamda.nju.edu.cn/liyf/).
 
 # Contact
 If you have any questions, please contact us: Lin-Han Jia[jialh2118@gmail.com].

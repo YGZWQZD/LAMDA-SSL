@@ -8,7 +8,6 @@ from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Split.ViewSplit import ViewSplit
 import numpy as np
-from sklearn.svm import SVC
 
 file = open("../Result/Co_Training_BreastCancer.txt", "w")
 
