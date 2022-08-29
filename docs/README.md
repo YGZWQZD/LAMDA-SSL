@@ -4,7 +4,7 @@ In order to promote the research and application of semi-supervised learning alg
 
 ##  Background
 
-In recent years, the research on machine learning algorithms has achieved fruitful results, but there are still many difficulties in the actual implementation because it is often difficult to obtain sufficient and high quality data resources in real scenarios. The scarcity of labels is particularly serious. Especially in the fields of military industry, finance, medical care etc, the acquisition of labels is limited by high confidentiality, cost and risk, which seriously degrades the performance of machine learning algorithms that rely on a large amount of labeled data.
+In recent years, the research on machine learning algorithms has achieved fruitful results, but there are still many difficulties in real-world scenarios because it is often difficult to obtain sufficient and high quality data resources. The scarcity of labels is particularly serious. Especially in the fields of military industry, finance, medical care etc, the acquisition of labels is limited by high confidentiality, cost and risk, which seriously degrades the performance of machine learning algorithms that rely on a large amount of labeled data.
 
 <div align=center>
 <img width=1000px src="./Imgs/Scarcity_of_labels.png" >
