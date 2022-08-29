@@ -9,7 +9,7 @@ In recent years, the research on machine learning algorithms has achieved fruitf
 <div align=center>
 <img width=1000px src="./Imgs/Scarcity_of_labels.png" >
 <br>
-Figure 1: Labeled Data is Often Lacking in Practical Machine Learning Applications
+Figure 1: Labeled Data is Often Lacking in Real-world Machine Learning Applications
 </div>
 
 Supervised learning and unsupervised learning are two classical machine learning paradigms. The success of supervised learning relies on a large amount of high-quality labeled data. When labeled data is limited, the performance of supervised learning models often falls short of expectations. This makes it naturally incompatible with application scenarios where labels are difficult to obtain. In these scenarios, labeling large amounts of data artificially will not only cost a lot of manpower, but also take a long time. Unsupervised learning completely discards the information from the labels so it cannot establish the connection between the feature space and the target space. It is difficult to be applied to tasks such as classification and regression. In order to deal with the scarcity of labels in real application scenarios, semi-supervised learning which uses a small amount of labeled data and a large amount of unlabeled data for learning emerges and breaks the existing learning paradigm by establishing the connection between the feature space and the target space through prior knowledge and assumptions.
