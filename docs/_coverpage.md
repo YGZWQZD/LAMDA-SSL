@@ -4,7 +4,7 @@
 
 # LAMDA-SSL <small>1.0</small>
 
-> An useful and efficient toolbox for semi-supervised learning.
+> An powerful and easy-to-use toolkit for semi-supervised learning.
 
 - 
 - 
