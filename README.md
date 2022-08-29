@@ -12,7 +12,7 @@
 [![Downloads](https://pepy.tech/badge/lamda-ssl)](https://pepy.tech/project/lamda-ssl)
 ![](https://anaconda.org/ygzwqzd/lamda-ssl/badges/platforms.svg)
 
-**[Documentation](https://ygzwqzd.github.io/LAMDA-SSL)** | **[Paper](https://arxiv.org/pdf/2208.04610.pdf)** |  **[Examples](https://github.com/ygzwqzd/LAMDA-SSL/tree/master/Examples)**
+**[Documentation](https://ygzwqzd.github.io/LAMDA-SSL)** | **[Paper](https://arxiv.org/pdf/2208.04610.pdf)** |  **[Examples](https://github.com/ygzwqzd/LAMDA-SSL/tree/master/Examples)** | **[Slide](https://maipdf.com/doc/a15855342874@pdf)**
 
 </div>
 
