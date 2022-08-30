@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn import neighbors
 import copy
-from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.metrics.pairwise import rbf_kernel,linear_kernel
 from LAMDA_SSL.Base.InductiveEstimator import InductiveEstimator
 from sklearn.base import ClassifierMixin
 
@@ -67,6 +67,8 @@ class SemiBoost(InductiveEstimator,ClassifierMixin):
                                                 include_self=True,
                                                 n_jobs=self.n_jobs)
             self.S = np.asarray(self.S.todense())
+        elif self.similarity_kernel == 'linear':
+            self.S = linear_kernel(X_all, X_all)
         elif self.similarity_kernel == 'rbf':
             self.S=rbf_kernel(X_all,X_all,self.gamma)
         elif callable(self.similarity_kernel):
