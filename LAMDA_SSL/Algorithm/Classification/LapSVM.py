@@ -74,20 +74,21 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
         elif self.distance_function =='rbf':
             W=rbf_kernel(self.X,self.X,self.gamma_d)
 
-        elif self.distance_function is not None:
+        elif callable(self.distance_function):
             if self.gamma_d is not None:
                 W=self.distance_function(self.X,self.X,self.gamma_d)
             else:
                 W = self.distance_function(self.X, self.X)
         else:
             W=rbf_kernel(self.X,self.X,self.gamma_d)
+
         L = np.diag(np.array(W.sum(0))) - W
 
         if self.kernel_function == 'rbf':
             K = rbf_kernel(self.X,self.X,self.gamma_k)
         elif self.kernel_function == 'linear':
             K=linear_kernel(self.X,self.X)
-        elif self.kernel_function is not None:
+        elif callable(self.kernel_function):
             if self.gamma_k is not None:
                 K = self.kernel_function(self.X,self.X,self.gamma_k)
             else:
@@ -129,7 +130,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
             K = rbf_kernel(self.X,X,self.gamma_k)
         elif self.kernel_function == 'linear':
             K= linear_kernel(self.X,X)
-        elif self.kernel_function is not None:
+        elif callable(self.kernel_function):
             if self.gamma_k is not None:
                 K = self.kernel_function(self.X,X,self.gamma_k)
             else:
@@ -151,7 +152,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
             K = rbf_kernel(self.X,X,self.gamma_k)
         elif self.kernel_function == 'linear':
             K = linear_kernel(self.X, X)
-        elif self.kernel_function is not None:
+        elif callable(self.kernel_function):
             if self.gamma_k is not None:
                 K = self.kernel_function(self.X,X,self.gamma_k)
             else:
