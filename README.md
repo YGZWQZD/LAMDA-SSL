@@ -36,7 +36,7 @@ For deep SSL, algorithms in LAMDA-SSL can be used for classification and regress
 </div>
 
 
-# Advantages
+# Superiority
 
 > - LAMDA-SSL contains 30 SSL algorithms.
 > - LAMDA-SSL can handle 4 types of data and has rich data processing functions.
