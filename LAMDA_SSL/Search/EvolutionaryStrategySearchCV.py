@@ -186,18 +186,17 @@ class EvolutionaryStrategySearchCV(BaseSearchCV):
         dist = rng.choice(param_distributions)
         # Always sort the keys of a dictionary, for reproducibility
         items = sorted(dist.items())
-        self.best_params_=params = dict()
+        self.best_params_ = dict()
         for k, v in items:
             if hasattr(v, "rvs"):
-                params[k] = v.rvs(random_state=rng)
+                self.best_params_[k] = v.rvs(random_state=rng)
             else:
-                params[k] = v[rng.randint(len(v))]
+                self.best_params_[k] = v[rng.randint(len(v))]
+        all_candidate_params = []
+        all_out = []
+        all_more_results = defaultdict(list)
         for _ in range(self.n_iter):
             with parallel:
-                all_candidate_params = []
-                all_out = []
-                all_more_results = defaultdict(list)
-
                 def evaluate_candidates(candidate_params, cv=None, more_results=None):
                     cv = cv or cv_orig
                     candidate_params = list(candidate_params)
@@ -261,58 +260,53 @@ class EvolutionaryStrategySearchCV(BaseSearchCV):
                     results = self._format_results(
                         all_candidate_params, n_splits, all_out, all_more_results
                     )
-
+                    print(all_candidate_params)
+                    print(all_out)
+                    print(results)
                     return results
 
                 self._run_search(evaluate_candidates)
 
-                # multimetric is determined here because in the case of a callable
-                # self.scoring the return type is only known after calling
-                first_test_score = all_out[0]["test_scores"]
-                self.multimetric_ = isinstance(first_test_score, dict)
+            first_test_score = all_out[0]["test_scores"]
+            self.multimetric_ = isinstance(first_test_score, dict)
 
-                # check refit_metric now for a callabe scorer that is multimetric
-                if callable(self.scoring) and self.multimetric_:
-                    self._check_refit_for_multimetric(first_test_score)
-                    refit_metric = self.refit
+            if callable(self.scoring) and self.multimetric_:
+                self._check_refit_for_multimetric(first_test_score)
+                refit_metric = self.refit
 
-            # For multi-metric evaluation, store the best_index_, best_params_ and
-            # best_score_ iff refit is one of the scorer names
-            # In single metric evaluation, refit_metric is "score"
-            if self.refit or not self.multimetric_:
-                self.best_index_ = self._select_best_index(
-                    self.refit, refit_metric, results
-                )
-                if not callable(self.refit):
-                    # With a non-custom callable, we can select the best score
-                    # based on the best index
-                    self.best_score_ = results[f"mean_test_{refit_metric}"][
-                        self.best_index_
-                    ]
-                self.best_params_ = results["params"][self.best_index_]
 
-            if self.refit:
-                # we clone again after setting params in case some
-                # of the params are estimators as well.
-                self.best_estimator_ = clone(
-                    clone(base_estimator).set_params(**self.best_params_)
-                )
-                refit_start_time = time.time()
-                if y is not None:
-                    self.best_estimator_.fit(X, y, **fit_params)
-                else:
-                    self.best_estimator_.fit(X, **fit_params)
-                refit_end_time = time.time()
-                self.refit_time_ = refit_end_time - refit_start_time
+            self.best_index_ = self._select_best_index(
+                self.refit, refit_metric, results
+            )
+            # With a non-custom callable, we can select the best score
+            # based on the best index
+            self.best_score_ = results[f"mean_test_{refit_metric}"][
+                self.best_index_
+            ]
+            self.best_params_ = results["params"][self.best_index_]
 
-                if hasattr(self.best_estimator_, "feature_names_in_"):
-                    self.feature_names_in_ = self.best_estimator_.feature_names_in_
+        if self.refit:
+            # we clone again after setting params in case some
+            # of the params are estimators as well.
+            self.best_estimator_ = clone(
+                clone(base_estimator).set_params(**self.best_params_)
+            )
+            refit_start_time = time.time()
+            if y is not None:
+                self.best_estimator_.fit(X, y, **fit_params)
+            else:
+                self.best_estimator_.fit(X, **fit_params)
+            refit_end_time = time.time()
+            self.refit_time_ = refit_end_time - refit_start_time
 
-            # Store the only scorer not as a dict for single metric evaluation
-            self.scorer_ = scorers
+            if hasattr(self.best_estimator_, "feature_names_in_"):
+                self.feature_names_in_ = self.best_estimator_.feature_names_in_
 
-            self.cv_results_ = results
-            self.n_splits_ = n_splits
+        # Store the only scorer not as a dict for single metric evaluation
+        self.scorer_ = scorers
+
+        self.cv_results_ = results
+        self.n_splits_ = n_splits
 
         return self
 

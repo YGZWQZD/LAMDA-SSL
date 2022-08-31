@@ -1,8 +1,5 @@
-import copy
-import random
-
 from sklearn.model_selection._search import BaseSearchCV,ParameterGrid
-from collections.abc import Mapping, Iterable
+from collections.abc import Mapping
 from sklearn.utils import check_random_state
 import numpy as np
 import time
@@ -18,79 +15,37 @@ from joblib import Parallel
 from itertools import product
 from sklearn.base import  is_classifier, clone
 from sklearn.utils.fixes import delayed
+from sklearn.model_selection._search import ParameterSampler
+from sklearn.gaussian_process import GaussianProcessRegressor
+from scipy.stats import norm
 
-class Evolve:
-    # 1+\lambda
-    def __init__(self, param_distributions, *, random_state=None,lam=5,ancestors=None):
-        if not isinstance(param_distributions, (Mapping, Iterable)):
-            raise TypeError(
-                "Parameter distribution is not a dict or a list ({!r})".format(
-                    param_distributions
-                )
-            )
 
-        if isinstance(param_distributions, Mapping):
-            # wrap dictionary in a singleton list to support either dict
-            # or list of dicts
-            param_distributions = [param_distributions]
+def PI(x,gp,y_max=1,xi=0.01,kappa=None):
+    mean,std=gp.predict(x,return_std=True)
+    z=(mean-y_max-xi)/std
+    return norm.cdf(z)
 
-        for dist in param_distributions:
-            if not isinstance(dist, dict):
-                raise TypeError(
-                    "Parameter distribution is not a dict ({!r})".format(dist)
-                )
-            for key in dist:
-                if not isinstance(dist[key], Iterable) and not hasattr(
-                    dist[key], "rvs"
-                ):
-                    raise TypeError(
-                        "Parameter value is not iterable "
-                        "or distribution (key={!r}, value={!r})".format(key, dist[key])
-                    )
-        self.random_state = random_state
-        self.param_distributions = param_distributions
-        self.lam=lam
-        self.ancestors=ancestors
+def EI(x,gp,y_max=1,xi=0.01,kappa=None):
+    mean,std=gp.predict(x,return_std=True)
+    a=(mean-y_max-xi)
+    z=a/std
+    return a*norm.cdf(z)+std*norm.pdf(z)
 
-    def _is_all_lists(self):
-        return all(
-            all(not hasattr(v, "rvs") for v in dist.values())
-            for dist in self.param_distributions
-        )
+def UCB(x,gp,y_max=None,xi=None,kappa=0.1):
+    mean,std=gp.predict(x,return_std=True)
+    return mean+kappa*std
 
-    def __iter__(self):
-        rng = check_random_state(self.random_state)
-
-        # if all distributions are given as lists, we want to sample without
-        # replacement
-        for _ in range(self.lam):
-            dist = rng.choice(self.param_distributions)
-            # Always sort the keys of a dictionary, for reproducibility
-            items = sorted(dist.items())
-            params = copy.copy(self.ancestors)
-            Mutation_key,Mutation_val=random.choice(items)
-            if hasattr(Mutation_val, "rvs"):
-                params[Mutation_key] = Mutation_val.rvs(random_state=rng)
-            else:
-                params[Mutation_key] = Mutation_val[rng.randint(len(Mutation_val))]
-            yield params
-
-    def __len__(self):
-        """Number of points that will be sampled."""
-        if self._is_all_lists():
-            grid_size = len(ParameterGrid(self.param_distributions))
-            return min(self.lam, grid_size)
-        else:
-            return self.lam
-
-class EvolutionaryStrategySearchCV(BaseSearchCV):
+class BayesSearchCV(BaseSearchCV):
     def __init__(
         self,
         estimator,
         param_distributions,
         n_iter=10,
         random_state=None,
+        warp_up=2,
         lam=3,
+        y_max=1, xi=0.01, kappa=None,
+        acquisition_func='PI',
         *,
         scoring=None,
         n_jobs=None,
@@ -113,38 +68,25 @@ class EvolutionaryStrategySearchCV(BaseSearchCV):
             return_train_score=return_train_score,
         )
         self.lam=lam
+        self.warm_up=warp_up
         self.param_distributions = param_distributions
         self.n_iter = n_iter
         self.random_state = random_state
+        self.acquisition_func=acquisition_func
+        self.y_max=y_max
+        self.xi=xi
+        self.kappa=kappa
+
+    def _run_search(self, evaluate_candidates):
+        """Search n_iter candidates from param_distributions"""
+        evaluate_candidates(
+            ParameterSampler(
+                self.param_distributions, self.warm_up, random_state=self.random_state
+            )
+        )
 
     def fit(self, X, y=None, *, groups=None, **fit_params):
-        """Run fit with all sets of parameters.
-
-        Parameters
-        ----------
-
-        X : array-like of shape (n_samples, n_features)
-            Training vector, where `n_samples` is the number of samples and
-            `n_features` is the number of features.
-
-        y : array-like of shape (n_samples, n_output) \
-            or (n_samples,), default=None
-            Target relative to X for classification or regression;
-            None for unsupervised learning.
-
-        groups : array-like of shape (n_samples,), default=None
-            Group labels for the samples used while splitting the dataset into
-            train/test set. Only used in conjunction with a "Group" :term:`cv`
-            instance (e.g., :class:`~sklearn.model_selection.GroupKFold`).
-
-        **fit_params : dict of str -> object
-            Parameters passed to the ``fit`` method of the estimator.
-
-        Returns
-        -------
-        self : object
-            Instance of fitted estimator.
-        """
+        self.GP = GaussianProcessRegressor()
         estimator = self.estimator
         refit_metric = "score"
 
@@ -177,148 +119,159 @@ class EvolutionaryStrategySearchCV(BaseSearchCV):
             error_score=self.error_score,
             verbose=self.verbose,
         )
-        results = {}
-        rng = check_random_state(self.random_state)
-        if isinstance(self.param_distributions, Mapping):
-            param_distributions = [self.param_distributions]
+        if self.acquisition_func is 'PI':
+            self.acquisition_func=PI
+        elif self.acquisition_func is 'EI':
+            self.acquisition_func=EI
+        elif self.acquisition_func is 'UCB':
+            self.acquisition_func=UCB
+        elif callable(self.acquisition_func):
+            self.acquisition_func=self.acquisition_func
         else:
-            param_distributions=self.param_distributions
-        dist = rng.choice(param_distributions)
-        # Always sort the keys of a dictionary, for reproducibility
-        items = sorted(dist.items())
-        self.best_params_=params = dict()
-        for k, v in items:
-            if hasattr(v, "rvs"):
-                params[k] = v.rvs(random_state=rng)
-            else:
-                params[k] = v[rng.randint(len(v))]
+            self.acquisition_func = PI
+        results = {}
+        all_candidate_params = []
+        all_out = []
+        all_more_results = defaultdict(list)
+
+        def evaluate_candidates(candidate_params, cv=None, more_results=None):
+            cv = cv or cv_orig
+            candidate_params = list(candidate_params)
+            n_candidates = len(candidate_params)
+
+            if self.verbose > 0:
+                print(
+                    "Fitting {0} folds for each of {1} candidates,"
+                    " totalling {2} fits".format(
+                        n_splits, n_candidates, n_candidates * n_splits
+                    )
+                )
+
+            out = parallel(
+                delayed(_fit_and_score)(
+                    clone(base_estimator),
+                    X,
+                    y,
+                    train=train,
+                    test=test,
+                    parameters=parameters,
+                    split_progress=(split_idx, n_splits),
+                    candidate_progress=(cand_idx, n_candidates),
+                    **fit_and_score_kwargs,
+                )
+                for (cand_idx, parameters), (split_idx, (train, test)) in product(
+                    enumerate(candidate_params), enumerate(cv.split(X, y, groups))
+                )
+            )
+
+            if len(out) < 1:
+                raise ValueError(
+                    "No fits were performed. "
+                    "Was the CV iterator empty? "
+                    "Were there no candidates?"
+                )
+            elif len(out) != n_candidates * n_splits:
+                raise ValueError(
+                    "cv.split and cv.get_n_splits returned "
+                    "inconsistent results. Expected {} "
+                    "splits, got {}".format(n_splits, len(out) // n_candidates)
+                )
+
+            _warn_about_fit_failures(out, self.error_score)
+
+            # For callable self.scoring, the return type is only know after
+            # calling. If the return type is a dictionary, the error scores
+            # can now be inserted with the correct key. The type checking
+            # of out will be done in `_insert_error_scores`.
+            if callable(self.scoring):
+                _insert_error_scores(out, self.error_score)
+
+            all_candidate_params.extend(candidate_params)
+            all_out.extend(out)
+
+            if more_results is not None:
+                for key, value in more_results.items():
+                    all_more_results[key].extend(value)
+
+            nonlocal results
+            results = self._format_results(
+                all_candidate_params, n_splits, all_out, all_more_results
+            )
+            return results
+
+        with parallel:
+            self._run_search(evaluate_candidates)
+
+        first_test_score = all_out[0]["test_scores"]
+        self.multimetric_ = isinstance(first_test_score, dict)
+
+        if callable(self.scoring) and self.multimetric_:
+            self._check_refit_for_multimetric(first_test_score)
+            refit_metric = self.refit
+        params = results['params']
+        score = results[f"mean_test_{refit_metric}"]
+        _X=[]
+        for _ in range(self.warm_up):
+            _X.append(list(params[_].values()))
+        _X=np.array(_X)
+        _y=score
         for _ in range(self.n_iter):
-            with parallel:
-                all_candidate_params = []
-                all_out = []
-                all_more_results = defaultdict(list)
+            self.GP.fit(_X, _y)
+            condidate_params=list(ParameterSampler(
+                self.param_distributions, self.lam, random_state=self.random_state
+            ))
+            _test_X=[]
+            for _ in range(self.lam):
+                _test_X.append(list(condidate_params[_].values()))
+            _test_X=np.array(_test_X)
+            _pred_y=self.acquisition_func(_test_X,gp=self.GP,y_max=self.y_max,xi=self.xi,kappa=self.kappa)
+            idx=_pred_y.argmax()
+            _params=dict()
+            key_idx=0
+            for key in list(self.param_distributions.keys()):
+                _params[key]=_test_X[idx][key_idx]
+            evaluate_candidates([_params])
+            _X = np.concatenate((_X, np.expand_dims(_test_X[idx],axis=0)), axis=0)
+            _y= np.concatenate((_y,np.array([_pred_y[idx]])),axis=0)
 
-                def evaluate_candidates(candidate_params, cv=None, more_results=None):
-                    cv = cv or cv_orig
-                    candidate_params = list(candidate_params)
-                    n_candidates = len(candidate_params)
+        first_test_score = all_out[0]["test_scores"]
+        self.multimetric_ = isinstance(first_test_score, dict)
 
-                    if self.verbose > 0:
-                        print(
-                            "Fitting {0} folds for each of {1} candidates,"
-                            " totalling {2} fits".format(
-                                n_splits, n_candidates, n_candidates * n_splits
-                            )
-                        )
+        if callable(self.scoring) and self.multimetric_:
+            self._check_refit_for_multimetric(first_test_score)
+            refit_metric = self.refit
 
-                    out = parallel(
-                        delayed(_fit_and_score)(
-                            clone(base_estimator),
-                            X,
-                            y,
-                            train=train,
-                            test=test,
-                            parameters=parameters,
-                            split_progress=(split_idx, n_splits),
-                            candidate_progress=(cand_idx, n_candidates),
-                            **fit_and_score_kwargs,
-                        )
-                        for (cand_idx, parameters), (split_idx, (train, test)) in product(
-                            enumerate(candidate_params), enumerate(cv.split(X, y, groups))
-                        )
-                    )
+        self.best_index_ = self._select_best_index(
+            self.refit, refit_metric, results
+        )
+        # With a non-custom callable, we can select the best score
+        # based on the best index
+        self.best_score_ = results[f"mean_test_{refit_metric}"][
+            self.best_index_
+        ]
+        self.best_params_ = results["params"][self.best_index_]
 
-                    if len(out) < 1:
-                        raise ValueError(
-                            "No fits were performed. "
-                            "Was the CV iterator empty? "
-                            "Were there no candidates?"
-                        )
-                    elif len(out) != n_candidates * n_splits:
-                        raise ValueError(
-                            "cv.split and cv.get_n_splits returned "
-                            "inconsistent results. Expected {} "
-                            "splits, got {}".format(n_splits, len(out) // n_candidates)
-                        )
+        if self.refit:
+            # we clone again after setting params in case some
+            # of the params are estimators as well.
+            self.best_estimator_ = clone(
+                clone(base_estimator).set_params(**self.best_params_)
+            )
+            refit_start_time = time.time()
+            if y is not None:
+                self.best_estimator_.fit(X, y, **fit_params)
+            else:
+                self.best_estimator_.fit(X, **fit_params)
+            refit_end_time = time.time()
+            self.refit_time_ = refit_end_time - refit_start_time
 
-                    _warn_about_fit_failures(out, self.error_score)
+            if hasattr(self.best_estimator_, "feature_names_in_"):
+                self.feature_names_in_ = self.best_estimator_.feature_names_in_
 
-                    # For callable self.scoring, the return type is only know after
-                    # calling. If the return type is a dictionary, the error scores
-                    # can now be inserted with the correct key. The type checking
-                    # of out will be done in `_insert_error_scores`.
-                    if callable(self.scoring):
-                        _insert_error_scores(out, self.error_score)
+        # Store the only scorer not as a dict for single metric evaluation
+        self.scorer_ = scorers
 
-                    all_candidate_params.extend(candidate_params)
-                    all_out.extend(out)
-
-                    if more_results is not None:
-                        for key, value in more_results.items():
-                            all_more_results[key].extend(value)
-
-                    nonlocal results
-                    results = self._format_results(
-                        all_candidate_params, n_splits, all_out, all_more_results
-                    )
-
-                    return results
-
-                self._run_search(evaluate_candidates)
-
-                # multimetric is determined here because in the case of a callable
-                # self.scoring the return type is only known after calling
-                first_test_score = all_out[0]["test_scores"]
-                self.multimetric_ = isinstance(first_test_score, dict)
-
-                # check refit_metric now for a callabe scorer that is multimetric
-                if callable(self.scoring) and self.multimetric_:
-                    self._check_refit_for_multimetric(first_test_score)
-                    refit_metric = self.refit
-
-            # For multi-metric evaluation, store the best_index_, best_params_ and
-            # best_score_ iff refit is one of the scorer names
-            # In single metric evaluation, refit_metric is "score"
-            if self.refit or not self.multimetric_:
-                self.best_index_ = self._select_best_index(
-                    self.refit, refit_metric, results
-                )
-                if not callable(self.refit):
-                    # With a non-custom callable, we can select the best score
-                    # based on the best index
-                    self.best_score_ = results[f"mean_test_{refit_metric}"][
-                        self.best_index_
-                    ]
-                self.best_params_ = results["params"][self.best_index_]
-
-            if self.refit:
-                # we clone again after setting params in case some
-                # of the params are estimators as well.
-                self.best_estimator_ = clone(
-                    clone(base_estimator).set_params(**self.best_params_)
-                )
-                refit_start_time = time.time()
-                if y is not None:
-                    self.best_estimator_.fit(X, y, **fit_params)
-                else:
-                    self.best_estimator_.fit(X, **fit_params)
-                refit_end_time = time.time()
-                self.refit_time_ = refit_end_time - refit_start_time
-
-                if hasattr(self.best_estimator_, "feature_names_in_"):
-                    self.feature_names_in_ = self.best_estimator_.feature_names_in_
-
-            # Store the only scorer not as a dict for single metric evaluation
-            self.scorer_ = scorers
-
-            self.cv_results_ = results
-            self.n_splits_ = n_splits
+        self.cv_results_ = results
+        self.n_splits_ = n_splits
 
         return self
-
-    def _run_search(self, evaluate_candidates):
-        evaluate_candidates(
-            Evolve(
-                self.param_distributions, random_state=self.random_state,lam=self.lam,ancestors=self.best_params_
-            )
-        )
