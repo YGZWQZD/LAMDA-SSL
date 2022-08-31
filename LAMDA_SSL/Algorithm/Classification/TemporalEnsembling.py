@@ -111,6 +111,7 @@ class TemporalEnsembling(InductiveEstimator,DeepModelMixin):
         self._estimator_type = ClassifierMixin._estimator_type
 
     def start_fit(self):
+        self.init_epoch()
         num_classes = self.num_classes if self.num_classes is not None else \
                         class_status(self._train_dataset.labeled_dataset.y).num_classes
 
