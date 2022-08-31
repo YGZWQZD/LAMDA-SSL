@@ -16,36 +16,18 @@ from itertools import product
 from sklearn.base import  is_classifier, clone
 from sklearn.utils.fixes import delayed
 from sklearn.model_selection._search import ParameterSampler
-from sklearn.gaussian_process import GaussianProcessRegressor
-from scipy.stats import norm
+from sklearn.svm import SVR
 
-
-def PI(x,gp,y_max=1,xi=0.01,kappa=None):
-    mean,std=gp.predict(x,return_std=True)
-    z=(mean-y_max-xi)/std
-    return norm.cdf(z)
-
-def EI(x,gp,y_max=1,xi=0.01,kappa=None):
-    mean,std=gp.predict(x,return_std=True)
-    a=(mean-y_max-xi)
-    z=a/std
-    return a*norm.cdf(z)+std*norm.pdf(z)
-
-def UCB(x,gp,y_max=None,xi=None,kappa=0.1):
-    mean,std=gp.predict(x,return_std=True)
-    return mean+kappa*std
-
-class BayesSearchCV(BaseSearchCV):
+class MetaLearnerSearchCV(BaseSearchCV):
     def __init__(
         self,
         estimator,
         param_distributions,
+        meta_learner=SVR(),
         n_iter=10,
         random_state=None,
         warm_up=2,
         lam=3,
-        y_max=1, xi=0.01, kappa=None,
-        acquisition_func='PI',
         *,
         scoring=None,
         n_jobs=None,
@@ -72,10 +54,7 @@ class BayesSearchCV(BaseSearchCV):
         self.param_distributions = param_distributions
         self.n_iter = n_iter
         self.random_state = random_state
-        self.acquisition_func=acquisition_func
-        self.y_max=y_max
-        self.xi=xi
-        self.kappa=kappa
+        self.meta_learner=meta_learner
 
     def _run_search(self, evaluate_candidates):
         """Search n_iter candidates from param_distributions"""
@@ -86,7 +65,6 @@ class BayesSearchCV(BaseSearchCV):
         )
 
     def fit(self, X, y=None, *, groups=None, **fit_params):
-        self.GP = GaussianProcessRegressor()
         estimator = self.estimator
         refit_metric = "score"
 
@@ -119,16 +97,7 @@ class BayesSearchCV(BaseSearchCV):
             error_score=self.error_score,
             verbose=self.verbose,
         )
-        if self.acquisition_func is 'PI':
-            self.acquisition_func=PI
-        elif self.acquisition_func is 'EI':
-            self.acquisition_func=EI
-        elif self.acquisition_func is 'UCB':
-            self.acquisition_func=UCB
-        elif callable(self.acquisition_func):
-            self.acquisition_func=self.acquisition_func
-        else:
-            self.acquisition_func = PI
+
         results = {}
         all_candidate_params = []
         all_out = []
@@ -216,7 +185,7 @@ class BayesSearchCV(BaseSearchCV):
         _X=np.array(_X)
         _y=score
         for _ in range(self.n_iter):
-            self.GP.fit(_X, _y)
+            self.meta_learner.fit(_X, _y)
             condidate_params=list(ParameterSampler(
                 self.param_distributions, self.lam, random_state=self.random_state
             ))
@@ -224,7 +193,7 @@ class BayesSearchCV(BaseSearchCV):
             for _ in range(self.lam):
                 _test_X.append(list(condidate_params[_].values()))
             _test_X=np.array(_test_X)
-            _pred_y=self.acquisition_func(_test_X,gp=self.GP,y_max=self.y_max,xi=self.xi,kappa=self.kappa)
+            _pred_y=self.meta_learner.predict(_test_X)
             idx=_pred_y.argmax()
             _params=dict()
             key_idx=0
