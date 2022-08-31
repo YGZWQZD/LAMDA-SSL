@@ -179,14 +179,7 @@ class DeepModelMixin(SemiEstimator):
         self.file=file
         self._estimate_dataloader=None
         self._estimator_type=None
-        if self._network is not None:
-            self.init_model()
-            self.init_ema()
-            self.init_optimizer()
-            self.init_scheduler()
-        self.init_epoch()
-        self.init_augmentation()
-        self.init_transform()
+
 
 
     def init_model(self):
@@ -349,6 +342,14 @@ class DeepModelMixin(SemiEstimator):
         pass
 
     def fit(self,X=None,y=None,unlabeled_X=None,valid_X=None,valid_y=None):
+        if self._network is not None:
+            self.init_model()
+            self.init_ema()
+            self.init_optimizer()
+            self.init_scheduler()
+        self.init_epoch()
+        self.init_augmentation()
+        self.init_transform()
         self.init_train_dataset(X,y,unlabeled_X)
         self.init_train_dataloader()
         self.start_fit()

@@ -113,7 +113,6 @@ model=FixMatch(T=0.5,mu=7,weight_decay=5e-4,ema_decay=0.999,
                network=network,
                optimizer=optimizer,
                scheduler=scheduler,
-               evaluation=evaluation,
                file=None,
                verbose=False)
 
