@@ -36,10 +36,10 @@ class Jaccard_Score(ClusterEvaluation):
         # >> - zero_division : "warn", {0.0, 1.0}, default="warn" Sets the value to return when there is a zero division, i.e. when there are no negative values in predictions and labels. If set to "warn", this acts like 0, but a warning is also raised.
         super().__init__()
         self.score=partial(jaccard_score,labels=labels,
-    pos_label=pos_label,
-    average=average,
-    sample_weight=sample_weight,
-    zero_division=zero_division)
+        pos_label=pos_label,
+        average=average,
+        sample_weight=sample_weight,
+        zero_division=zero_division)
 
     def scoring(self,y_true=None,clusters=None,X=None):
         return self.score(y_true=y_true,y_pred=clusters)
