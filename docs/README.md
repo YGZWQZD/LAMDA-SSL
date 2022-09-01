@@ -4989,10 +4989,71 @@ labels=None,
 >> - last_epoch: The index of the last epoch.
 >> - verbose: Whether to output redundant information.
 
+## LAMDA_SSL.Search
+### LAMDA_SSL.Search.BayesSearchCV
+> CLASS LAMDA_SSL.Search.BayesSearchCV.BayesSearchCV(estimator,param_distributions,n_iter=10,random_state=None,warm_up=2,lam=3,y_max=1, xi=0.01, kappa=None,acquisition_func='PI',scoring=None,n_jobs=None,refit=True,cv=None,verbose=0,pre_dispatch="2*n_jobs",error_score=np.nan,return_train_score=True,)
+> - Parameter:
+>> - estimator: This is assumed to implement the scikit-learn estimator interface.
+>> - param_distributions: Dictionary with parameters names ('str') as keys and distributions or lists of parameters to try. Distributions must provide a 'rvs' method for sampling (such as those from scipy.stats.distributions). If a list is given, it is sampled uniformly. If a list of dicts is given, first a dict is sampled uniformly, and then a parameter is sampled using that dict as above.
+>> - n_iter: Number of iterations.
+>> - random_state: The state of random seed. 
+>> - warm_up: The number of times to randomly sample parameters in the initial state.
+>> - lam: The number of parameter groups that need to be sampled for evaluation per iteration.
+>> - y_max: Valid when acquisition_func is 'PI' and 'EI', it represents the maximum value of the score.
+>> - xi: Valid when acquisition_func is 'PI' and 'EI', the parameter used to trade off exploration and explotitation.
+>> - kappa: Valid when acquisition_func is 'UCB', it is used to trade off mean and variance.
+>> - acquisition_func: The function to estimate the score of the parameter group, optional 'PI', 'EI' and 'UCB' or a function that can be called.
+>> - scoring: Strategy to evaluate the performance of the cross-validated model on the test set.
+>> - n_jobs: Number of jobs to run in parallel.
+>> - refit: Refit an estimator using the best found parameters on the whole dataset.
+>> - cv: Determines the cross-validation splitting strategy. Int, cross-validation generator or an iterable.
+>> - verbose: Controls the verbosity: the higher, the more messages.
+>> - pre_dispatch: Controls the number of jobs that get dispatched during parallel execution. Reducing this number can be useful to avoid an explosion of memory consumption when more jobs get dispatched than CPUs can process.
+>> - error_score: Value to assign to the score if an error occurs in estimator fitting.
+>> - return_train_score: If 'False', the 'cv_results_' attribute will not include training scores.
+
+### LAMDA_SSL.Search.EvolutionaryStrategySearchCV
+> CLASS LAMDA_SSL.Search.EvolutionaryStrategySearchCV.EvolutionaryStrategySearchCV(estimator,param_distributions,n_iter=10,random_state=None,scoring=None,n_jobs=None,refit=True,cv=None,verbose=0,pre_dispatch="2*n_jobs",error_score=np.nan,return_train_score=True,)
+> - Parameter:
+>> - estimator: This is assumed to implement the scikit-learn estimator interface.
+>> - param_distributions: Dictionary with parameters names ('str') as keys and distributions or lists of parameters to try. Distributions must provide a 'rvs' method for sampling (such as those from scipy.stats.distributions). If a list is given, it is sampled uniformly. If a list of dicts is given, first a dict is sampled uniformly, and then a parameter is sampled using that dict as above.
+>> - n_iter: Number of iterations.
+>> - random_state: The state of random seed. 
+>> - warm_up: The number of times to randomly sample parameters in the initial state.
+>> - lam: The value of \lambda in the 1+\lambda evolution strategy, that is, the number of children in each iteration.
+>> - scoring: Strategy to evaluate the performance of the cross-validated model on the test set.
+>> - n_jobs: Number of jobs to run in parallel.
+>> - refit: Refit an estimator using the best found parameters on the whole dataset.
+>> - cv: Determines the cross-validation splitting strategy. Int, cross-validation generator or an iterable.
+>> - verbose: Controls the verbosity: the higher, the more messages.
+>> - pre_dispatch: Controls the number of jobs that get dispatched during parallel execution. Reducing this number can be useful to avoid an explosion of memory consumption when more jobs get dispatched than CPUs can process.
+>> - error_score: Value to assign to the score if an error occurs in estimator fitting.
+>> - return_train_score: If 'False', the 'cv_results_' attribute will not include training scores.
+
+### LAMDA_SSL.Search.BayesSearchCV
+> CLASS LAMDA_SSL.Search.BayesSearchCV.BayesSearchCV(estimator,param_distributions,meta_learner=SVR(),n_iter=10,random_state=None,warm_up=2,lam=3,scoring=None,n_jobs=None,refit=True,cv=None,verbose=0,pre_dispatch="2*n_jobs",error_score=np.nan,return_train_score=True,)
+> - Parameter:
+>> - estimator: This is assumed to implement the scikit-learn estimator interface.
+>> - param_distributions: Dictionary with parameters names ('str') as keys and distributions or lists of parameters to try. Distributions must provide a 'rvs' method for sampling (such as those from scipy.stats.distributions). If a list is given, it is sampled uniformly. If a list of dicts is given, first a dict is sampled uniformly, and then a parameter is sampled using that dict as above.
+>> - meta_learner: A meta-regressor for fitting parameters and scores.
+>> - n_iter: Number of iterations. 
+>> - random_state: The state of random seed. 
+>> - warm_up: The number of times to randomly sample parameters in the initial state.
+>> - lam: The number of parameter groups that need to be sampled for evaluation per iteration.
+>> - scoring: Strategy to evaluate the performance of the cross-validated model on the test set.
+>> - n_jobs: Number of jobs to run in parallel.
+>> - refit: Refit an estimator using the best found parameters on the whole dataset.
+>> - cv: Determines the cross-validation splitting strategy. Int, cross-validation generator or an iterable.
+>> - verbose: Controls the verbosity: the higher, the more messages.
+>> - pre_dispatch: Controls the number of jobs that get dispatched during parallel execution. Reducing this number can be useful to avoid an explosion of memory consumption when more jobs get dispatched than CPUs can process.
+>> - error_score: Value to assign to the score if an error occurs in estimator fitting.
+>> - return_train_score: If 'False', the 'cv_results_' attribute will not include training scores.
+
 ## LAMDA_SSL.Split
-### LAMDA_SSL.Scheduler.Split.DataSplit
-> Function LAMDA_SSL.Scheduler.Split.DataSplit.DataSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
-> - Parameter
+
+### LAMDA_SSL.Split.DataSplit
+> Function LAMDA_SSL.Split.DataSplit.DataSplit(stratified, shuffle, random_state=None, X=None, y=None,labeled_size=None)
+> - Parameter:
 >> - stratified: Whether to stratify by classes.
 >> - shuffle: Whether to shuffle the data.
 >> - random_state: The random seed.
@@ -5000,9 +5061,9 @@ labels=None,
 >> - y: Labels of the data to be split.
 >> - labeled_size: The scale or size of the labeled data.
 
-### LAMDA_SSL.Scheduler.Split.ViewSplit
-> Function LAMDA_SSL.Scheduler.Split.ViewSplit.ViewSplit(X,num_splits=2,axis=1,shuffle=True)
-> - Parameter
+### LAMDA_SSL.Split.ViewSplit
+> Function LAMDA_SSL.Split.ViewSplit.ViewSplit(X,num_splits=2,axis=1,shuffle=True)
+> - Parameter:
 >> - X: Samples of the data to be split.
 >> - num_splits: The number of views
 >> - axis: The axis of the dimension to be splited.
