@@ -101,6 +101,20 @@ class EvolutionaryStrategySearchCV(BaseSearchCV):
         error_score=np.nan,
         return_train_score=True,
     ):
+        # >> - estimator: This is assumed to implement the scikit-learn estimator interface.
+        # >> - param_distributions: Dictionary with parameters names ('str') as keys and distributions or lists of parameters to try. Distributions must provide a 'rvs' method for sampling (such as those from scipy.stats.distributions). If a list is given, it is sampled uniformly. If a list of dicts is given, first a dict is sampled uniformly, and then a parameter is sampled using that dict as above.
+        # >> - n_iter: Number of iterations.
+        # >> - random_state: The state of random seed.
+        # >> - warm_up: The number of times to randomly sample parameters in the initial state.
+        # >> - lam: The value of \lambda in the 1+\lambda evolution strategy, that is, the number of children in each iteration.
+        # >> - scoring: Strategy to evaluate the performance of the cross-validated model on the test set.
+        # >> - n_jobs: Number of jobs to run in parallel.
+        # >> - refit: Refit an estimator using the best found parameters on the whole dataset.
+        # >> - cv: Determines the cross-validation splitting strategy. Int, cross-validation generator or an iterable.
+        # >> - verbose: Controls the verbosity: the higher, the more messages.
+        # >> - pre_dispatch: Controls the number of jobs that get dispatched during parallel execution. Reducing this number can be useful to avoid an explosion of memory consumption when more jobs get dispatched than CPUs can process.
+        # >> - error_score: Value to assign to the score if an error occurs in estimator fitting.
+        # >> - return_train_score: If 'False', the 'cv_results_' attribute will not include training scores.
         super().__init__(
             estimator=estimator,
             scoring=scoring,
