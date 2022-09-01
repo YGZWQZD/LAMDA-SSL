@@ -91,7 +91,6 @@ class EvolutionaryStrategySearchCV(BaseSearchCV):
         n_iter=10,
         random_state=None,
         lam=3,
-        *,
         scoring=None,
         n_jobs=None,
         refit=True,

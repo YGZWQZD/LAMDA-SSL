@@ -46,7 +46,6 @@ class BayesSearchCV(BaseSearchCV):
         lam=3,
         y_max=1, xi=0.01, kappa=None,
         acquisition_func='PI',
-        *,
         scoring=None,
         n_jobs=None,
         refit=True,

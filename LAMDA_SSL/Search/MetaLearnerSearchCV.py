@@ -28,7 +28,6 @@ class MetaLearnerSearchCV(BaseSearchCV):
         random_state=None,
         warm_up=2,
         lam=3,
-        *,
         scoring=None,
         n_jobs=None,
         refit=True,
