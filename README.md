@@ -38,17 +38,18 @@ For deep SSL, algorithms in LAMDA-SSL can be used for classification and regress
 
 # Superiority
 
-> - LAMDA-SSL contains 30 SSL algorithms.
-> - LAMDA-SSL can handle 4 types of data and has rich data processing functions.
-> - LAMDA-SSL can handle 3 types of tasks and has rich metrics for model evaluation.
-> - LAMDA-SSL supports both statistical SSL algorithms and deep SSL algorithms.
-> - LAMDA-SSL is compatible with the popular machine learning toolkit scikit-learn and the popular deep learning toolkit Pytorch.
-> - LAMDA-SSL has simple interfaces similar to scikit-learn so that it is easy to use.
-> - LAMDA-SSL has powerful functions. It supports Pipeline mechanism and parameter search functions like scikit-learn and also supports GPU acceleration and distributed training functions like Pytorch.
-> - LAMDA-SSL considers the needs of different user groups. It provides well tuned default parameters and modules for entry-level users. It also supports flexible module replacement and customization for professional users.
-> - LAMDA-SSL has strong extensibility, which is convenient for users to customize new modules and algorithms.
-> - LAMDA-SSL has been verified by a large number of experiments and has strong reliability.
-> - LAMDA-SSL has comprehensive user documentation.
+- LAMDA-SSL contains 30 SSL algorithms.
+- LAMDA-SSL can handle 4 types of data and provides 46 functions for data processing and data augmentation.
+- LAMDA-SSL can handle 3 types of tasks and supports 16 metrics for model evaluation.
+- LAMDA-SSL supports 5 hyperparameter search methods including random search, grid search, Bayesian optimization, evolution strategy, and meta-learner.
+- LAMDA-SSL supports both statistical SSL algorithms and deep SSL algorithms.
+- LAMDA-SSL is compatible with the popular machine learning toolkit scikit-learn and the popular deep learning toolkit Pytorch.
+- LAMDA-SSL has simple interfaces similar to scikit-learn so that it is easy to use.
+- LAMDA-SSL has powerful functions. It supports Pipeline mechanism and parameter search functions like scikit-learn and also supports GPU acceleration and distributed training functions like Pytorch.
+- LAMDA-SSL considers the needs of different user groups. It provides well tuned default parameters and modules for entry-level users. It also supports flexible module replacement and customization for professional users.
+- LAMDA-SSL has strong extensibility, which is convenient for users to customize new modules and algorithms.
+- LAMDA-SSL has been verified by a large number of experiments and has strong reliability.
+- LAMDA-SSL has comprehensive user documentation.
 
 
 # Dependencies
@@ -77,7 +78,7 @@ conda env create -f environment.yaml
 
 ## Install from pip
 
-You can download LAMDA-SSL directly from pip.
+You can download LAMDA-SSL directly from pypi.
 ```
 pip install LAMDA-SSL
 ```
@@ -244,4 +245,4 @@ Feel free to contribute in any way you like, we're always open to new ideas and 
  LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)12@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are [Lin-Han Jia](https://github.com/YGZWQZD), [Lan-Zhe Guo](https://www.lamda.nju.edu.cn/guolz/), [Zhi Zhou](https://www.lamda.nju.edu.cn/zhouz/) and [Yu-Feng Li](https://www.lamda.nju.edu.cn/liyf/).
 
 # Contact
-If you have any questions, please contact us: Lin-Han Jia[jialh2118@gmail.com].
+If you have any questions, please contact us: Lin-Han Jia[jialh2118@gmail.com] and Zhi Zhou[zhouz@lamda.nju.edu.cn].
