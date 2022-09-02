@@ -42,7 +42,7 @@ For deep SSL, algorithms in LAMDA-SSL can be used for classification and regress
 - LAMDA-SSL can handle 4 types of data and provides 46 functions for data processing and data augmentation.
 - LAMDA-SSL can handle 3 types of tasks and supports 16 metrics for model evaluation.
 - LAMDA-SSL supports 5 hyperparameter search methods including random search, grid search, Bayesian optimization, evolution strategy, and meta-learner.
-- LAMDA-SSL supports both statistical SSL algorithms and deep SSL algorithms.
+- LAMDA-SSL supports both statistical SSL algorithms and deep SSL algorithms and uses a unified implementation framework.
 - LAMDA-SSL is compatible with the popular machine learning toolkit scikit-learn and the popular deep learning toolkit Pytorch.
 - LAMDA-SSL has simple interfaces similar to scikit-learn so that it is easy to use.
 - LAMDA-SSL has powerful functions. It supports Pipeline mechanism and parameter search functions like scikit-learn and also supports GPU acceleration and distributed training functions like Pytorch.
