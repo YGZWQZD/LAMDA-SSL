@@ -239,6 +239,7 @@ Please cite our paper if you find LAMDA-SSL useful in your work:
 Feel free to contribute in any way you like, we're always open to new ideas and approaches.
 - [Open a discussion](https://github.com/YGZWQZD/LAMDA-SSL/discussions/new) if you have any question.
 - Feel welcome to [open an issue](https://github.com/YGZWQZD/LAMDA-SSL/issues/new) if you've spotted a bug or a performance issue.
+- Fork our project and create a pull request after committing your modifications.
 - Learn more about how to customize modules of LAMDA-SSL from the [Usage](https://ygzwqzd.github.io/LAMDA-SSL/#/README?id=usage) section of the [documentation](https://ygzwqzd.github.io/LAMDA-SSL/#/).
 
 # Team
