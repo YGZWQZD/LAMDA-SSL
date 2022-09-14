@@ -13,11 +13,11 @@ class Cross_Entropy(nn.Module):
     def forward(self,logits, targets):
         # >> - logits: The output of the model.
         # >> - targets: The target result.
+        targets=targets.long()
         if self.use_hard_labels:
             log_pred = F.log_softmax(logits, dim=-1)
             return F.nll_loss(log_pred, targets, reduction=self.reduction)
         else:
-            assert logits.shape == targets.shape
             log_pred = F.log_softmax(logits, dim=-1)
             nll_loss = torch.sum(-targets * log_pred, dim=1)
             if self.reduction=='mean':
