@@ -1,4 +1,4 @@
-from LAMDA_SSL.Algorithm.Classification.LadderNetwork import Ladder_Network
+from LAMDA_SSL.Algorithm.Classification.LadderNetwork import LadderNetwork
 from LAMDA_SSL.Opitimizer.Adam import Adam
 from LAMDA_SSL.Dataloader.UnlabeledDataloader import UnlabeledDataLoader
 from LAMDA_SSL.Dataloader.LabeledDataloader import LabeledDataLoader
@@ -67,7 +67,7 @@ evaluation={
 
 file = open("../Result/LadderNetwork_MNIST.txt", "w")
 
-model=Ladder_Network(noise_std=0.2,
+model=LadderNetwork(noise_std=0.2,
                      lambda_u=[0.1, 0.1, 0.1, 0.1, 0.1, 10., 1000.],
                      dim_encoder=[1000, 500, 250, 250, 250],
                      encoder_activations=[nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU(), nn.ReLU()],

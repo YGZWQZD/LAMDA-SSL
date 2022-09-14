@@ -15,4 +15,4 @@
 *.yml
 .gitignore
 Test/.coveralls.yml
-/Evaluation
+/OpenEvaluation/

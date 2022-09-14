@@ -12,7 +12,7 @@ from LAMDA_SSL.utils import class_status
 from LAMDA_SSL.Loss.Cross_Entropy import Cross_Entropy
 from LAMDA_SSL.Loss.MSE import MSE
 
-class Ladder_Network(InductiveEstimator,DeepModelMixin,ClassifierMixin):
+class LadderNetwork(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def __init__(self,
                  dim_in=config.dim_in,
                  num_classes=config.num_classes,
