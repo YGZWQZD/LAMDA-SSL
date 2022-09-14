@@ -46,7 +46,7 @@ class ICT(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                  labeled_sampler=config.labeled_sampler,
                  augmentation=config.augmentation,
                  network=config.network,
-                 optimizer=config.network,
+                 optimizer=config.optimizer,
                  scheduler=config.scheduler,
                  parallel=config.parallel,
                  evaluation=config.evaluation,
