@@ -40,7 +40,7 @@ evaluation={
 # Base estimater
 SVM=SVC(probability=True)
 
-model=Assemble(T=100,base_estimater=SVM,evaluation=evaluation,verbose=True,file=file)
+model=Assemble(T=100,base_estimator=SVM,evaluation=evaluation,verbose=True,file=file)
 
 model.fit(X=labeled_X,y=labeled_y,unlabeled_X=unlabeled_X)
 
