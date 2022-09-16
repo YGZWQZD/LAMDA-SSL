@@ -15,4 +15,4 @@
 *.yml
 .gitignore
 Test/.coveralls.yml
-/LAMDA_SSL/OpenEvaluation/
+/OpenEvaluation/
