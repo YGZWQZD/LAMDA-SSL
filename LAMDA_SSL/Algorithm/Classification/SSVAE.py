@@ -131,7 +131,7 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self.dim_in=self.dim_in if self.dim_in is not None else \
             self._train_dataset.labeled_dataset.X.shape[1:]
         if self.network is None:
-            self.network=VAE.SSVAE( dim_in=self.dim_in,num_classes=self.num_classes,dim_z=self.dim_z,
+            self.network=VAE.SSVAE(dim_in=self.dim_in,num_classes=self.num_classes,dim_z=self.dim_z,
                                dim_hidden_de=self.dim_hidden_de,activations_de=self.activations_de,
                                dim_hidden_en_y=self.dim_hidden_en_y, activations_en_y=self.activations_en_y,
                                dim_hidden_en_z=self.dim_hidden_en_z, activations_en_z=self.activations_en_z,
@@ -154,7 +154,6 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         lb_X = lb_X[0] if isinstance(lb_X,(list,tuple)) else lb_X
         lb_y=lb_y[0] if isinstance(lb_y,(list,tuple)) else lb_y
         ulb_X=ulb_X[0]if isinstance(ulb_X,(list,tuple)) else ulb_X
-
         lb_X=lb_X.view(lb_X.shape[0],-1).bernoulli()
         ulb_X = ulb_X.view(ulb_X.shape[0], -1).bernoulli()
         lb_q_y = self._network.encode_y(lb_X)
@@ -203,8 +202,6 @@ class SSVAE(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         unsup_loss=unsup_loss.mean(0)
         loss=sup_loss+unsup_loss+cls_loss
         return loss
-
-
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()

@@ -105,7 +105,6 @@ class SSVAE(nn.Module):
         xy = torch.cat([x, y], dim=1)
         mu, logsigma = self.encoder_z(xy).chunk(2, dim=-1)
         return DT.Normal(mu, logsigma.exp())
-        # return DT.Normal(mu, logsigma.exp())
 
     # q(y|x) = Categorical(y|pi_phi(x)) -- SSL paper eq 4
     def encode_y(self, x):

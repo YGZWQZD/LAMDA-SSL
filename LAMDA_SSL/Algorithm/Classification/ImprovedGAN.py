@@ -183,6 +183,7 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
                 self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
 
     def init_optimizer(self):
+        self._optimizer = copy.deepcopy(self.optimizer)
         if isinstance(self._optimizer,(list,tuple)):
             self._optimizerG=self._optimizer[0]
             self._optimizerD = self._optimizer[1]
@@ -217,6 +218,7 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
 
     def init_scheduler(self):
+        self._scheduler = copy.deepcopy(self.scheduler)
         if isinstance(self._scheduler,(list,tuple)):
             self._schedulerG=self._scheduler[0]
             self._schedulerD = self._scheduler[1]
@@ -260,7 +262,7 @@ class ImprovedGAN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         logz_label, logz_unlabel, logz_fake = self.log_sum_exp(lb_logits), \
                                               self.log_sum_exp(ulb_logits), \
                                               self.log_sum_exp(fake_logits) # log ∑e^x_i
-        prob_label = torch.gather(lb_logits, 1, lb_y.unsqueeze(1)) # log e^x_label = x_label
+        prob_label = torch.gather(lb_logits, 1, lb_y.unsqueeze(1).long()) # log e^x_label = x_label
         sup_loss = -torch.mean(prob_label) + torch.mean(logz_label)
         unsup_loss = 0.5 * (-torch.mean(logz_unlabel) + torch.mean(F.softplus(logz_unlabel))  + # real_data: log Z/(1+Z)
                             torch.mean(F.softplus(logz_fake)))

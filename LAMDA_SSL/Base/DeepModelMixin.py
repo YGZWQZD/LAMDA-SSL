@@ -132,39 +132,6 @@ class DeepModelMixin(SemiEstimator):
 
         self.parallel=parallel
         self.verbose=verbose
-        self._optimizer=copy.deepcopy(self.optimizer)
-        self._network=copy.deepcopy(self.network)
-        self._scheduler=copy.deepcopy(self.scheduler)
-
-        self._train_sampler=copy.deepcopy(self.train_sampler)
-        self._labeled_sampler = copy.deepcopy(self.labeled_sampler)
-        self._unlabeled_sampler = copy.deepcopy(self.unlabeled_sampler)
-        self._valid_sampler = copy.deepcopy(self.valid_sampler)
-        self._test_sampler=copy.deepcopy(self.test_sampler)
-
-        self._train_batch_sampler=copy.deepcopy(self.train_batch_sampler)
-        self._labeled_batch_sampler = copy.deepcopy(self.labeled_batch_sampler)
-        self._unlabeled_batch_sampler = copy.deepcopy(self.unlabeled_batch_sampler)
-        self._valid_batch_sampler=copy.deepcopy(self.valid_batch_sampler)
-        self._test_batch_sampler=copy.deepcopy(self.test_batch_sampler)
-
-        self._train_dataset=copy.deepcopy(self.train_dataset)
-        self._labeled_dataset = copy.deepcopy(self.labeled_dataset)
-        self._unlabeled_dataset = copy.deepcopy(self.unlabeled_dataset)
-        self._valid_dataset = copy.deepcopy(self.valid_dataset)
-        self._test_dataset=copy.deepcopy(self.test_dataset)
-
-        self._train_dataloader=copy.deepcopy(self.train_dataloader)
-        self._labeled_dataloader = copy.deepcopy(self.labeled_dataloader)
-        self._unlabeled_dataloader = copy.deepcopy(self.unlabeled_dataloader)
-        self._valid_dataloader=copy.deepcopy(self.valid_dataloader)
-        self._test_dataloader = copy.deepcopy(self.test_dataloader)
-
-        self._augmentation=copy.deepcopy(self.augmentation)
-        self._evaluation=copy.deepcopy(self.evaluation)
-        self._parallel=copy.deepcopy(self.parallel)
-
-        self._epoch=0
         self.it_epoch=0
         self.it_total=0
         self.loss=None
@@ -177,18 +144,11 @@ class DeepModelMixin(SemiEstimator):
         if isinstance(file,str):
             file=open(file,"w")
         self.file=file
-        self._estimate_dataloader=None
         self._estimator_type=None
-        if self._network is not None:
-            self.init_model()
-            self.init_ema()
-            self.init_optimizer()
-            self.init_scheduler()
-        self.init_augmentation()
-        self.init_transform()
-
 
     def init_model(self):
+        self._network = copy.deepcopy(self.network)
+        self._parallel = copy.deepcopy(self.parallel)
         if self.device is None:
             self.device='cpu'
         if self.device is not 'cpu':
@@ -205,6 +165,7 @@ class DeepModelMixin(SemiEstimator):
             self.ema=None
 
     def init_optimizer(self):
+        self._optimizer=copy.deepcopy(self.optimizer)
         if isinstance(self._optimizer,BaseOptimizer):
             no_decay = ['bias', 'bn']
             grouped_parameters = [
@@ -216,6 +177,7 @@ class DeepModelMixin(SemiEstimator):
             self._optimizer=self._optimizer.init_optimizer(params=grouped_parameters)
 
     def init_scheduler(self):
+        self._scheduler=copy.deepcopy(self.scheduler)
         if isinstance(self._scheduler,BaseScheduler):
             self._scheduler=self._scheduler.init_scheduler(optimizer=self._optimizer)
 
@@ -228,6 +190,7 @@ class DeepModelMixin(SemiEstimator):
             self.epoch=ceil(self.num_it_total/self.num_it_epoch)
 
     def init_augmentation(self):
+        self._augmentation = copy.deepcopy(self.augmentation)
         if self._augmentation is not None:
             if isinstance(self._augmentation, dict):
                 self.weak_augmentation = self._augmentation['augmentation'] \
@@ -250,6 +213,7 @@ class DeepModelMixin(SemiEstimator):
             self._train_dataset.add_unlabeled_transform(self.weak_augmentation, dim=1, x=0, y=0)
 
     def init_train_dataset(self,X=None,y=None,unlabeled_X=None, *args, **kwargs):
+        self._train_dataset=copy.deepcopy(self.train_dataset)
         if isinstance(X,TrainDataset):
             self._train_dataset=X
         elif isinstance(X,Dataset) and y is None:
@@ -258,6 +222,15 @@ class DeepModelMixin(SemiEstimator):
             self._train_dataset.init_dataset(labeled_X=X, labeled_y=y,unlabeled_X=unlabeled_X)
 
     def init_train_dataloader(self):
+        self._train_dataloader=copy.deepcopy(self.train_dataloader)
+        self._labeled_dataloader = copy.deepcopy(self.labeled_dataloader)
+        self._unlabeled_dataloader = copy.deepcopy(self.unlabeled_dataloader)
+        self._train_sampler=copy.deepcopy(self.train_sampler)
+        self._labeled_sampler = copy.deepcopy(self.labeled_sampler)
+        self._unlabeled_sampler = copy.deepcopy(self.unlabeled_sampler)
+        self._train_batch_sampler=copy.deepcopy(self.train_batch_sampler)
+        self._labeled_batch_sampler = copy.deepcopy(self.labeled_batch_sampler)
+        self._unlabeled_batch_sampler = copy.deepcopy(self.unlabeled_batch_sampler)
         if self._train_dataloader is not None:
             self._labeled_dataloader,self._unlabeled_dataloader=self._train_dataloader.init_dataloader(dataset=self._train_dataset,
                                                                                        sampler=self._train_sampler,
@@ -351,12 +324,21 @@ class DeepModelMixin(SemiEstimator):
     def fit(self,X=None,y=None,unlabeled_X=None,valid_X=None,valid_y=None):
         self.init_train_dataset(X,y,unlabeled_X)
         self.init_train_dataloader()
+        if self.network is not None:
+            self.init_model()
+            self.init_ema()
+            self.init_optimizer()
+            self.init_scheduler()
+        self.init_augmentation()
+        self.init_transform()
         self.start_fit()
         self.fit_epoch_loop(valid_X,valid_y)
         self.end_fit()
         return self
 
     def init_estimate_dataset(self, X=None,valid=False):
+        self._valid_dataset = copy.deepcopy(self.valid_dataset)
+        self._test_dataset=copy.deepcopy(self.test_dataset)
         if valid:
             if isinstance(X,Dataset):
                 self._valid_dataset=X
@@ -369,6 +351,12 @@ class DeepModelMixin(SemiEstimator):
                 self._test_dataset=self._test_dataset.init_dataset(X=X)
 
     def init_estimate_dataloader(self,valid=False):
+        self._valid_dataloader=copy.deepcopy(self.valid_dataloader)
+        self._test_dataloader = copy.deepcopy(self.test_dataloader)
+        self._valid_sampler = copy.deepcopy(self.valid_sampler)
+        self._test_sampler=copy.deepcopy(self.test_sampler)
+        self._valid_batch_sampler=copy.deepcopy(self.valid_batch_sampler)
+        self._test_batch_sampler=copy.deepcopy(self.test_batch_sampler)
         if valid:
             self._estimate_dataloader=self._valid_dataloader.init_dataloader(self._valid_dataset,
                                                             sampler=self._valid_sampler,
@@ -402,7 +390,7 @@ class DeepModelMixin(SemiEstimator):
                 idx=to_device(idx,self.device)
                 X=X[0] if isinstance(X,(list,tuple)) else X
                 X=to_device(X,self.device)
-                _est=self.estimate(X=X,idx=idx)
+                _est = self.estimate(X=X,idx=idx)
                 _est = _est[0] if  isinstance(_est,(list,tuple)) else _est
                 self.y_est=torch.cat((self.y_est,_est),0)
                 self.end_predict_batch()

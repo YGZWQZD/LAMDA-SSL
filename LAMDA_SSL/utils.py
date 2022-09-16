@@ -383,7 +383,7 @@ def _l2_normalize(d):
 
 def one_hot(targets, nClass,device):
     logits = torch.zeros(targets.size(0), nClass).to(device)
-    return logits.scatter_(1, targets.unsqueeze(1), 1)
+    return logits.scatter_(1, targets.unsqueeze(1).long(), 1)
 
 class Bn_Controller:
     def __init__(self):

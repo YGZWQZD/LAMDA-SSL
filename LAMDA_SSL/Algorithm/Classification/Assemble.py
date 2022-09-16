@@ -8,19 +8,19 @@ from sklearn.neighbors import KNeighborsClassifier
 import LAMDA_SSL.Config.Assemble as config
 
 class Assemble(InductiveEstimator,ClassifierMixin):
-    def __init__(self, base_estimater=config.base_estimater,T=config.T,alpha=config.alpha,
+    def __init__(self, base_estimator=config.base_estimator,T=config.T,alpha=config.alpha,
                  beta=config.beta,evaluation=config.evaluation,verbose=config.verbose,file=config.file):
         # >> Parameter:
-        # >> - base_model: A base learner for ensemble learning.
+        # >> - base_estimator: A base learner for ensemble learning.
         # >> - T: the number of base learners. It is also the number of iterations.
         # >> - alpha: the weight of each sample when the sampling distribution is updated.
         # >> - Beta: used to initialize the sampling distribution of labeled data and unlabeled data.
 
-        self.base_estimater=base_estimater
+        self.base_estimator=base_estimator
         self.T=T
         self.alpha=alpha
         self.beta=beta
-        self.KNN=KNeighborsClassifier(n_neighbors=1)
+        self.KNN=KNeighborsClassifier(n_neighbors=3)
         self.evaluation = evaluation
         self.verbose=verbose
         self.file=file
@@ -53,10 +53,11 @@ class Assemble(InductiveEstimator,ClassifierMixin):
         for i in range(u):
             sample_weight[i+l]=(1-self.beta)/u
         unlabeled_y=self.KNN.fit(X,y).predict(unlabeled_X)
-        classfier=copy.deepcopy(self.base_estimater)
+
+        classfier=copy.deepcopy(self.base_estimator)
         X_all=np.concatenate((X,unlabeled_X))
         y_all=np.concatenate((y,unlabeled_y))
-        classfier.fit(X_all,y_all,sample_weight=sample_weight)
+        classfier.fit(X_all,y_all,sample_weight=sample_weight*(l+u))
 
         for i in range(self.T):
             self.f.append(classfier)
@@ -65,11 +66,10 @@ class Assemble(InductiveEstimator,ClassifierMixin):
             for _ in range(l+u):
                 if _y_all[_]!=y_all[_]:
                     epsilon+=sample_weight[_]
-            if epsilon>0.5:
-                break
             w=np.log((1-epsilon)/epsilon)*0.5
             self.w.append(w)
-
+            if epsilon>0.5:
+                break
             probas=self.predict_proba(X_all)
             logits = np.max(probas, axis=1)
             unlabeled_y=self.predict(unlabeled_X)
@@ -85,9 +85,8 @@ class Assemble(InductiveEstimator,ClassifierMixin):
             X_sample=X_all[idx_sample]
             y_sample=y_all[idx_sample]
             sample_weight_sample=sample_weight[idx_sample]
-            classfier=copy.deepcopy(self.base_estimater)
+            classfier=copy.deepcopy(self.base_estimator)
             classfier.fit(X_sample,y_sample,sample_weight_sample)
-
         return self
 
     def evaluate(self,X,y=None):
@@ -97,7 +96,6 @@ class Assemble(InductiveEstimator,ClassifierMixin):
 
         self.y_score = self.predict_proba(X)
         self.y_pred=self.predict(X)
-
 
         if self.evaluation is None:
             return None
@@ -126,6 +124,3 @@ class Assemble(InductiveEstimator,ClassifierMixin):
                 print(performance, file=self.file)
             self.performance=performance
             return performance
-
-
-

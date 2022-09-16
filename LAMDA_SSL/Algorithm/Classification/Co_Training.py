@@ -132,9 +132,6 @@ class Co_Training(InductiveEstimator,ClassifierMixin):
         for i, (y1_i_dist, y2_i_dist) in enumerate(zip(y1_proba, y2_proba)):
             y_proba[i][0] = (y1_i_dist[0] + y2_i_dist[0]) / 2
             y_proba[i][1] = (y1_i_dist[1] + y2_i_dist[1]) / 2
-
-        _epsilon = 0.0001
-        assert all(abs(sum(y_dist) - 1) <= _epsilon for y_dist in y_proba)
         return y_proba
 
     def evaluate(self,X,y=None):

@@ -79,6 +79,7 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def init_optimizer(self):
+        self._optimizer = copy.deepcopy(self.optimizer)
         if isinstance(self._optimizer,BaseOptimizer):
             grouped_parameters=[
                 dict(params=self._network.conv1.parameters(), weight_decay=self.weight_decay),
@@ -92,6 +93,7 @@ class GCN(InductiveEstimator,DeepModelMixin,ClassifierMixin):
     def init_train_dataset(self, X=None, y=None, unlabeled_X=None,
                            edge_index=None,train_mask=None,labeled_mask=None,
                            unlabeled_mask=None,val_mask=None,test_mask=None):
+        self._train_dataset = copy.deepcopy(self.train_dataset)
         if isinstance(X,Dataset):
             X=X.data
         if not isinstance(X,Data):

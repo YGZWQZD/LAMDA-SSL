@@ -7,6 +7,7 @@ from sklearn.metrics.pairwise import rbf_kernel,linear_kernel
 import copy
 from torch.utils.data.dataset import Dataset
 import LAMDA_SSL.Config.LapSVM as config
+from scipy import sparse
 
 class LapSVM(InductiveEstimator,ClassifierMixin):
     # Binary
@@ -60,7 +61,6 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
 
         self.X=np.vstack([X,unlabeled_X])
         Y=np.diag(y)
-
         if self.distance_function == 'knn':
             if self.neighbor_mode=='connectivity':
                 W = kneighbors_graph(self.X, self.n_neighbor, mode='connectivity',include_self=False)
@@ -81,8 +81,7 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
                 W = self.distance_function(self.X, self.X)
         else:
             W=rbf_kernel(self.X,self.X,self.gamma_d)
-
-        L = np.diag(np.array(W.sum(0))) - W
+        L = sparse.csr_matrix(np.diag(np.array(W.sum(0))) - W)
 
         if self.kernel_function == 'rbf':
             K = rbf_kernel(self.X,self.X,self.gamma_k)
@@ -95,12 +94,12 @@ class LapSVM(InductiveEstimator,ClassifierMixin):
                 K = self.kernel_function(self.X, self.X)
         else:
             K = rbf_kernel(self.X, self.X, self.gamma_k)
+
         num_labeled=X.shape[0]
         num_unlabeled=unlabeled_X.shape[0]
         J = np.concatenate([np.identity(num_labeled), np.zeros(num_labeled * num_unlabeled).reshape(num_labeled, num_unlabeled)], axis=1)
         alpha_star = np.linalg.inv(2 * self.gamma_A * np.identity(num_labeled + num_unlabeled) \
                                      + ((2 * self.gamma_I) / (num_labeled + num_unlabeled) ** 2) * L.dot(K)).dot(J.T).dot(Y)
-
         Q = Y.dot(J).dot(K).dot(alpha_star)
         Q = (Q+Q.T)/2
 

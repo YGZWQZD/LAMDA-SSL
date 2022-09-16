@@ -126,6 +126,7 @@ class LadderNetwork(InductiveEstimator,DeepModelMixin,ClassifierMixin):
         self._network.train()
 
     def init_optimizer(self):
+        self._optimizer = copy.deepcopy(self.optimizer)
         if isinstance(self._optimizer,BaseOptimizer):
             self._optimizer=self._optimizer.init_optimizer(params=self._network.parameters())
 
