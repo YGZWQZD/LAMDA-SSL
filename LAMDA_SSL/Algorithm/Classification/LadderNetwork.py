@@ -184,7 +184,8 @@ class LadderNetwork(InductiveEstimator,DeepModelMixin,ClassifierMixin):
 
 
     def end_fit_epoch(self):
-        self._scheduler.step()
+        if self._scheduler is not None:
+            self._scheduler.step()
 
     @torch.no_grad()
     def estimate(self, X, idx=None, *args, **kwargs):

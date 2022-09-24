@@ -149,7 +149,7 @@ class FT_Transformer(nn.Module):
         categories=None,
         token_bias=True,
         # transformer
-        num_layers=3,
+        num_layers=8,
         dim_token=192,
         num_heads=8,
         d_ffn_factor= 4/3,
