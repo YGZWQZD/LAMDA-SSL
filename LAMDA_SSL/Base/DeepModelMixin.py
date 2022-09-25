@@ -246,7 +246,6 @@ class DeepModelMixin(SemiEstimator):
                 batch_sampler=self._train_batch_sampler,
                 mu=self.mu)
 
-
     def start_fit(self, *args, **kwargs):
         self.init_epoch()
         self._network.zero_grad()

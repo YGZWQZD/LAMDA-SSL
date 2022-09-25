@@ -68,7 +68,7 @@ class NetworkBlock(nn.Module):
 
 
 class WideResNet(nn.Module):
-    def __init__(self,  num_classes=10, depth=28, widen_factor=2, drop_rate=0.0, channel_in=3):
+    def __init__(self,  num_classes=10, depth=28, widen_factor=2, drop_rate=0.0, channel_in=3,output_features=False):
         # >> Parameter:
         # >> - num_classes: The number of classes.
         # >> - depth: The depth of network.
@@ -113,6 +113,7 @@ class WideResNet(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight.data)
                 m.bias.data.zero_()
+        self.output_features=output_features
 
     def forward(self, x):
         if len(x.shape)==3  and self.channels==1:
@@ -124,10 +125,14 @@ class WideResNet(nn.Module):
         out = self.relu(self.bn1(out))
         out = F.adaptive_avg_pool2d(out, 1)
         out = out.view(-1, self.channels)
+        self.features=out
         if isinstance(self.fc, ModuleList):
             output = []
             for c in self.fc:
                 output.append(c(out))
         else:
             output = self.fc(out)
-        return output
+        if self.output_features:
+            return self.features,output
+        else:
+            return output
