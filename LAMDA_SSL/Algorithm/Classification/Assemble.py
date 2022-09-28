@@ -66,7 +66,8 @@ class Assemble(InductiveEstimator,ClassifierMixin):
             for _ in range(l+u):
                 if _y_all[_]!=y_all[_]:
                     epsilon+=sample_weight[_]
-            w=np.log((1-epsilon)/epsilon)*0.5
+
+            w=np.log((1-epsilon)/(epsilon+1e-8))*0.5
             self.w.append(w)
             if epsilon>0.5:
                 break
@@ -80,13 +81,14 @@ class Assemble(InductiveEstimator,ClassifierMixin):
             else:
                 alpha=self.alpha
             sample_weight=alpha*np.exp(-logits)
-            sample_weight=sample_weight/sample_weight.sum()
+            sample_weight=(sample_weight+1e-8)/(sample_weight+1e-8).sum()
+            # num_sample=min((sample_weight!=0).sum(),l)
             idx_sample=np.random.choice(l+u,l,False,p=sample_weight.tolist())
             X_sample=X_all[idx_sample]
             y_sample=y_all[idx_sample]
             sample_weight_sample=sample_weight[idx_sample]
             classfier=copy.deepcopy(self.base_estimator)
-            classfier.fit(X_sample,y_sample,sample_weight_sample)
+            classfier.fit(X_sample,y_sample,sample_weight_sample*X_sample.shape[0])
         return self
 
     def evaluate(self,X,y=None):
