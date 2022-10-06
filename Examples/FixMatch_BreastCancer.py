@@ -6,7 +6,6 @@ from LAMDA_SSL.Evaluation.Classifier.Recall import Recall
 from LAMDA_SSL.Evaluation.Classifier.F1 import F1
 from LAMDA_SSL.Evaluation.Classifier.AUC import AUC
 from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
-from sklearn.svm import SVC
 from LAMDA_SSL.Network.FT_Transformer import FT_Transformer
 import numpy as np
 from LAMDA_SSL.Opitimizer.Adam import Adam
@@ -56,8 +55,6 @@ augmentation={
     'weak_augmentation':weak_augmentation,
     'strong_augmentation':strong_augmentation
 }
-# Base estimater
-SVM=SVC(probability=True)
 
 model=FixMatch(labeled_dataset=labeled_dataset, unlabeled_dataset=unlabeled_dataset,
                 test_dataset=test_dataset, device='cuda:0', augmentation=augmentation,
