@@ -265,6 +265,7 @@ class DeepModelMixin(SemiEstimator):
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()
+        # print(loss)
         loss.backward()
         self._optimizer.step()
         if self._scheduler is not None:
@@ -292,6 +293,7 @@ class DeepModelMixin(SemiEstimator):
             self.it_epoch += 1
             if self.verbose:
                 print(self.it_total,file=self.file)
+                print(self.it_total)
             if valid_X is not None and self.eval_it is not None and self.it_total % self.eval_it == 0:
                 self.evaluate(X=valid_X, y=valid_y,valid=True)
                 self.valid_performance.update({"epoch_" + str(self._epoch) + "_it_" + str(self.it_epoch): self.performance})
@@ -452,6 +454,7 @@ class DeepModelMixin(SemiEstimator):
                 performance.append(score)
                 if self.verbose:
                     print(score, file=self.file)
+                    print(score)
             self.performance = performance
             return performance
         elif isinstance(self.evaluation,dict):
@@ -463,6 +466,7 @@ class DeepModelMixin(SemiEstimator):
                     performance[key] = val.scoring(y, self.y_pred)
                 if self.verbose:
                     print(key,' ',performance[key],file=self.file)
+                    print(key, ' ', performance[key])
                 self.performance = performance
             return performance
         else:
@@ -472,5 +476,6 @@ class DeepModelMixin(SemiEstimator):
                 performance = self.evaluation.scoring(y, self.y_pred)
             if self.verbose:
                 print(performance, file=self.file)
+                print(performance)
             self.performance=performance
             return performance
