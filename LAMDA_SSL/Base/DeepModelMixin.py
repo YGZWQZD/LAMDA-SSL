@@ -265,7 +265,6 @@ class DeepModelMixin(SemiEstimator):
 
     def optimize(self,loss,*args,**kwargs):
         self._network.zero_grad()
-        # print(loss)
         loss.backward()
         self._optimizer.step()
         if self._scheduler is not None:
