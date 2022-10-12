@@ -12,7 +12,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
 
 setuptools.setup(
     name='LAMDA-SSL',
-    version="1.0.1",
+    version="1.0.2",
     author="Lin-Han Jia, Lan-Zhe Guo, Zhi Zhou, Yu-Feng Li",
     license='MIT',
     author_email="1129198222@qq.com",
@@ -27,7 +27,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     keywords=['Semi-Supervised Learning', 'Machine Learning', 'Deep Learning', 'Toolkit'],
-    install_requires=['scikit-learn','torch','torchtext',
+    install_requires=['scikit-learn','torchtext',
                       'torchvision','torch-geometric','Pillow',
                       'numpy','scipy','pandas','matplotlib'],
     python_requires='>=3.7',
