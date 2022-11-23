@@ -9,7 +9,7 @@ from LAMDA_SSL.Evaluation.Classifier.Confusion_Matrix import Confusion_Matrix
 from LAMDA_SSL.Split.ViewSplit import ViewSplit
 import numpy as np
 
-file = open("../Result/Co_Training_BreastCancer.txt", "w")
+file = open("../Result/Co_Training_Wine.txt", "w")
 
 dataset=Wine(test_size=0.3,labeled_size=0.1,stratified=True,shuffle=True,random_state=0,default_transforms=True)
 
@@ -41,7 +41,7 @@ evaluation={
     'Confusion_matrix':Confusion_Matrix(normalize='true')
 }
 
-model=Co_Training(evaluation=evaluation,verbose=True,file=file)
+model=Co_Training(binary=False,evaluation=evaluation,verbose=True,file=file)
 
 model.fit(X=split_labeled_X,y=labeled_y,unlabeled_X=split_unlabeled_X)
 
