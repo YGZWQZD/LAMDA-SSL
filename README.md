@@ -246,4 +246,4 @@ Feel free to contribute in any way you like, we're always open to new ideas and 
  LAMDA-SSL is developed by [LAMDA](https://www.lamda.nju.edu.cn/MainPage.ashx)@[NJU](https://www.nju.edu.cn/en/main.psp). Contributors are [Lin-Han Jia](https://github.com/YGZWQZD), [Lan-Zhe Guo](https://www.lamda.nju.edu.cn/guolz/), [Zhi Zhou](https://www.lamda.nju.edu.cn/zhouz/) and [Yu-Feng Li](https://www.lamda.nju.edu.cn/liyf/).
 
 # Contact
-If you have any questions, please contact us: Lin-Han Jia[jialh2118@gmail.com] and Zhi Zhou[zhouz@lamda.nju.edu.cn].
+If you have any questions, please contact us: Lin-Han Jia[jialh@lamda.nju.edu.cn].
