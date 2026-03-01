@@ -3,7 +3,6 @@
 
 ![](https://badgen.net/pypi/v/LAMDA-SSL)
 ![](https://anaconda.org/ygzwqzd/lamda-ssl/badges/version.svg)
-![](https://badgen.net/github/stars/YGZWQZD/LAMDA-SSL)
 ![](https://badgen.net/github/last-commit/YGZWQZD/LAMDA-SSL)
 
 ![](https://badgen.net/github/license/YGZWQZD/LAMDA-SSL)
